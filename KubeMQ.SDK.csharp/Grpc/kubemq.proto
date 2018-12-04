@@ -1,0 +1,97 @@
+syntax = "proto3";
+option csharp_namespace = "KubeMQ.Grpc"; // Namespace for c# generated classes; if omitted, will be the package.
+package kubemq;
+service kubemq {
+
+    rpc SendEvent (Event) returns (Result) {}
+    rpc SendEventsStream (stream Event) returns (stream Result) {}
+    rpc SubscribeToEvents (Subscribe) returns (stream EventReceive) {}
+    rpc SubscribeToRequests (Subscribe) returns (stream Request) {}
+    rpc SendRequest (Request) returns (Response) {}
+    rpc SendResponse(Response) returns (Empty) {}
+
+}
+
+message Empty {}
+
+message Result {
+    string  EventID     =1;
+    bool    Sent        =2;
+    string  Error       =3;
+}
+
+message Event {
+    string  EventID             =1;
+    string  ClientID            =2;
+    string  Channel             =3;
+    string  Metadata            =4;
+    bytes   Body                =5;
+    bool    Store               =6;
+}
+
+message EventReceive {
+    string  EventID             =1;
+    string  Channel             =2;
+    string  Metadata            =3;
+    bytes   Body                =4;
+    int64   Timestamp           =5;
+    uint64  Sequence            =6;
+}
+
+message Subscribe {
+    enum SubscribeType {
+        SubscribeTypeUndefined = 0;
+        Events                  =1;
+        EventsStore             =2;
+        Commands                =3;
+        Queries                 =4;
+
+    }
+    SubscribeType SubscribeTypeData         =1;
+    string ClientID                         =2;
+    string Channel                          =3;
+    string Group                            =4;
+    enum EventsStoreType {
+        EventsStoreTypeUndefined    =0;
+        StartNewOnly                =1;
+        StartFromFirst              =2;
+        StartFromLast               =3;
+        StartAtSequence             =4;
+        StartAtTime                 =5;
+        StartAtTimeDelta            =6;
+        StartFromLastDelivered      =7;
+    }
+    EventsStoreType EventsStoreTypeData     =5;
+    int64 EventsStoreTypeValue              =6;
+}
+
+message Request {
+    string  RequestID            =1;
+    enum RequestType {
+        RequestTypeUnknown      =0;
+        Command                 =1;
+        Query                   =2;
+    }
+    RequestType RequestTypeData =2;
+    string  ClientID            =3;
+    string  Channel             =4;
+    string  Metadata            =5;
+    bytes   Body                =6;
+    string  ReplyChannel        =7;
+    int32   Timeout             =8;
+    string  CacheKey            =9;
+    int32   CacheTTL            =10;
+    bytes   Context             =11;
+}
+message Response {
+    string  ClientID        =1;
+    string  RequestID       =2;
+    string  ReplyChannel    =3;
+    string  Metadata        =4;
+    bytes   Body            =5;
+    bool    CacheHit        =6;
+    int64   Timestamp       =7;
+    bool    Executed        =8;
+    string  Error           =9;
+    bytes   Context         =10;
+}
