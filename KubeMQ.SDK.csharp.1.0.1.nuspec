@@ -7,7 +7,9 @@
     <owners>KubeMQ</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>.NET Client for KubeMQ</description>
-     <dependencies>
+    <copyright>Copyright 2018</copyright>
+    <repository url="https://github.com/kubemq-io/CSharp_SDK" />
+    <dependencies>
       <group targetFramework=".NETFramework4.6.1">
         <dependency id="Google.Protobuf" version="3.6.0" exclude="Build,Analyzers" />
         <dependency id="Grpc.Core" version="1.12.0" exclude="Build,Analyzers" />
@@ -41,11 +43,8 @@
     </dependencies>
   </metadata>
   <files>
-  <file src="KubeMQ.SDK.csharp\bin\Release\net461\KubeMQ.SDK.csharp.dll" target="lib\net461\KubeMQ.SDK.csharp.dll" />
-    <file src="KubeMQ.SDK.csharp\bin\Release\net461\KubeMQ.SDK.csharp.pdb" target="lib\net461\KubeMQ.SDK.csharp.pdb" />
-    <file src="KubeMQ.SDK.csharp\bin\Release\net471\KubeMQ.SDK.csharp.dll" target="lib\net471\KubeMQ.SDK.csharp.dll" />
-	<file src="KubeMQ.SDK.csharp\bin\Release\net471\KubeMQ.SDK.csharp.pdb" target="lib\net471\KubeMQ.SDK.csharp.pdb" />
-    <file src="KubeMQ.SDK.csharp\bin\Release\netstandard2.0\KubeMQ.SDK.csharp.dll" target="lib\netstandard2.0\KubeMQ.SDK.csharp.dll" />
-	<file src="KubeMQ.SDK.csharp\bin\Release\netstandard2.0\KubeMQ.SDK.csharp.pdb" target="lib\netstandard2.0\KubeMQ.SDK.csharp.pdb" />
-      </files>
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\bin\Release\net461\KubeMQ.SDK.csharp.dll" target="lib\net461\KubeMQ.SDK.csharp.dll" />
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\bin\Release\net471\KubeMQ.SDK.csharp.dll" target="lib\net471\KubeMQ.SDK.csharp.dll" />
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\bin\Release\netstandard2.0\KubeMQ.SDK.csharp.dll" target="lib\netstandard2.0\KubeMQ.SDK.csharp.dll" />
+  </files>
 </package>

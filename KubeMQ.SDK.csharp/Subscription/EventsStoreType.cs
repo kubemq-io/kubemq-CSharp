@@ -9,7 +9,6 @@ namespace KubeMQ.SDK.csharp.Subscription
         StartFromLast = 3,
         StartAtSequence = 4,
         StartAtTime = 5,
-        StartAtTimeDelta = 6,
-        StartFromLastDelivered = 7
+        StartAtTimeDelta = 6  
     }
 }
