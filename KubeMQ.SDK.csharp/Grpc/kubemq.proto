@@ -59,7 +59,6 @@ message Subscribe {
         StartAtSequence             =4;
         StartAtTime                 =5;
         StartAtTimeDelta            =6;
-        StartFromLastDelivered      =7;
     }
     EventsStoreType EventsStoreTypeData     =5;
     int64 EventsStoreTypeValue              =6;
@@ -81,7 +80,7 @@ message Request {
     int32   Timeout             =8;
     string  CacheKey            =9;
     int32   CacheTTL            =10;
-    bytes   Context             =11;
+    bytes   Span             =11;
 }
 message Response {
     string  ClientID        =1;
@@ -93,5 +92,5 @@ message Response {
     int64   Timestamp       =7;
     bool    Executed        =8;
     string  Error           =9;
-    bytes   Context         =10;
+    bytes   Span         =10;
 }

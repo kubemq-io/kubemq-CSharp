@@ -31,37 +31,36 @@ namespace KubeMQ.Grpc {
             "Eg0KBVN0b3JlGAYgASgIInUKDEV2ZW50UmVjZWl2ZRIPCgdFdmVudElEGAEg",
             "ASgJEg8KB0NoYW5uZWwYAiABKAkSEAoITWV0YWRhdGEYAyABKAkSDAoEQm9k",
             "eRgEIAEoDBIRCglUaW1lc3RhbXAYBSABKAMSEAoIU2VxdWVuY2UYBiABKAQi",
-            "/wMKCVN1YnNjcmliZRI6ChFTdWJzY3JpYmVUeXBlRGF0YRgBIAEoDjIfLmt1",
+            "4wMKCVN1YnNjcmliZRI6ChFTdWJzY3JpYmVUeXBlRGF0YRgBIAEoDjIfLmt1",
             "YmVtcS5TdWJzY3JpYmUuU3Vic2NyaWJlVHlwZRIQCghDbGllbnRJRBgCIAEo",
             "CRIPCgdDaGFubmVsGAMgASgJEg0KBUdyb3VwGAQgASgJEj4KE0V2ZW50c1N0",
             "b3JlVHlwZURhdGEYBSABKA4yIS5rdWJlbXEuU3Vic2NyaWJlLkV2ZW50c1N0",
             "b3JlVHlwZRIcChRFdmVudHNTdG9yZVR5cGVWYWx1ZRgGIAEoAyJjCg1TdWJz",
             "Y3JpYmVUeXBlEhoKFlN1YnNjcmliZVR5cGVVbmRlZmluZWQQABIKCgZFdmVu",
             "dHMQARIPCgtFdmVudHNTdG9yZRACEgwKCENvbW1hbmRzEAMSCwoHUXVlcmll",
-            "cxAEIsABCg9FdmVudHNTdG9yZVR5cGUSHAoYRXZlbnRzU3RvcmVUeXBlVW5k",
+            "cxAEIqQBCg9FdmVudHNTdG9yZVR5cGUSHAoYRXZlbnRzU3RvcmVUeXBlVW5k",
             "ZWZpbmVkEAASEAoMU3RhcnROZXdPbmx5EAESEgoOU3RhcnRGcm9tRmlyc3QQ",
             "AhIRCg1TdGFydEZyb21MYXN0EAMSEwoPU3RhcnRBdFNlcXVlbmNlEAQSDwoL",
-            "U3RhcnRBdFRpbWUQBRIUChBTdGFydEF0VGltZURlbHRhEAYSGgoWU3RhcnRG",
-            "cm9tTGFzdERlbGl2ZXJlZBAHIrACCgdSZXF1ZXN0EhEKCVJlcXVlc3RJRBgB",
-            "IAEoCRI0Cg9SZXF1ZXN0VHlwZURhdGEYAiABKA4yGy5rdWJlbXEuUmVxdWVz",
-            "dC5SZXF1ZXN0VHlwZRIQCghDbGllbnRJRBgDIAEoCRIPCgdDaGFubmVsGAQg",
-            "ASgJEhAKCE1ldGFkYXRhGAUgASgJEgwKBEJvZHkYBiABKAwSFAoMUmVwbHlD",
-            "aGFubmVsGAcgASgJEg8KB1RpbWVvdXQYCCABKAUSEAoIQ2FjaGVLZXkYCSAB",
-            "KAkSEAoIQ2FjaGVUVEwYCiABKAUSDwoHQ29udGV4dBgLIAEoDCI9CgtSZXF1",
-            "ZXN0VHlwZRIWChJSZXF1ZXN0VHlwZVVua25vd24QABILCgdDb21tYW5kEAES",
-            "CQoFUXVlcnkQAiK8AQoIUmVzcG9uc2USEAoIQ2xpZW50SUQYASABKAkSEQoJ",
-            "UmVxdWVzdElEGAIgASgJEhQKDFJlcGx5Q2hhbm5lbBgDIAEoCRIQCghNZXRh",
-            "ZGF0YRgEIAEoCRIMCgRCb2R5GAUgASgMEhAKCENhY2hlSGl0GAYgASgIEhEK",
-            "CVRpbWVzdGFtcBgHIAEoAxIQCghFeGVjdXRlZBgIIAEoCBINCgVFcnJvchgJ",
-            "IAEoCRIPCgdDb250ZXh0GAogASgMMtcCCgZrdWJlbXESLAoJU2VuZEV2ZW50",
-            "Eg0ua3ViZW1xLkV2ZW50Gg4ua3ViZW1xLlJlc3VsdCIAEjcKEFNlbmRFdmVu",
-            "dHNTdHJlYW0SDS5rdWJlbXEuRXZlbnQaDi5rdWJlbXEuUmVzdWx0IgAoATAB",
-            "EkAKEVN1YnNjcmliZVRvRXZlbnRzEhEua3ViZW1xLlN1YnNjcmliZRoULmt1",
-            "YmVtcS5FdmVudFJlY2VpdmUiADABEj0KE1N1YnNjcmliZVRvUmVxdWVzdHMS",
-            "ES5rdWJlbXEuU3Vic2NyaWJlGg8ua3ViZW1xLlJlcXVlc3QiADABEjIKC1Nl",
-            "bmRSZXF1ZXN0Eg8ua3ViZW1xLlJlcXVlc3QaEC5rdWJlbXEuUmVzcG9uc2Ui",
-            "ABIxCgxTZW5kUmVzcG9uc2USEC5rdWJlbXEuUmVzcG9uc2UaDS5rdWJlbXEu",
-            "RW1wdHkiAEIOqgILS3ViZU1RLkdycGNiBnByb3RvMw=="));
+            "U3RhcnRBdFRpbWUQBRIUChBTdGFydEF0VGltZURlbHRhEAYirQIKB1JlcXVl",
+            "c3QSEQoJUmVxdWVzdElEGAEgASgJEjQKD1JlcXVlc3RUeXBlRGF0YRgCIAEo",
+            "DjIbLmt1YmVtcS5SZXF1ZXN0LlJlcXVlc3RUeXBlEhAKCENsaWVudElEGAMg",
+            "ASgJEg8KB0NoYW5uZWwYBCABKAkSEAoITWV0YWRhdGEYBSABKAkSDAoEQm9k",
+            "eRgGIAEoDBIUCgxSZXBseUNoYW5uZWwYByABKAkSDwoHVGltZW91dBgIIAEo",
+            "BRIQCghDYWNoZUtleRgJIAEoCRIQCghDYWNoZVRUTBgKIAEoBRIMCgRTcGFu",
+            "GAsgASgMIj0KC1JlcXVlc3RUeXBlEhYKElJlcXVlc3RUeXBlVW5rbm93bhAA",
+            "EgsKB0NvbW1hbmQQARIJCgVRdWVyeRACIrkBCghSZXNwb25zZRIQCghDbGll",
+            "bnRJRBgBIAEoCRIRCglSZXF1ZXN0SUQYAiABKAkSFAoMUmVwbHlDaGFubmVs",
+            "GAMgASgJEhAKCE1ldGFkYXRhGAQgASgJEgwKBEJvZHkYBSABKAwSEAoIQ2Fj",
+            "aGVIaXQYBiABKAgSEQoJVGltZXN0YW1wGAcgASgDEhAKCEV4ZWN1dGVkGAgg",
+            "ASgIEg0KBUVycm9yGAkgASgJEgwKBFNwYW4YCiABKAwy1wIKBmt1YmVtcRIs",
+            "CglTZW5kRXZlbnQSDS5rdWJlbXEuRXZlbnQaDi5rdWJlbXEuUmVzdWx0IgAS",
+            "NwoQU2VuZEV2ZW50c1N0cmVhbRINLmt1YmVtcS5FdmVudBoOLmt1YmVtcS5S",
+            "ZXN1bHQiACgBMAESQAoRU3Vic2NyaWJlVG9FdmVudHMSES5rdWJlbXEuU3Vi",
+            "c2NyaWJlGhQua3ViZW1xLkV2ZW50UmVjZWl2ZSIAMAESPQoTU3Vic2NyaWJl",
+            "VG9SZXF1ZXN0cxIRLmt1YmVtcS5TdWJzY3JpYmUaDy5rdWJlbXEuUmVxdWVz",
+            "dCIAMAESMgoLU2VuZFJlcXVlc3QSDy5rdWJlbXEuUmVxdWVzdBoQLmt1YmVt",
+            "cS5SZXNwb25zZSIAEjEKDFNlbmRSZXNwb25zZRIQLmt1YmVtcS5SZXNwb25z",
+            "ZRoNLmt1YmVtcS5FbXB0eSIAQg6qAgtLdWJlTVEuR3JwY2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -70,8 +69,8 @@ namespace KubeMQ.Grpc {
             new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Event), global::KubeMQ.Grpc.Event.Parser, new[]{ "EventID", "ClientID", "Channel", "Metadata", "Body", "Store" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.EventReceive), global::KubeMQ.Grpc.EventReceive.Parser, new[]{ "EventID", "Channel", "Metadata", "Body", "Timestamp", "Sequence" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Subscribe), global::KubeMQ.Grpc.Subscribe.Parser, new[]{ "SubscribeTypeData", "ClientID", "Channel", "Group", "EventsStoreTypeData", "EventsStoreTypeValue" }, null, new[]{ typeof(global::KubeMQ.Grpc.Subscribe.Types.SubscribeType), typeof(global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType) }, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Request), global::KubeMQ.Grpc.Request.Parser, new[]{ "RequestID", "RequestTypeData", "ClientID", "Channel", "Metadata", "Body", "ReplyChannel", "Timeout", "CacheKey", "CacheTTL", "Context" }, null, new[]{ typeof(global::KubeMQ.Grpc.Request.Types.RequestType) }, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Response), global::KubeMQ.Grpc.Response.Parser, new[]{ "ClientID", "RequestID", "ReplyChannel", "Metadata", "Body", "CacheHit", "Timestamp", "Executed", "Error", "Context" }, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Request), global::KubeMQ.Grpc.Request.Parser, new[]{ "RequestID", "RequestTypeData", "ClientID", "Channel", "Metadata", "Body", "ReplyChannel", "Timeout", "CacheKey", "CacheTTL", "Span" }, null, new[]{ typeof(global::KubeMQ.Grpc.Request.Types.RequestType) }, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Response), global::KubeMQ.Grpc.Response.Parser, new[]{ "ClientID", "RequestID", "ReplyChannel", "Metadata", "Body", "CacheHit", "Timestamp", "Executed", "Error", "Span" }, null, null, null)
           }));
     }
     #endregion
@@ -1189,7 +1188,6 @@ namespace KubeMQ.Grpc {
         [pbr::OriginalName("StartAtSequence")] StartAtSequence = 4,
         [pbr::OriginalName("StartAtTime")] StartAtTime = 5,
         [pbr::OriginalName("StartAtTimeDelta")] StartAtTimeDelta = 6,
-        [pbr::OriginalName("StartFromLastDelivered")] StartFromLastDelivered = 7,
       }
 
     }
@@ -1232,7 +1230,7 @@ namespace KubeMQ.Grpc {
       timeout_ = other.timeout_;
       cacheKey_ = other.cacheKey_;
       cacheTTL_ = other.cacheTTL_;
-      context_ = other.context_;
+      span_ = other.span_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1351,14 +1349,14 @@ namespace KubeMQ.Grpc {
       }
     }
 
-    /// <summary>Field number for the "Context" field.</summary>
-    public const int ContextFieldNumber = 11;
-    private pb::ByteString context_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "Span" field.</summary>
+    public const int SpanFieldNumber = 11;
+    private pb::ByteString span_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Context {
-      get { return context_; }
+    public pb::ByteString Span {
+      get { return span_; }
       set {
-        context_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        span_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -1385,7 +1383,7 @@ namespace KubeMQ.Grpc {
       if (Timeout != other.Timeout) return false;
       if (CacheKey != other.CacheKey) return false;
       if (CacheTTL != other.CacheTTL) return false;
-      if (Context != other.Context) return false;
+      if (Span != other.Span) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1402,7 +1400,7 @@ namespace KubeMQ.Grpc {
       if (Timeout != 0) hash ^= Timeout.GetHashCode();
       if (CacheKey.Length != 0) hash ^= CacheKey.GetHashCode();
       if (CacheTTL != 0) hash ^= CacheTTL.GetHashCode();
-      if (Context.Length != 0) hash ^= Context.GetHashCode();
+      if (Span.Length != 0) hash ^= Span.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1456,9 +1454,9 @@ namespace KubeMQ.Grpc {
         output.WriteRawTag(80);
         output.WriteInt32(CacheTTL);
       }
-      if (Context.Length != 0) {
+      if (Span.Length != 0) {
         output.WriteRawTag(90);
-        output.WriteBytes(Context);
+        output.WriteBytes(Span);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1498,8 +1496,8 @@ namespace KubeMQ.Grpc {
       if (CacheTTL != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(CacheTTL);
       }
-      if (Context.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Context);
+      if (Span.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Span);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1542,8 +1540,8 @@ namespace KubeMQ.Grpc {
       if (other.CacheTTL != 0) {
         CacheTTL = other.CacheTTL;
       }
-      if (other.Context.Length != 0) {
-        Context = other.Context;
+      if (other.Span.Length != 0) {
+        Span = other.Span;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1597,7 +1595,7 @@ namespace KubeMQ.Grpc {
             break;
           }
           case 90: {
-            Context = input.ReadBytes();
+            Span = input.ReadBytes();
             break;
           }
         }
@@ -1653,7 +1651,7 @@ namespace KubeMQ.Grpc {
       timestamp_ = other.timestamp_;
       executed_ = other.executed_;
       error_ = other.error_;
-      context_ = other.context_;
+      span_ = other.span_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1761,14 +1759,14 @@ namespace KubeMQ.Grpc {
       }
     }
 
-    /// <summary>Field number for the "Context" field.</summary>
-    public const int ContextFieldNumber = 10;
-    private pb::ByteString context_ = pb::ByteString.Empty;
+    /// <summary>Field number for the "Span" field.</summary>
+    public const int SpanFieldNumber = 10;
+    private pb::ByteString span_ = pb::ByteString.Empty;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Context {
-      get { return context_; }
+    public pb::ByteString Span {
+      get { return span_; }
       set {
-        context_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        span_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -1794,7 +1792,7 @@ namespace KubeMQ.Grpc {
       if (Timestamp != other.Timestamp) return false;
       if (Executed != other.Executed) return false;
       if (Error != other.Error) return false;
-      if (Context != other.Context) return false;
+      if (Span != other.Span) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1810,7 +1808,7 @@ namespace KubeMQ.Grpc {
       if (Timestamp != 0L) hash ^= Timestamp.GetHashCode();
       if (Executed != false) hash ^= Executed.GetHashCode();
       if (Error.Length != 0) hash ^= Error.GetHashCode();
-      if (Context.Length != 0) hash ^= Context.GetHashCode();
+      if (Span.Length != 0) hash ^= Span.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1860,9 +1858,9 @@ namespace KubeMQ.Grpc {
         output.WriteRawTag(74);
         output.WriteString(Error);
       }
-      if (Context.Length != 0) {
+      if (Span.Length != 0) {
         output.WriteRawTag(82);
-        output.WriteBytes(Context);
+        output.WriteBytes(Span);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1899,8 +1897,8 @@ namespace KubeMQ.Grpc {
       if (Error.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
       }
-      if (Context.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Context);
+      if (Span.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Span);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1940,8 +1938,8 @@ namespace KubeMQ.Grpc {
       if (other.Error.Length != 0) {
         Error = other.Error;
       }
-      if (other.Context.Length != 0) {
-        Context = other.Context;
+      if (other.Span.Length != 0) {
+        Span = other.Span;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1991,7 +1989,7 @@ namespace KubeMQ.Grpc {
             break;
           }
           case 82: {
-            Context = input.ReadBytes();
+            Span = input.ReadBytes();
             break;
           }
         }
