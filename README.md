@@ -71,7 +71,7 @@ See exactly how in the code examples in this document.
 # Usage: Main concepts
 
 - **Channel:** Represents the endpoint target. One-to-one or one-to-many. Real-Time Multicast.
-- **Group:** Optional parameter when subscribing to a channel. A set of subscribers can define the same group so that only one of the subscribers within the group will receive a specific event. Used mainly for load balancing. Subscribing without the group parameter ensures receiving all the channel messages.
+- **Group:** Optional parameter when subscribing to a channel. A set of subscribers can define the same group so that only one of the subscribers within the group will receive a specific event. Used mainly for load balancing. Subscribing without the group parameter ensures receiving all the channel messages.(When using Grouping all the programs that are assigned to the group need to have to same channel name)
 - **Metadata:** The metadata allows to pass additional information with the event. Can be in any form that can be presented as a string, i.e. struct, JSON, XML and many more.
 - **Body:** The actual content of the event. Can be in any form that is serializable into byte array, i.e. string, struct, JSON, XML, Collection, binary file and many more.
 - **ClientID:**  Displayed in logs, tracing and KubeMQ dashboard(When using EventStore it must be unique).
