@@ -57,6 +57,10 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         {
             RequestID = request.RequestID;
             ReplyChannel = request.ReplyChannel;
+            if (Timestamp == DateTime.MinValue)
+            {
+                Timestamp = DateTime.UtcNow;
+            }
         }
 
         internal Response(InnerResponse inner)
