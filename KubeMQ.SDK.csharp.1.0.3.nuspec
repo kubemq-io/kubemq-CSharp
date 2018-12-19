@@ -2,12 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>KubeMQ.SDK.csharp</id>
-    <version>1.0.1</version>
+    <version>1.0.3</version>
     <authors>KubeMQ</authors>
     <owners>KubeMQ</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>.NET Client for KubeMQ</description>
+    <projectUrl>http://kubemq.io/</projectUrl>
+    <description>.NET SDK Client for KubeMQ</description>
     <copyright>Copyright 2018</copyright>
+    <tags>Messaging Kubernetes</tags>
     <repository url="https://github.com/kubemq-io/CSharp_SDK" />
     <dependencies>
       <group targetFramework=".NETFramework4.6.1">
@@ -41,10 +43,19 @@
         <dependency id="System.Threading.Tasks.Dataflow" version="4.9.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
+    <contentFiles>
+      <files include="any/net461/Icon.png" buildAction="Content" />
+      <files include="any/net471/Icon.png" buildAction="Content" />
+      <files include="any/netstandard2.0/Icon.png" buildAction="Content" />
+    </contentFiles>
   </metadata>
   <files>
     <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\bin\Release\net461\KubeMQ.SDK.csharp.dll" target="lib\net461\KubeMQ.SDK.csharp.dll" />
     <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\bin\Release\net471\KubeMQ.SDK.csharp.dll" target="lib\net471\KubeMQ.SDK.csharp.dll" />
     <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\bin\Release\netstandard2.0\KubeMQ.SDK.csharp.dll" target="lib\netstandard2.0\KubeMQ.SDK.csharp.dll" />
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\Icon.png" target="content\Icon.png" />
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\Icon.png" target="contentFiles\any\net461\Icon.png" />
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\Icon.png" target="contentFiles\any\net471\Icon.png" />
+    <file src="G:\Projects\GITHUB\CSharp_SDK\KubeMQ.SDK.csharp\Icon.png" target="contentFiles\any\netstandard2.0\Icon.png" />
   </files>
 </package>
