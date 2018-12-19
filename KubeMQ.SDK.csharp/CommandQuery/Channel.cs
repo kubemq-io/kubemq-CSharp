@@ -29,7 +29,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// </summary>
         /// <param name="parameters">RequestChannelParameters that present a predefined set of parameters</param>
         public Channel(ChannelParameters parameters) : this(parameters.RequestsType, parameters.ChannelName, parameters.ClientID,
-            parameters.Timeout, parameters.CacheKey, parameters.CacheTTL, parameters.KubeMQAddress, parameters.Logger) { }
+            parameters.Timeout, parameters.CacheKey, parameters.CacheTTL, parameters.KubeMQAddress, parameters.Logger)
+        { }
 
         /// <summary>
         /// Initializes a new instance of the RequestChannel class using a set of parameters.
@@ -50,7 +51,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
             CacheKey = cacheKey ?? string.Empty;
             CacheTTL = cacheTTL;
 
-            if (!IsValide(out Exception ex))
+            if (!IsValid(out Exception ex))
             {
                 throw ex;
             }
@@ -60,62 +61,47 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         #endregion
 
         /// <summary>
-        /// Publish a single request using the KubeMQ , response will return in the passed handler.
+        /// Publish a single request using the KubeMQ
         /// </summary>
-        /// <param name="handler">Method that will be activated once receiving response .</param>
-        /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ . </param>
-        /// <returns>A task that represents the request that was sent using the SendRequest .</returns>
-        public async Task SendRequest(HandleResponseDelegate handler, Request request)
+        /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
+        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
+        /// <returns>Response</returns>
+        public Response SendRequest(Request request, RequestParameters overrideParams = null)
         {
-            await _initiator.SendRequest(handler, CreateLowLevelRequest(request));
+            return _initiator.SendRequest(CreateLowLevelRequest(request, overrideParams));
         }
 
         /// <summary>
-        /// 
+        /// Publish a single async request using the KubeMQ 
         /// </summary>
-        /// <param name="handler"></param>
-        /// <param name="request"></param>
-        /// <param name="overrideParams">Allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request. </param>
-        /// <returns></returns>
-        public async Task SendRequest(HandleResponseDelegate handler, Request request, RequestParameters overrideParams)
-        {
-            await _initiator.SendRequest(handler, CreateLowLevelRequest(request, overrideParams));
-        }
-
-        public async Task<Response> SendRequestAsync(Request request)
-        {
-            Response response = await _initiator.SendRequestAsync(CreateLowLevelRequest(request));
-            return response;
-        }
-
-        public async Task<Response> SendRequestAsync(Request request, RequestParameters overrideParams)
+        /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
+        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
+        /// <returns>Response</returns>
+        public async Task<Response> SendRequestAsync(Request request, RequestParameters overrideParams = null)
         {
             Response response = await _initiator.SendRequestAsync(CreateLowLevelRequest(request, overrideParams));
             return response;
         }
 
-        public Response SendRequest(Request request)
+        /// <summary>
+        /// Publish a single request using the KubeMQ , response will return in the passed handler.
+        /// </summary>
+        /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
+        /// <param name="handler">Method that will be activated once receiving response.</param>
+        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
+        /// <returns>A task that represents the request that was sent using the SendRequest .</returns>
+        public async Task SendRequest(Request request, HandleResponseDelegate handler, RequestParameters overrideParams = null)
         {
-            return _initiator.SendRequest(CreateLowLevelRequest(request));
+            await _initiator.SendRequest(CreateLowLevelRequest(request, overrideParams), handler);
         }
 
-        public Response SendRequest(Request request, RequestParameters overrideParams)
-        {
-            return _initiator.SendRequest(CreateLowLevelRequest(request, overrideParams));
-        }
-
-        private bool IsValide(out Exception ex)
+        private bool IsValid(out Exception ex)
         {
             if (string.IsNullOrWhiteSpace(ChannelName))
             {
                 ex = new ArgumentException("Parameter is mandatory", "ChannelName");
                 return false;
             }
-            //if (string.IsNullOrWhiteSpace(ClientID))
-            //{
-            //    ex = new ArgumentException("Parameter is mandatory", "ClientID");
-            //    return false;
-            //}
             if (RequestType == RequestType.RequestTypeUnknown)
             {
                 ex = new ArgumentException("Invalid Request Type", "RequestType");
@@ -130,9 +116,9 @@ namespace KubeMQ.SDK.csharp.CommandQuery
             return true;
         }
 
-        private LowLevel.Request CreateLowLevelRequest(Request request)
+        private LowLevel.Request CreateLowLevelRequest(Request request, RequestParameters overrideParams = null)
         {
-            return new LowLevel.Request()
+            LowLevel.Request req = new LowLevel.Request()
             {
                 RequestType = this.RequestType,
                 Channel = this.ChannelName,
@@ -143,26 +129,25 @@ namespace KubeMQ.SDK.csharp.CommandQuery
                 RequestID = request.RequestID,
                 Body = request.Body,
                 Metadata = request.Metadata
+
             };
-        }
 
-        private LowLevel.Request CreateLowLevelRequest(Request request, RequestParameters overrideParams)
-        {
-            LowLevel.Request req = CreateLowLevelRequest(request);
-
-            if (overrideParams.Timeout.HasValue)
+            if (overrideParams != null)
             {
-                req.Timeout = overrideParams.Timeout.Value;
-            }
+                if (overrideParams.Timeout.HasValue)
+                {
+                    req.Timeout = overrideParams.Timeout.Value;
+                }
 
-            if (overrideParams.CacheKey != null)
-            {
-                req.CacheKey = overrideParams.CacheKey;
-            }
+                if (overrideParams.CacheKey != null)
+                {
+                    req.CacheKey = overrideParams.CacheKey;
+                }
 
-            if (overrideParams.CacheTTL.HasValue)
-            {
-                req.CacheTTL = overrideParams.CacheTTL.Value;
+                if (overrideParams.CacheTTL.HasValue)
+                {
+                    req.CacheTTL = overrideParams.CacheTTL.Value;
+                }
             }
 
             return req;

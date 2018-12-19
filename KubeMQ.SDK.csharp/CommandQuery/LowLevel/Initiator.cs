@@ -44,7 +44,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         /// </summary>
         /// <param name="KubeMQAddress">KubeMQ server address</param>
         /// <param name="plogger">Microsoft.Extensions.Logging Ilogger</param>
-        public Initiator(string KubeMQAddress, ILogger plogger )
+        public Initiator(string KubeMQAddress, ILogger plogger)
         {
             _kubemqAddress = KubeMQAddress;
             logger = Logger.InitLogger(plogger, "Initiator");
@@ -57,7 +57,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         /// <param name="handler">Method that will be activated once receiving response.</param>
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
         /// <returns>A task that represents the request that was sent using the SendRequest.</returns>
-        public async Task SendRequest(HandleResponseDelegate handler, Request request)
+        public async Task SendRequest(Request request, HandleResponseDelegate handler)
         {
             try
             {
@@ -100,7 +100,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
                 //LogRequest(request);
 
                 InnerRequest innerRequest = request.Convert();
-                
+
                 // Send request and wait for response
                 InnerResponse innerResponse = await GetKubeMQClient().SendRequestAsync(innerRequest, _metadata);
 
