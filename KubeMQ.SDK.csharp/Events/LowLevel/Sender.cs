@@ -135,7 +135,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
 
                 // Send Event via GRPC RequestStream
                 await GetKubeMQClient().SendEventsStream(_metadata).RequestStream.WriteAsync(innerEvent);
-                
+
                 // Listen for Async Response (Result)
                 using (var call = GetKubeMQClient().SendEventsStream(_metadata))
                 {
@@ -158,7 +158,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
                         // await for response from queue
                         KubeMQGrpc.Result response = await _RecivedResults.ReceiveAsync();
 
-                        // Convert KubeMQ.Grpc.Result to outter Result
+                        // Convert KubeMQ.Grpc.Result to outer Result
                         Result result = new Result(response);
 
                         // Activate end-user Receive-Result-Delegate

@@ -96,9 +96,9 @@ namespace KubeMQ.SDK.csharp.Events
 
                     LogIncomingEvent(innerEvent);
 
-                    // Convert KubeMQ.Grpc.Event to outter Event
+                    // Convert KubeMQ.Grpc.Event to outer Event
                     EventReceive evnt = new EventReceive(innerEvent);
-                    
+
                     try
                     {
                         // Activate end-user event handler Delegate

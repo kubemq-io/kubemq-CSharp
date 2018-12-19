@@ -43,7 +43,8 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="parameters"></param>
         public Channel(ChannelParameters parameters) : this(parameters.ChannelName, parameters.ClientID,
-            parameters.Store, parameters.KubeMQAddress, parameters.Logger) { }
+            parameters.Store, parameters.KubeMQAddress, parameters.Logger)
+        { }
 
         /// <summary>
         /// Sending a new Event using the KubeMQ.
@@ -55,21 +56,21 @@ namespace KubeMQ.SDK.csharp.Events
             return _sender.SendEvent(CreateLowLevelEvent(notification));
         }
 
-        public Result SendEvent(Event notification, bool returnResult)
+        /// <summary>
+        /// bi-di streams 'SendEventStream (stream Event) returns (stream Result) ,closed by ClosesEventStreamAsync()
+        /// </summary>
+        /// <param name="notification">KubeMQ.SDK.csharp.Events.Event which represent the data to send using the KubeMQ.</param>
+        /// <param name="resultDelegate">Result stream handler delegate, use null when using Unidirectional no Result</param>
+        /// <returns></returns>
+        public async Task StreamEvent(Event notification, ReceiveResultDelegate resultDelegate = null)
         {
-            return _sender.SendEvent(CreateLowLevelEvent(notification, returnResult));
+            await _sender.StreamEvent(CreateLowLevelEvent(notification, (resultDelegate != null)), resultDelegate);
         }
 
-        public async Task StreamEvent(Event notification, ReceiveResultDelegate resultDelegate)
-        {
-            await _sender.StreamEvent(CreateLowLevelEvent(notification), resultDelegate);
-        }
-
-        public async Task StreamEvent(Event notification, bool returnResult, ReceiveResultDelegate resultDelegate)
-        {
-            await _sender.StreamEvent(CreateLowLevelEvent(notification, returnResult), resultDelegate);
-        }
-
+        /// <summary>
+        /// close bi-di streams 'SendEventStream (stream Event)
+        /// </summary>
+        /// <returns></returns>
         public async Task ClosesEventStreamAsync()
         {
             await _sender.ClosesEventStreamAsync();
@@ -82,11 +83,7 @@ namespace KubeMQ.SDK.csharp.Events
                 ex = new ArgumentException("Parameter is mandatory", "ChannelName");
                 return false;
             }
-            //if (Store && string.IsNullOrWhiteSpace(ClientID))
-            //{
-            //    ex = new ArgumentException("Parameter is mandatory", "ClientID");
-            //    return false;
-            //}
+
             ex = null;
             return true;
         }
