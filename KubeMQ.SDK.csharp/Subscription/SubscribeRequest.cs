@@ -42,7 +42,7 @@ namespace KubeMQ.SDK.csharp.Subscription
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.Subscription.SubscribeRequest using a set of parameters.
         /// </summary>
-        /// <param name="subscriptionTypeValue">Represents the type of Subscriber operation KubeMQ.SDK.csharp.Subscription.SubscribeType.</param>
+        /// <param name="subscriptionType">Represents the type of Subscriber operation KubeMQ.SDK.csharp.Subscription.SubscribeType.</param>
         /// <param name="clientID">Represents an identifier that will subscribe to kubeMQ under.</param>
         /// <param name="channel">Represents the channel name that will subscribe to under kubeMQ.</param>
         /// <param name="group">Represents the group the channel is assign to , if not filled will be empty string(no group).</param>        

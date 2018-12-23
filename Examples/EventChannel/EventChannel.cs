@@ -32,8 +32,7 @@ namespace EventChannel
                 ChannelName = this.ChannelName,
                 ClientID = "EventChannelID",
                 Store = ToStore,
-                Logger = this.logger,
-                ReturnResult = false
+                Logger = this.logger              
             };
             return parameters;
         }

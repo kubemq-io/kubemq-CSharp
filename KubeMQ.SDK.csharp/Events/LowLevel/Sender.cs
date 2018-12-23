@@ -58,7 +58,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
         /// <summary>
         /// Publish a single event using the KubeMQ.
         /// </summary>
-        /// <param name="event">KubeMQ:Event Class.</param>
+        /// <param name="notification">KubeMQ:Event Class.</param>
         /// <returns>KubeMQ.SDK.csharp.PubSub.Result that contain info regarding event status.</returns>
         public Result SendEvent(Event notification)
         {
@@ -117,7 +117,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
         /// <summary>
         /// publish a constant stream of events.
         /// </summary>
-        /// <param name="event">KubeMQ:Event Class.</param>
+        /// <param name="notification">KubeMQ:Event Class.</param>
         /// <param name="resultDelegate"></param>
         /// <returns>A task that represents the event request that was sent using the StreamEvent .</returns>
         public async Task StreamEvent(Event notification, ReceiveResultDelegate resultDelegate)
