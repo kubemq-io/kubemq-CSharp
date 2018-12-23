@@ -3,7 +3,7 @@
 namespace KubeMQ.SDK.csharp.CommandQuery
 {
     /// <summary>
-    /// Contain a set of parameters that can be passed to KubeMQ.SDK.csharp.RequestReply.RequestChannelParameters CTOR .
+    /// Contain a set of parameters that can be passed to KubeMQ.SDK.csharp.CommandQuery.ChannelParameters CTOR .
     /// </summary>
     public class ChannelParameters
     {
@@ -37,27 +37,28 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// </summary>
         public string KubeMQAddress { get; set; }
         /// <summary>
-        /// Represents a type used to perform logging.
+        /// Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK when null.
         /// </summary>
         public ILogger Logger { get; set; }
         #endregion
 
         #region C'tor
         /// <summary>
-        /// Initializes a new instance of the KubeMQ.SDK.csharp.RequestReply.RequestChannelParameters class.
+        /// Initializes a new instance of the KubeMQ.SDK.csharp.CommandQuery.ChannelParameters class.
         /// </summary>
         public ChannelParameters() { }
 
         /// <summary>
-        /// Initializes a new instance of the KubeMQ.SDK.csharp.RequestReply.RequestChannelParameters class with set parameters.
+        /// Initializes a new instance of the KubeMQ.SDK.csharp.CommandQuery.ChannelParameters class with set parameters.
         /// </summary>
-        /// <param name="channelName">Represents The channel name to send to using the KubeMQ .</param>
-        /// <param name="clientID">Represents the sender ID that the messages will be send under</param>
+        /// <param name="requestsType">KubeMQ.SDK.csharp.CommandQuery, Represents the channel type Command/Query</param>
+        /// <param name="channelName">Represents The channel name to send to using the KubeMQ.</param>
+        /// <param name="clientID">Represents the sender ID that the messages will be send under.</param>
         /// <param name="timeout">Represents the limit for waiting for response (Milliseconds).</param>
         /// <param name="cacheKey">Cache time to live : for how long does the request should be saved in Cache.</param>
         /// <param name="cacheTTL">Represents The address of the KubeMQ server.</param>
         /// <param name="kubeMQAddress">Represents The address of the KubeMQ server.</param>
-        /// <param name="logger">Represents a type used to perform logging.</param>
+        /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK when null.</param>
         public ChannelParameters(RequestType requestsType, string channelName,string clientID,int timeout,string cacheKey,int cacheTTL,string kubeMQAddress,ILogger logger)
         {
             RequestsType = requestsType;
