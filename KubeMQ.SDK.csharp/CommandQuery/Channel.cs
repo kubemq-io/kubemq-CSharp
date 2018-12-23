@@ -35,14 +35,15 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <summary>
         /// Initializes a new instance of the RequestChannel class using a set of parameters.
         /// </summary>
-        /// <param name="channelName">Represents The channel name to send to using the KubeMQ .</param>
+        /// <param name="requestsType">KubeMQ.SDK.csharp.CommandQuery, Represents the channel type Command/Query.</param>
+        /// <param name="channelName">Represents The channel name to send to using the KubeMQ.</param>
         /// <param name="clientID">Represents the sender ID that the Request will be send under.</param>
         /// <param name="timeout">Represents the limit for waiting for response (Milliseconds)</param>
         /// <param name="cacheKey">Represents if the request should be saved from Cache and under what "Key"(System.String) to save it.</param>
         /// <param name="cacheTTL">Cache time to live : for how long does the request should be saved in Cache</param>
-        /// <param name="kubeMQAddress">KubeMQ server address.</param>
-        /// <param name="logger">Microsoft.Extensions.Logging Ilogger.</param>
-        public Channel(RequestType requestsType, string channelName, string clientID, int timeout, string cacheKey, int cacheTTL, string KubeMQAddress, ILogger logger)
+        /// <param name="KubeMQAddress">KubeMQ server address.</param>
+        /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
+        public Channel(RequestType requestsType, string channelName, string clientID, int timeout, string cacheKey, int cacheTTL, string KubeMQAddress, ILogger logger = null)
         {
             RequestType = requestsType;
             ChannelName = channelName;
