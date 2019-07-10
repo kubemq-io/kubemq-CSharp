@@ -20,6 +20,7 @@ namespace KubeMQ.SDK.csharp.Queue
 
     public class Message
     {
+        private static int _id = 0;
         public string MessageID { get; set; }
         public string Metadata { get; set; }
         public IEnumerable<(string, string)> Tags { get; set; }
@@ -55,6 +56,7 @@ namespace KubeMQ.SDK.csharp.Queue
     }
     public class Queue:  GrpcClient
     {
+        private static int _id = 0;
         public string QueueName { get; set; }
         public string ClientID { get; set; }
         public int MaxNumberOfMessagesQueueMessages { get; private set; }
@@ -187,105 +189,104 @@ namespace KubeMQ.SDK.csharp.Queue
         }
 
         #region "Transactional"
-        public void AckMessage(StreamQueueMessagesResponse streamQueueMessagesResponse)
-        {
-            kubemqClient x = new kubemqClient();
-
-            // Send Event via GRPC RequestStream
-             x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-
-            }
-        public void RejectMessage()
-        {
-            kubemqClient x = new kubemqClient();
-
-            // Send Event via GRPC RequestStream
-            x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-        }
-        public void ModifyVisibility()
-        {
-            kubemqClient x = new kubemqClient();
-
-            // Send Event via GRPC RequestStream
-            x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-        }
-        public void ResendMessage()
-        {
-            kubemqClient x = new kubemqClient();
-
-            // Send Event via GRPC RequestStream
-            x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-        }
-        public void ModifiedMessage()
-        {
-            kubemqClient x = new kubemqClient();
-
-            // Send Event via GRPC RequestStream
-            x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-        }
-
-        public StreamQueueMessagesResponse ReceiveQueueTannMessage()
-        {
-            kubemqClient x = new kubemqClient();
-            x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest()
-            {
-
-                ClientID = ClientID,
-                QueueName= QueueName
-            }                
-            );
-            using (var call = x.StreamQueueMessage())
-            {
-                // Wait for Response..
-                 call.ResponseStream.MoveNext(CancellationToken.None);
-
-               return call.ResponseStream.Current;
-            }
-        }
-
-
-
-        public async Task StreamQueueMessage()
-        {
-            kubemqClient x = new kubemqClient();
-
-            // implement bi-di streams 'SendEventStream (stream Event) returns (stream Result)'
-            try
-            {
+        //public void AckMessage(StreamQueueMessagesResponse streamQueueMessagesResponse)
+        //{
            
-                // Send Event via GRPC RequestStream
-                await x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
 
-                // Listen for Async Response (Result)
-                using (var call = x.StreamQueueMessage())
-                {
-                    // Wait for Response..
-                    await call.ResponseStream.MoveNext(CancellationToken.None);
+        //    // Send Event via GRPC RequestStream
+        //     x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
 
-                    // Received a Response
-                    StreamQueueMessagesResponse response = call.ResponseStream.Current;
-                }
-            }
-            catch (RpcException ex)
-            {
-               // logger.LogError(ex, "RPC Exception in StreamEvent");
+        //    }
+        //public void RejectMessage()
+        //{
+        //    kubemqClient x = new kubemqClient();
 
-                throw new RpcException(ex.Status);
-            }
-            catch (Exception ex)
-            {
-               // logger.LogError(ex, "Exception in StreamEvent");
+        //    // Send Event via GRPC RequestStream
+        //    x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+        //}
+        //public void ModifyVisibility()
+        //{
+        //    kubemqClient x = new kubemqClient();
 
-                throw new Exception(ex.Message);
-            }
-        }
+        //    // Send Event via GRPC RequestStream
+        //    x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+        //}
+        //public void ResendMessage()
+        //{
+        //    kubemqClient x = new kubemqClient();
+
+        //    // Send Event via GRPC RequestStream
+        //    x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+        //}
+        //public void ModifiedMessage()
+        //{
+        //    kubemqClient x = new kubemqClient();
+
+        //    // Send Event via GRPC RequestStream
+        //    x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+        //}
+
+        //public StreamQueueMessagesResponse ReceiveQueueTannMessage()
+        //{
+        //    kubemqClient x = new kubemqClient();
+        //    x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest()
+        //    {
+
+        //        ClientID = ClientID,
+        //        QueueName= QueueName
+        //    }                
+        //    );
+        //    using (var call = x.StreamQueueMessage())
+        //    {
+        //        // Wait for Response..
+        //         call.ResponseStream.MoveNext(CancellationToken.None);
+
+        //       return call.ResponseStream.Current;
+        //    }
+        //}
+
+
+
+        //public async Task StreamQueueMessage()
+        //{
+        //    kubemqClient x = new kubemqClient();
+
+        //    // implement bi-di streams 'SendEventStream (stream Event) returns (stream Result)'
+        //    try
+        //    {
+           
+        //        // Send Event via GRPC RequestStream
+        //        await x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+
+        //        // Listen for Async Response (Result)
+        //        using (var call = x.StreamQueueMessage())
+        //        {
+        //            // Wait for Response..
+        //            await call.ResponseStream.MoveNext(CancellationToken.None);
+
+        //            // Received a Response
+        //            StreamQueueMessagesResponse response = call.ResponseStream.Current;
+        //        }
+        //    }
+        //    catch (RpcException ex)
+        //    {
+        //       // logger.LogError(ex, "RPC Exception in StreamEvent");
+
+        //        throw new RpcException(ex.Status);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //       // logger.LogError(ex, "Exception in StreamEvent");
+
+        //        throw new Exception(ex.Message);
+        //    }
+        //}
 
         #endregion
 
         public PingResult Ping()
         {
-            kubemqClient x = new kubemqClient();
-            PingResult rec =  x.Ping(null);
+            PingResult rec = GetKubeMQClient().Ping(null);
             return rec;
                 
         }
