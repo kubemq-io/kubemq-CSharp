@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		KubeMQ.SDK.csharp.1.0.4.nupkg = KubeMQ.SDK.csharp.1.0.4.nupkg
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queue", "Queue\Queue.csproj", "{C0909E63-93CC-404C-8F9D-51918F8DE6CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{1C0C7CF2-9C68-487E-A4DA-C286AC697920}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C0C7CF2-9C68-487E-A4DA-C286AC697920}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C0C7CF2-9C68-487E-A4DA-C286AC697920}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0909E63-93CC-404C-8F9D-51918F8DE6CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0909E63-93CC-404C-8F9D-51918F8DE6CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0909E63-93CC-404C-8F9D-51918F8DE6CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0909E63-93CC-404C-8F9D-51918F8DE6CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +82,7 @@ Global
 		{651D6772-150D-4116-B99F-56751D40461F} = {2CA36379-35F8-4229-9924-BFB8201362D1}
 		{54AF60B9-7AD8-4459-9720-45493AF90A94} = {2CA36379-35F8-4229-9924-BFB8201362D1}
 		{1C0C7CF2-9C68-487E-A4DA-C286AC697920} = {2CA36379-35F8-4229-9924-BFB8201362D1}
+		{C0909E63-93CC-404C-8F9D-51918F8DE6CA} = {2CA36379-35F8-4229-9924-BFB8201362D1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD39498-1EF2-4078-8704-67980A50B49B}
