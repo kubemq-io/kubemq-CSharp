@@ -154,12 +154,6 @@ namespace KubeMQ.Grpc {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
-      /// <summary>
-      /// send rrrr
-      /// </summary>
-      /// <param name="request">The request received from the client.</param>
-      /// <param name="context">The context of the server-side call handler being invoked.</param>
-      /// <returns>The response to send back to the client (wrapped by a task).</returns>
       public virtual global::System.Threading.Tasks.Task<global::KubeMQ.Grpc.Response> SendRequest(global::KubeMQ.Grpc.Request request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
@@ -170,6 +164,12 @@ namespace KubeMQ.Grpc {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
+      /// <summary>
+      ///Snend dfsf
+      /// </summary>
+      /// <param name="request">The request received from the client.</param>
+      /// <param name="context">The context of the server-side call handler being invoked.</param>
+      /// <returns>The response to send back to the client (wrapped by a task).</returns>
       public virtual global::System.Threading.Tasks.Task<global::KubeMQ.Grpc.SendQueueMessageResult> SendQueueMessage(global::KubeMQ.Grpc.QueueMessage request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
@@ -270,46 +270,18 @@ namespace KubeMQ.Grpc {
       {
         return CallInvoker.AsyncServerStreamingCall(__Method_SubscribeToRequests, null, options, request);
       }
-      /// <summary>
-      /// send rrrr
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
-      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
-      /// <param name="cancellationToken">An optional token for canceling the call.</param>
-      /// <returns>The response received from the server.</returns>
       public virtual global::KubeMQ.Grpc.Response SendRequest(global::KubeMQ.Grpc.Request request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         return SendRequest(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
-      /// <summary>
-      /// send rrrr
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="options">The options for the call.</param>
-      /// <returns>The response received from the server.</returns>
       public virtual global::KubeMQ.Grpc.Response SendRequest(global::KubeMQ.Grpc.Request request, grpc::CallOptions options)
       {
         return CallInvoker.BlockingUnaryCall(__Method_SendRequest, null, options, request);
       }
-      /// <summary>
-      /// send rrrr
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
-      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
-      /// <param name="cancellationToken">An optional token for canceling the call.</param>
-      /// <returns>The call object.</returns>
       public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.Response> SendRequestAsync(global::KubeMQ.Grpc.Request request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         return SendRequestAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
-      /// <summary>
-      /// send rrrr
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="options">The options for the call.</param>
-      /// <returns>The call object.</returns>
       public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.Response> SendRequestAsync(global::KubeMQ.Grpc.Request request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendRequest, null, options, request);
@@ -330,18 +302,46 @@ namespace KubeMQ.Grpc {
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendResponse, null, options, request);
       }
+      /// <summary>
+      ///Snend dfsf
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The response received from the server.</returns>
       public virtual global::KubeMQ.Grpc.SendQueueMessageResult SendQueueMessage(global::KubeMQ.Grpc.QueueMessage request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         return SendQueueMessage(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
+      /// <summary>
+      ///Snend dfsf
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The response received from the server.</returns>
       public virtual global::KubeMQ.Grpc.SendQueueMessageResult SendQueueMessage(global::KubeMQ.Grpc.QueueMessage request, grpc::CallOptions options)
       {
         return CallInvoker.BlockingUnaryCall(__Method_SendQueueMessage, null, options, request);
       }
+      /// <summary>
+      ///Snend dfsf
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
+      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
+      /// <param name="cancellationToken">An optional token for canceling the call.</param>
+      /// <returns>The call object.</returns>
       public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.SendQueueMessageResult> SendQueueMessageAsync(global::KubeMQ.Grpc.QueueMessage request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         return SendQueueMessageAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
+      /// <summary>
+      ///Snend dfsf
+      /// </summary>
+      /// <param name="request">The request to send to the server.</param>
+      /// <param name="options">The options for the call.</param>
+      /// <returns>The call object.</returns>
       public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.SendQueueMessageResult> SendQueueMessageAsync(global::KubeMQ.Grpc.QueueMessage request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendQueueMessage, null, options, request);

@@ -2304,6 +2304,9 @@ namespace KubeMQ.Grpc {
 
   }
 
+  /// <summary>
+  ///safasfiahudfasf
+  /// </summary>
   public sealed partial class QueueMessage : pb::IMessage<QueueMessage> {
     private static readonly pb::MessageParser<QueueMessage> _parser = new pb::MessageParser<QueueMessage>(() => new QueueMessage());
     private pb::UnknownFieldSet _unknownFields;
@@ -2416,7 +2419,9 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.QueueMessageAttributes Attributes {
       get { return attributes_; }
-      
+      set {
+        attributes_ = value;
+      }
     }
 
     /// <summary>Field number for the "Policy" field.</summary>
@@ -2425,7 +2430,9 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.QueueMessagePolicy Policy {
       get { return policy_; }
-     
+      set {
+        policy_ = value;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2820,7 +2827,9 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string BatchID {
       get { return batchID_; }
-     
+      set {
+        batchID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     /// <summary>Field number for the "Results" field.</summary>
@@ -2838,7 +2847,10 @@ namespace KubeMQ.Grpc {
     private bool haveErrors_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool HaveErrors {
-      get { return haveErrors_; }    
+      get { return haveErrors_; }
+      set {
+        haveErrors_ = value;
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3544,7 +3556,9 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public long SentAt {
       get { return sentAt_; }
-     
+      set {
+        sentAt_ = value;
+      }
     }
 
     /// <summary>Field number for the "ExpirationAt" field.</summary>
@@ -3553,7 +3567,9 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public long ExpirationAt {
       get { return expirationAt_; }
-    
+      set {
+        expirationAt_ = value;
+      }
     }
 
     /// <summary>Field number for the "DelayedTo" field.</summary>
@@ -3561,7 +3577,10 @@ namespace KubeMQ.Grpc {
     private long delayedTo_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public long DelayedTo {
-      get { return delayedTo_; }    
+      get { return delayedTo_; }
+      set {
+        delayedTo_ = value;
+      }
     }
 
     /// <summary>Field number for the "IsError" field.</summary>
@@ -3569,7 +3588,10 @@ namespace KubeMQ.Grpc {
     private bool isError_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool IsError {
-      get { return isError_; }     
+      get { return isError_; }
+      set {
+        isError_ = value;
+      }
     }
 
     /// <summary>Field number for the "Error" field.</summary>
@@ -3578,7 +3600,9 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string Error {
       get { return error_; }
-    
+      set {
+        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
