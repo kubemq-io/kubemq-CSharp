@@ -1,197 +1,234 @@
-﻿using Google.Protobuf;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Grpc.Core;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using static KubeMQ.Grpc.kubemq;
 using KubeMQGrpc = KubeMQ.Grpc;
 
-namespace KubeMQ.SDK.csharp.Queue
-{
-    public class QueueMessageConstans
-    {
+namespace KubeMQ.SDK.csharp.Queue {
+    public class QueueMessageConstans {
         public string QueueName { get; set; }
         public string ClientID { get; set; }
+
+        public string KubeMQAddress { get; set; }
     }
 
-    public class Message
-    {
+    public class Message {
         private static int _id = 0;
         public string MessageID { get; set; }
         public string Metadata { get; set; }
-        public IEnumerable<(string, string)> Tags { get; set; }
+        public IEnumerable < (string, string) > Tags { get; set; }
         public byte[] Body { get; set; }
 
-        public Message()
-        {
+        public Message () {
 
         }
-        public Message(byte[] body, string metadata, string messageID = null, IEnumerable<(string, string)> tags = null)
-        {
-            MessageID = string.IsNullOrEmpty(messageID) ? GetNextId().ToString() : messageID;
+        public Message (byte[] body, string metadata, string messageID = null, IEnumerable < (string, string) > tags = null) {
+            MessageID = string.IsNullOrEmpty (messageID) ? GetNextId ().ToString () : messageID;
             Metadata = metadata;
             Tags = tags;
             Body = body;
         }
 
-        private int GetNextId()
-        {
+        private int GetNextId () {
             //return Interlocked.Increment(ref _id);
 
             int temp, temp2;
 
-            do
-            {
+            do {
                 temp = _id;
                 temp2 = temp == ushort.MaxValue ? 1 : temp + 1;
             }
-            while (Interlocked.CompareExchange(ref _id, temp2, temp) != temp);
+            while (Interlocked.CompareExchange (ref _id, temp2, temp) != temp);
             return _id;
         }
 
     }
-    public class Queue:  GrpcClient
-    {
+    public class Queue : GrpcClient {
         private static int _id = 0;
-        public string QueueName { get; set; }
-        public string ClientID { get; set; }
+        public Queue (string queueName, string clientID, int maxNumberOfMessagesQueueMessages, int waitTimeSecondsQueueMessages) {
+            this.QueueName = queueName;
+            this.ClientID = clientID;
+            this.MaxNumberOfMessagesQueueMessages = maxNumberOfMessagesQueueMessages;
+            this.WaitTimeSecondsQueueMessages = waitTimeSecondsQueueMessages;
+
+        }
+        public string QueueName { get; private set; }
+        public string ClientID { get; private set; }
         public int MaxNumberOfMessagesQueueMessages { get; private set; }
         public int WaitTimeSecondsQueueMessages { get; private set; }
 
-        public Queue()
-        {
-            
+        public Queue () {
+
         }
-        public Queue(string queueName, string clientID)
-        {
+        public Queue (string queueName, string clientID, string KubeMQAddress = null) {
             QueueName = queueName;
             ClientID = clientID;
+            _kubemqAddress = KubeMQAddress;
+
         }
-        public Queue(QueueMessageConstans constans):this (constans.QueueName, constans.ClientID)
-        {
-          
+        public Queue (QueueMessageConstans constans) : this (constans.QueueName, constans.ClientID, constans.KubeMQAddress) {
+
         }
 
-        public SendQueueMessageResult SendQueueMessage(Message message)
-        {
-            
-            SendQueueMessageResult rec = GetKubeMQClient().SendQueueMessage(new KubeMQGrpc.QueueMessage
-            {
+        public SendQueueMessageResult SendQueueMessage (Message message) {
 
-                MessageID= message.MessageID,
-                Metadata = message.Metadata,
-                ClientID = ClientID,
-                QueueName = QueueName,
-                Tags = { convertTags(message.Tags) },
-                Body = ByteString.CopyFrom(message.Body)
+            SendQueueMessageResult rec = GetKubeMQClient ().SendQueueMessage (new KubeMQGrpc.QueueMessage {
+
+                MessageID = message.MessageID,
+                    Metadata = message.Metadata,
+                    ClientID = ClientID,
+                    QueueName = QueueName,
+                    Tags = { convertTags (message.Tags) },
+                    Body = ByteString.CopyFrom (message.Body)
             });
-            
-          
+
             return rec;
         }
 
-        private MapField<string, string> convertTags(IEnumerable<(string, string)> tags)
-        {
-            MapField<string, string> keyValuePairs = new MapField<string, string>();
-            if (tags!=null)
-            {
-                foreach (var item in tags)
-                {
-                    keyValuePairs.Add(item.Item1, item.Item2);
+        private MapField<string, string> convertTags (IEnumerable < (string, string) > tags) {
+            MapField<string, string> keyValuePairs = new MapField<string, string> ();
+            if (tags != null) {
+                foreach (var item in tags) {
+                    keyValuePairs.Add (item.Item1, item.Item2);
                 }
             }
             return keyValuePairs;
         }
 
-        public QueueMessagesBatchResponse SendQueueMessagesBatch(IEnumerable<Message> queueMessages, string batchID = null)
-        {
-            QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
-            {
-                BatchID = string.IsNullOrEmpty(batchID) ? GetNextId().ToString() : batchID,
-                Messages = { convertMesages(queueMessages) }
+        public QueueMessagesBatchResponse SendQueueMessagesBatch (IEnumerable<Message> queueMessages, string batchID = null) {
+            QueueMessagesBatchResponse rec = GetKubeMQClient ().SendQueueMessagesBatch (new QueueMessagesBatchRequest {
+                BatchID = string.IsNullOrEmpty (batchID) ? GetNextId ().ToString () : batchID,
+                    Messages = { convertMesages (queueMessages) }
             });
 
             return rec;
         }
 
-        private int GetNextId()
-        {
+        private int GetNextId () {
             //return Interlocked.Increment(ref _id);
 
             int temp, temp2;
 
-            do
-            {
+            do {
                 temp = _id;
                 temp2 = temp == ushort.MaxValue ? 1 : temp + 1;
             }
-            while (Interlocked.CompareExchange(ref _id, temp2, temp) != temp);
+            while (Interlocked.CompareExchange (ref _id, temp2, temp) != temp);
             return _id;
         }
 
-        private RepeatedField<QueueMessage> convertMesages(IEnumerable<Message> queueMessages)
-        {
-            RepeatedField<QueueMessage> testc = new RepeatedField<QueueMessage>();
-            foreach (var item in queueMessages)
-            {
-                testc.Add(new QueueMessage
-                {
+        private RepeatedField<QueueMessage> convertMesages (IEnumerable<Message> queueMessages) {
+            RepeatedField<QueueMessage> testc = new RepeatedField<QueueMessage> ();
+            foreach (var item in queueMessages) {
+                testc.Add (new QueueMessage {
                     ClientID = ClientID,
-                    QueueName = QueueName,
-                    MessageID = item.MessageID,
-                    Body = ByteString.CopyFrom(item.Body),
-                    Metadata = item.Metadata,
-                    Tags = { convertTags(item.Tags) },
+                        QueueName = QueueName,
+                        MessageID = item.MessageID,
+                        Body = ByteString.CopyFrom (item.Body),
+                        Metadata = item.Metadata,
+                        Tags = { convertTags (item.Tags) },
                 });
             }
             return testc;
         }
 
-        public ReceiveQueueMessagesResponse ReceiveQueueMessages()
-        {
+        public ReceiveQueueMessagesResponse ReceiveQueueMessages () {
 
-            ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
-            {
-                RequestID = GetNextId().ToString(),
-                ClientID = ClientID,
-                QueueName = QueueName,
+            ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
+                RequestID = GetNextId ().ToString (),
+                    ClientID = ClientID,
+                    QueueName = QueueName,
 
-                MaxNumberOfMessages = MaxNumberOfMessagesQueueMessages,
-                WaitTimeSeconds = WaitTimeSecondsQueueMessages
+                    MaxNumberOfMessages = MaxNumberOfMessagesQueueMessages,
+                    WaitTimeSeconds = WaitTimeSecondsQueueMessages
             });
 
             return rec;
         }
-        public PeakQueueMessageResponse PeakQueueMessage()
-        {
-            PeakQueueMessageResponse rec = GetKubeMQClient().PeakQueueMessage(new PeakQueueMessageRequest
-            {
-               RequestID = GetNextId().ToString(),
-               QueueName = QueueName
+        public PeakQueueMessageResponse PeakQueueMessage () {
+            PeakQueueMessageResponse rec = GetKubeMQClient ().PeakQueueMessage (new PeakQueueMessageRequest {
+                RequestID = GetNextId ().ToString (),
+                    QueueName = QueueName
             });
 
             return rec;
         }
 
-        public AckAllQueueMessagesResponse ackAllQueueMessagesResponse()
-        {
-            AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
-            {
-                RequestID = GetNextId().ToString(),
-                QueueName = QueueName,              
-                WaitTimeout = WaitTimeSecondsQueueMessages
+        public AckAllQueueMessagesResponse ackAllQueueMessagesResponse () {
+            AckAllQueueMessagesResponse rec = GetKubeMQClient ().AckAllQueueMessages (new AckAllQueueMessagesRequest {
+                RequestID = GetNextId ().ToString (),
+                    QueueName = QueueName,
+                    WaitTimeout = WaitTimeSecondsQueueMessages
             });
             return rec;
         }
 
         #region "Transactional"
+public transaction gettranmessage()
+{
+    return new transaction();
+}
+        public class transaction:GrpcClient
+        {
+                public string QueueName { get; set; }
+        public string ClientID { get; set; }
+        public int WaitTimeSeconds {get; set;}
+
+           public StreamQueueMessagesResponse streamQueueMessagesResponse;
+            public void AckMessage()
+            {
+
+           // Send Event via GRPC RequestStream
+            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+
+           }
+            public void RejectMessage()
+        {
+          
+           // Send Event via GRPC RequestStream
+            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+        }
+        public StreamQueueMessagesResponse ModifyVisibility(QueueMessage r, int Visibility)
+        {
+          
+           // Send Event via GRPC RequestStream
+            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest{
+
+                ClientID= ClientID,
+                ModifiedMessage = r,
+                QueueName = QueueName,
+                RequestID = "123",
+                StreamRequestTypeData = StreamRequestType.ModifyVisibility,
+                VisibilitySeconds = Visibility,
+                WaitTimeSeconds = WaitTimeSeconds, 
+                RefSequence = 234
+            });
+            return null;
+        }
+        public StreamQueueMessagesResponse ResendMessage(QueueMessage r)
+        {
+           
+            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+            return null;
+        }
+        public StreamQueueMessagesResponse ModifiedMessage(QueueMessage r)
+        {
+          
+            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
+            return null;
+        }
+
+        
+        }
+
         //public void AckMessage(StreamQueueMessagesResponse streamQueueMessagesResponse)
         //{
-           
 
         //    // Send Event via GRPC RequestStream
         //     x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
@@ -245,8 +282,6 @@ namespace KubeMQ.SDK.csharp.Queue
         //    }
         //}
 
-
-
         //public async Task StreamQueueMessage()
         //{
         //    kubemqClient x = new kubemqClient();
@@ -254,7 +289,7 @@ namespace KubeMQ.SDK.csharp.Queue
         //    // implement bi-di streams 'SendEventStream (stream Event) returns (stream Result)'
         //    try
         //    {
-           
+
         //        // Send Event via GRPC RequestStream
         //        await x.StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
 
@@ -284,14 +319,11 @@ namespace KubeMQ.SDK.csharp.Queue
 
         #endregion
 
-        public PingResult Ping()
-        {
-            PingResult rec = GetKubeMQClient().Ping(null);
+        public PingResult Ping () {
+            PingResult rec = GetKubeMQClient ().Ping (new Empty());
             return rec;
-                
+
         }
 
-
-       
     }
 }
