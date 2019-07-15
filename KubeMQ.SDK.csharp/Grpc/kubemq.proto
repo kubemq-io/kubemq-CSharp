@@ -2,7 +2,6 @@ syntax = "proto3";
 option csharp_namespace = "KubeMQ.Grpc"; // Namespace for c# generated classes; if omitted, will be the package.
 package kubemq;
 service kubemq {
-
     rpc SendEvent (Event) returns (Result) {}
     rpc SendEventsStream (stream Event) returns (stream Result) {}
     rpc SubscribeToEvents (Subscribe) returns (stream EventReceive) {}
@@ -13,7 +12,6 @@ service kubemq {
     rpc SendQueueMessagesBatch(QueueMessagesBatchRequest) returns (QueueMessagesBatchResponse) {}
     rpc ReceiveQueueMessages(ReceiveQueueMessagesRequest) returns (ReceiveQueueMessagesResponse) {}
     rpc StreamQueueMessage(stream StreamQueueMessagesRequest) returns (stream StreamQueueMessagesResponse) {}
-    rpc PeakQueueMessage (PeakQueueMessageRequest) returns (PeakQueueMessageResponse) {}
     rpc AckAllQueueMessages(AckAllQueueMessagesRequest) returns (AckAllQueueMessagesResponse) {}
     rpc Ping (Empty) returns (PingResult) {}
 }
@@ -38,6 +36,7 @@ message Event {
     string  Metadata            =4;
     bytes   Body                =5;
     bool    Store               =6;
+    map<string,string>  Tags    =7;
 }
 
 message EventReceive {
@@ -47,6 +46,7 @@ message EventReceive {
     bytes   Body                =4;
     int64   Timestamp           =5;
     uint64  Sequence            =6;
+    map<string,string>  Tags    =7;
 }
 
 message Subscribe {
@@ -92,6 +92,7 @@ message Request {
     string  CacheKey            =9;
     int32   CacheTTL            =10;
     bytes   Span                =11;
+    map<string,string>  Tags             =12;
  }
 message Response {
     string  ClientID        =1;
@@ -104,12 +105,13 @@ message Response {
     bool    Executed        =8;
     string  Error           =9;
     bytes   Span            =10;
+    map<string,string>  Tags  =11;
 }
 
 message QueueMessage {
     string  MessageID        =1;
     string  ClientID         =2;
-    string  QueueName        =3;
+    string  Channel        =3;
     string  Metadata         =4;
     bytes   Body             =5;
     map<string,string>  Tags             =6;
@@ -157,37 +159,33 @@ message SendQueueMessageResult {
 message ReceiveQueueMessagesRequest {
     string RequestID                =1;
     string  ClientID                =2;
-    string  QueueName               =3;
+    string  Channel               =3;
     int32   MaxNumberOfMessages     =4;
     int32   WaitTimeSeconds         =5;
+    bool    IsPeak                     =6;
 }
 message ReceiveQueueMessagesResponse {
     string   RequestID                  =1;
     repeated QueueMessage   Messages    =2;
-    int32   MessagesReceived            =3;
-    int32   MessagesExpired             =4;
-    bool    IsError                     =5;
-    string  Error                       =6;
+    int32    MessagesReceived            =3;
+    int32    MessagesExpired             =4;
+    bool     IsPeak                         =5;
+    bool     IsError                     =6;
+    string   Error                       =7;
 }
 
-message PeakQueueMessageRequest {
-    string RequestID                 =1;
-    string QueueName                 =2;
-}
-message PeakQueueMessageResponse {
-    string RequestID                 =1;
-    QueueMessage Message             =2;
-}
 
 message AckAllQueueMessagesRequest {
     string RequestID                 =1;
-    string QueueName                =2;
-    int64 WaitTimeout               =3;
+    string  ClientID                 =2;
+    string Channel                   =3;
+    int32 WaitTimeSeconds                =4;
 }
 message AckAllQueueMessagesResponse {
     string RequestID                =1;
-    string QueueName                =2;
-    uint64 AffectedMessages         =3;
+    uint64 AffectedMessages         =2;
+    bool    IsError                 =3;
+    string  Error                   =4;
 }
 
 enum StreamRequestType {
@@ -203,7 +201,7 @@ message StreamQueueMessagesRequest {
     string RequestID                =1;
     string ClientID                 =2;
     StreamRequestType StreamRequestTypeData   =3;
-    string QueueName                =4;
+    string Channel                  =4;
     int32 VisibilitySeconds         =5;
     int32 WaitTimeSeconds               =6;
     uint64 RefSequence              =7;

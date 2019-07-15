@@ -50,9 +50,9 @@ namespace KubeMQ.SDK.csharp.Queue {
         public int WaitTimeSecondsQueueMessages { get
             { return _WaitTimeSecondsQueueMessages; }  }
 
-        private int _MaxNumberOfMessagesQueueMessages = 100;
+        private int _MaxNumberOfMessagesQueueMessages = 32;
 
-        private int _WaitTimeSecondsQueueMessages =50;
+        private int _WaitTimeSecondsQueueMessages =0;
         public Queue()
         {
 
@@ -84,7 +84,7 @@ namespace KubeMQ.SDK.csharp.Queue {
                 MessageID = message.MessageID,
                 Metadata = message.Metadata,
                 ClientID = ClientID,
-                QueueName = QueueName,
+                Channel = QueueName,
                 Tags = { convertTags(message.Tags) },
                 Body = ByteString.CopyFrom(message.Body)
             });
@@ -124,7 +124,7 @@ namespace KubeMQ.SDK.csharp.Queue {
                 testc.Add(new QueueMessage
                 {
                     ClientID = ClientID,
-                    QueueName = QueueName,
+                    Channel = QueueName,
                     MessageID = item.MessageID,
                     Body = ByteString.CopyFrom(item.Body),
                     Metadata = item.Metadata,
@@ -142,7 +142,7 @@ namespace KubeMQ.SDK.csharp.Queue {
                 RequestID = ReqID.Getid(),
                 ClientID = ClientID,
                 
-                QueueName = QueueName,
+                Channel = QueueName,
 
 
                 MaxNumberOfMessages = MaxNumberOfMessagesQueueMessages,
@@ -151,12 +151,16 @@ namespace KubeMQ.SDK.csharp.Queue {
 
             return rec;
         }
-        public PeakQueueMessageResponse PeakQueueMessage()
+        public ReceiveQueueMessagesResponse PeakQueueMessage()
         {
-            PeakQueueMessageResponse rec = GetKubeMQClient().PeakQueueMessage(new PeakQueueMessageRequest
+            ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
             {
                 RequestID = ReqID.Getid(),
-                QueueName = QueueName
+                ClientID = ClientID,
+                Channel= QueueName,
+                IsPeak = true,
+                MaxNumberOfMessages = MaxNumberOfMessagesQueueMessages,
+                WaitTimeSeconds = WaitTimeSecondsQueueMessages
             });
 
             return rec;
@@ -167,9 +171,10 @@ namespace KubeMQ.SDK.csharp.Queue {
             AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
             {
                 RequestID = ReqID.Getid(),
-                QueueName = QueueName,
-                WaitTimeout = WaitTimeSecondsQueueMessages
-            });
+                Channel = QueueName,
+                ClientID = ClientID,
+                WaitTimeSeconds = WaitTimeSecondsQueueMessages
+            }) ;
             return rec;
         }
 
@@ -210,11 +215,11 @@ namespace KubeMQ.SDK.csharp.Queue {
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
-                QueueName = queue.QueueName,
-                RequestID = "5",
+                Channel = queue.QueueName,     
+                RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.ReceiveMessage,
-                VisibilitySeconds = 2,
-                WaitTimeSeconds = 1,
+                VisibilitySeconds = 20,
+                WaitTimeSeconds = 10,
                 ModifiedMessage = new QueueMessage(),
                 RefSequence = 0
             });
@@ -233,13 +238,13 @@ namespace KubeMQ.SDK.csharp.Queue {
             GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
-                QueueName = queue.QueueName,
+                Channel = queue.QueueName,
                 RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.AckMessage,
                 VisibilitySeconds = 1,
                 WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
                 ModifiedMessage = r,
-                RefSequence =123
+                RefSequence =0
             });
             GetKubeMQClient().StreamQueueMessage().RequestStream.CompleteAsync();
         }
@@ -249,7 +254,7 @@ namespace KubeMQ.SDK.csharp.Queue {
             GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
-                QueueName = queue.QueueName,
+                Channel = queue.QueueName,
                 RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.RejectMessage,
                 VisibilitySeconds = 1,
@@ -266,12 +271,12 @@ namespace KubeMQ.SDK.csharp.Queue {
             {
                 ClientID = queue.ClientID,
                 ModifiedMessage = r,
-                QueueName = queue.QueueName,
-                RequestID = "123",
+                Channel = queue.QueueName,
+                RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.ModifyVisibility,
                 VisibilitySeconds = Visibility,
                 WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
-                RefSequence = 234
+                RefSequence = 0
 
             });
             streamQueueMessagesResponse.Wait();
@@ -307,16 +312,11 @@ namespace KubeMQ.SDK.csharp.Queue {
 
                 // Send Event via GRPC RequestStream
                 await stream.RequestStream.WriteAsync(sr);
-                
-                // Listen for Async Response (Result)
-                using (var call = GetKubeMQClient().StreamQueueMessage())
-                {
-                    // Wait for Response..
-                    await call.ResponseStream.MoveNext(CancellationToken.None);                   
-                    // Received a Response
-                    return call.ResponseStream.Current;
+                await stream.ResponseStream.MoveNext(CancellationToken.None);
+              
+                return stream.ResponseStream.Current;
 
-                }
+                
             }
             catch (RpcException ex)
             {
