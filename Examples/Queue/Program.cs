@@ -103,23 +103,49 @@ namespace Queue
 
             #region "Tran"
 
-            var x = queue.gettranmessage();
-            var ms = x.getmsg();
-            if (ms.IsError)
+            var transaction = queue.CreateTransaction();
+            Console.WriteLine($"Transaction status:{transaction.Status}");
+            KubeMQ.Grpc.StreamQueueMessagesResponse ms;
+            try
             {
-                Console.WriteLine($"message dequeue error, error:{res.Error}");
+                ms = transaction.Receive();
+                if (ms.IsError)
+                {
+                    Console.WriteLine($"message dequeue error, error:{res.Error}");
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"message dequeue error, error:{ex.Message}");
+                return;
+            }
+
             var qm = ms.Message;
-         //   var resack = x.AckMessage(qm);
+         
+            try
+            {
+               ms = transaction.ModifyVisibility(qm, 100);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"message dequeue error, error:{ex.Message}");
+                return;
+            }
+            Console.WriteLine($"{ms.IsError}");
 
-            var ress=  x.ModifyVisibility(qm, 100);
-            Console.WriteLine($"{ress.IsError}");
+            try
+            {
+                ms = transaction.AckMessage(qm);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"message dequeue error, error:{ex.Message}");
+                return;
+            }
+            Console.WriteLine($"{ms.IsError}");
+
             #endregion
-
-
-
-
-
+            
 
         }
     }

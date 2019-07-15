@@ -179,9 +179,9 @@ namespace KubeMQ.SDK.csharp.Queue {
         }
 
         #region "Transactional"
-        public transaction gettranmessage()
+        public Transaction CreateTransaction()
         {
-             return new transaction(this);
+             return new Transaction(this);
         }
     
         #endregion
@@ -194,122 +194,189 @@ namespace KubeMQ.SDK.csharp.Queue {
         }
 
     }
-    public class transaction : GrpcClient
+    public class Transaction : GrpcClient
     {
         private Queue queue;
+        private int _visibilitySeconds;
+        private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
+
+        public string Status { get
+
+
+
+            {
+                return
+                   stream==null?"stream is null":   stream.GetStatus().Detail;
+            }       }
+
 
         public StreamQueueMessagesResponse msg { get; set; }
-        public transaction()
-        {
+        //public Transaction(int visibilitySeconds=1)
+        //{
+        //    _visibilitySeconds = visibilitySeconds;
+        //}
 
-        }
-
-        public transaction(Queue queue)
+        public Transaction(Queue queue, int visibilitySeconds = 1)
         {
             this.queue = queue;
             _kubemqAddress = queue.ServerAddress;
+            _visibilitySeconds = visibilitySeconds;
         }
 
-        public StreamQueueMessagesResponse getmsg()
+        public StreamQueueMessagesResponse Receive()
         {
+            stream = GetKubeMQClient().StreamQueueMessage();
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
                 Channel = queue.QueueName,     
                 RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.ReceiveMessage,
-                VisibilitySeconds = 20,
-                WaitTimeSeconds = 10,
+                VisibilitySeconds = _visibilitySeconds,
+                WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
                 ModifiedMessage = new QueueMessage(),
                 RefSequence = 0
             });
-            streamQueueMessagesResponse.Wait();
-            var x = streamQueueMessagesResponse.Result;
-            return x;
-
-
+            try
+            {
+                streamQueueMessagesResponse.Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return streamQueueMessagesResponse.Result;
         }
 
         // public int WaitTimeSeconds { get; set; }
-        public void AckMessage(QueueMessage r)
+        public StreamQueueMessagesResponse AckMessage(QueueMessage r)
         {
-
-            // Send Event via GRPC RequestStream
-            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest
+            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
                 Channel = queue.QueueName,
                 RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.AckMessage,
-                VisibilitySeconds = 1,
+                VisibilitySeconds = _visibilitySeconds,
                 WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = r,
-                RefSequence =0
+                ModifiedMessage = new QueueMessage(),
+                RefSequence = 0
             });
-            GetKubeMQClient().StreamQueueMessage().RequestStream.CompleteAsync();
+            try
+            {
+                streamQueueMessagesResponse.Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return streamQueueMessagesResponse.Result;
         }
-        public void RejectMessage()
+        public StreamQueueMessagesResponse RejectMessage(QueueMessage r)
         {
-            // Send Event via GRPC RequestStream
-            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest
+            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
                 Channel = queue.QueueName,
                 RequestID = ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.RejectMessage,
-                VisibilitySeconds = 1,
+                VisibilitySeconds = _visibilitySeconds,
                 WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = null,
-                RefSequence = 123
+                ModifiedMessage = r,
+                RefSequence = 0
             });
-            GetKubeMQClient().StreamQueueMessage().RequestStream.CompleteAsync();
+            try
+            {
+                streamQueueMessagesResponse.Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return streamQueueMessagesResponse.Result;
         }
-        public StreamQueueMessagesResponse ModifyVisibility(QueueMessage r, int Visibility)
+        public StreamQueueMessagesResponse ModifyVisibility(QueueMessage r, int visibility)
+        {
+            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+            {
+                ClientID = queue.ClientID,
+                Channel = queue.QueueName,
+                RequestID = ReqID.Getid(),
+                StreamRequestTypeData = StreamRequestType.ModifyVisibility,
+                VisibilitySeconds = visibility,
+                WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
+                ModifiedMessage = r,
+                RefSequence = 0
+            });
+            try
+            {
+                streamQueueMessagesResponse.Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return streamQueueMessagesResponse.Result;
+
+        }
+        public StreamQueueMessagesResponse ResendMessage(QueueMessage r)
+        {
+
+
+            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+            {
+                ClientID = queue.ClientID,
+                Channel = queue.QueueName,
+                RequestID = ReqID.Getid(),
+                StreamRequestTypeData = StreamRequestType.ResendMessage,
+                VisibilitySeconds = _visibilitySeconds,
+                WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
+                ModifiedMessage = r,
+                RefSequence = 0
+            });
+            try
+            {
+                streamQueueMessagesResponse.Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return streamQueueMessagesResponse.Result;
+        }
+        public StreamQueueMessagesResponse ModifiedMessage(QueueMessage r)
         {
 
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = queue.ClientID,
-                ModifiedMessage = r,
                 Channel = queue.QueueName,
                 RequestID = ReqID.Getid(),
-                StreamRequestTypeData = StreamRequestType.ModifyVisibility,
-                VisibilitySeconds = Visibility,
+                StreamRequestTypeData = StreamRequestType.SendModifiedMessage,
+                VisibilitySeconds = _visibilitySeconds,
                 WaitTimeSeconds = queue.WaitTimeSecondsQueueMessages,
+                ModifiedMessage = r,
                 RefSequence = 0
-
             });
-            streamQueueMessagesResponse.Wait();
-            var x = streamQueueMessagesResponse.Result;
-            return x;
-        }
-        public StreamQueueMessagesResponse ResendMessage(QueueMessage r)
-        {
-
-            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-            return null;
-        }
-        public StreamQueueMessagesResponse ModifiedMessage(QueueMessage r)
-        {
-
-            GetKubeMQClient().StreamQueueMessage().RequestStream.WriteAsync(new StreamQueueMessagesRequest());
-            return null;
+            try
+            {
+                streamQueueMessagesResponse.Wait();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return streamQueueMessagesResponse.Result;
         }
 
 
-        public async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr)
+        private async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr)
         {
 
 
             // implement bi-di streams 'SendEventStream (stream Event) returns (stream Result)'
             try
             {
-
-                AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream = GetKubeMQClient().StreamQueueMessage();
-               
-
-
-
                 // Send Event via GRPC RequestStream
                 await stream.RequestStream.WriteAsync(sr);
                 await stream.ResponseStream.MoveNext(CancellationToken.None);
