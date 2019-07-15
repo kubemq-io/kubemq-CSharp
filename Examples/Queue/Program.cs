@@ -9,7 +9,7 @@ namespace Queue
     {
         static void Main(string[] args)
         {
-            string testGui= DateTime.UtcNow.ToLongDateString();
+            string testGui= DateTime.UtcNow.ToBinary().ToString();
             Console.WriteLine("Hello World!");
 
             KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("ido1", "test1","localhost:50000");
@@ -27,7 +27,7 @@ namespace Queue
 
             }
 
-            #region "nontran"
+            //#region "nontran"
             var res = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
                 MessageID = "123",            
@@ -45,10 +45,16 @@ namespace Queue
             }
 
             //TODO:Bug, peak when queue 0
-            var peekres = queue.PeakQueueMessage();
+            var peakmsg = queue.PeakQueueMessage();
             {
-                Console.WriteLine($"message peekID:{peekres.Message.MessageID} body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(peekres.Message.Body.ToByteArray())}");
-
+                if (peakmsg.IsError)
+                {
+                    Console.WriteLine($"message peak error, error:{peakmsg.Error}");
+                }
+                foreach (var item in peakmsg.Messages)
+                {
+                    Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
+                }
             }
 
             List<Message> msgs = new List<Message>();
@@ -82,23 +88,27 @@ namespace Queue
             }
 
 
-            var msg = queue.ReceiveQueueMessages();
-            if (msg.IsError)
-            {
-                Console.WriteLine($"message dequeue error, error:{msg.Error}");
-            }
-            foreach (var item in msg.Messages)
-            {
-                Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
+            //var msg = queue.ReceiveQueueMessages();
+            //if (msg.IsError)
+            //{
+            //    Console.WriteLine($"message dequeue error, error:{msg.Error}");
+            //}
+            //foreach (var item in msg.Messages)
+            //{
+            //    Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
 
-            }
+            //}
 
-            #endregion
+            //#endregion
 
             #region "Tran"
 
             var x = queue.gettranmessage();
             var ms = x.getmsg();
+            if (ms.IsError)
+            {
+                Console.WriteLine($"message dequeue error, error:{res.Error}");
+            }
             var qm = ms.Message;
          //   var resack = x.AckMessage(qm);
 

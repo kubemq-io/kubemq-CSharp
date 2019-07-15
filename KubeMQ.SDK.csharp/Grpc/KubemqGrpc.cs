@@ -28,8 +28,6 @@ namespace KubeMQ.Grpc {
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.ReceiveQueueMessagesResponse> __Marshaller_ReceiveQueueMessagesResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.ReceiveQueueMessagesResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.StreamQueueMessagesRequest> __Marshaller_StreamQueueMessagesRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.StreamQueueMessagesRequest.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.StreamQueueMessagesResponse> __Marshaller_StreamQueueMessagesResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.StreamQueueMessagesResponse.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::KubeMQ.Grpc.PeakQueueMessageRequest> __Marshaller_PeakQueueMessageRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PeakQueueMessageRequest.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::KubeMQ.Grpc.PeakQueueMessageResponse> __Marshaller_PeakQueueMessageResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PeakQueueMessageResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.AckAllQueueMessagesRequest> __Marshaller_AckAllQueueMessagesRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.AckAllQueueMessagesRequest.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.AckAllQueueMessagesResponse> __Marshaller_AckAllQueueMessagesResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.AckAllQueueMessagesResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.PingResult> __Marshaller_PingResult = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PingResult.Parser.ParseFrom);
@@ -104,13 +102,6 @@ namespace KubeMQ.Grpc {
         __Marshaller_StreamQueueMessagesRequest,
         __Marshaller_StreamQueueMessagesResponse);
 
-    static readonly grpc::Method<global::KubeMQ.Grpc.PeakQueueMessageRequest, global::KubeMQ.Grpc.PeakQueueMessageResponse> __Method_PeakQueueMessage = new grpc::Method<global::KubeMQ.Grpc.PeakQueueMessageRequest, global::KubeMQ.Grpc.PeakQueueMessageResponse>(
-        grpc::MethodType.Unary,
-        __ServiceName,
-        "PeakQueueMessage",
-        __Marshaller_PeakQueueMessageRequest,
-        __Marshaller_PeakQueueMessageResponse);
-
     static readonly grpc::Method<global::KubeMQ.Grpc.AckAllQueueMessagesRequest, global::KubeMQ.Grpc.AckAllQueueMessagesResponse> __Method_AckAllQueueMessages = new grpc::Method<global::KubeMQ.Grpc.AckAllQueueMessagesRequest, global::KubeMQ.Grpc.AckAllQueueMessagesResponse>(
         grpc::MethodType.Unary,
         __ServiceName,
@@ -164,12 +155,6 @@ namespace KubeMQ.Grpc {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
-      /// <summary>
-      ///Snend dfsf
-      /// </summary>
-      /// <param name="request">The request received from the client.</param>
-      /// <param name="context">The context of the server-side call handler being invoked.</param>
-      /// <returns>The response to send back to the client (wrapped by a task).</returns>
       public virtual global::System.Threading.Tasks.Task<global::KubeMQ.Grpc.SendQueueMessageResult> SendQueueMessage(global::KubeMQ.Grpc.QueueMessage request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
@@ -186,11 +171,6 @@ namespace KubeMQ.Grpc {
       }
 
       public virtual global::System.Threading.Tasks.Task StreamQueueMessage(grpc::IAsyncStreamReader<global::KubeMQ.Grpc.StreamQueueMessagesRequest> requestStream, grpc::IServerStreamWriter<global::KubeMQ.Grpc.StreamQueueMessagesResponse> responseStream, grpc::ServerCallContext context)
-      {
-        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
-      }
-
-      public virtual global::System.Threading.Tasks.Task<global::KubeMQ.Grpc.PeakQueueMessageResponse> PeakQueueMessage(global::KubeMQ.Grpc.PeakQueueMessageRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -302,46 +282,18 @@ namespace KubeMQ.Grpc {
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendResponse, null, options, request);
       }
-      /// <summary>
-      ///Snend dfsf
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
-      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
-      /// <param name="cancellationToken">An optional token for canceling the call.</param>
-      /// <returns>The response received from the server.</returns>
       public virtual global::KubeMQ.Grpc.SendQueueMessageResult SendQueueMessage(global::KubeMQ.Grpc.QueueMessage request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         return SendQueueMessage(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
-      /// <summary>
-      ///Snend dfsf
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="options">The options for the call.</param>
-      /// <returns>The response received from the server.</returns>
       public virtual global::KubeMQ.Grpc.SendQueueMessageResult SendQueueMessage(global::KubeMQ.Grpc.QueueMessage request, grpc::CallOptions options)
       {
         return CallInvoker.BlockingUnaryCall(__Method_SendQueueMessage, null, options, request);
       }
-      /// <summary>
-      ///Snend dfsf
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
-      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
-      /// <param name="cancellationToken">An optional token for canceling the call.</param>
-      /// <returns>The call object.</returns>
       public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.SendQueueMessageResult> SendQueueMessageAsync(global::KubeMQ.Grpc.QueueMessage request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
         return SendQueueMessageAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
-      /// <summary>
-      ///Snend dfsf
-      /// </summary>
-      /// <param name="request">The request to send to the server.</param>
-      /// <param name="options">The options for the call.</param>
-      /// <returns>The call object.</returns>
       public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.SendQueueMessageResult> SendQueueMessageAsync(global::KubeMQ.Grpc.QueueMessage request, grpc::CallOptions options)
       {
         return CallInvoker.AsyncUnaryCall(__Method_SendQueueMessage, null, options, request);
@@ -385,22 +337,6 @@ namespace KubeMQ.Grpc {
       public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.StreamQueueMessagesRequest, global::KubeMQ.Grpc.StreamQueueMessagesResponse> StreamQueueMessage(grpc::CallOptions options)
       {
         return CallInvoker.AsyncDuplexStreamingCall(__Method_StreamQueueMessage, null, options);
-      }
-      public virtual global::KubeMQ.Grpc.PeakQueueMessageResponse PeakQueueMessage(global::KubeMQ.Grpc.PeakQueueMessageRequest request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
-      {
-        return PeakQueueMessage(request, new grpc::CallOptions(headers, deadline, cancellationToken));
-      }
-      public virtual global::KubeMQ.Grpc.PeakQueueMessageResponse PeakQueueMessage(global::KubeMQ.Grpc.PeakQueueMessageRequest request, grpc::CallOptions options)
-      {
-        return CallInvoker.BlockingUnaryCall(__Method_PeakQueueMessage, null, options, request);
-      }
-      public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.PeakQueueMessageResponse> PeakQueueMessageAsync(global::KubeMQ.Grpc.PeakQueueMessageRequest request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
-      {
-        return PeakQueueMessageAsync(request, new grpc::CallOptions(headers, deadline, cancellationToken));
-      }
-      public virtual grpc::AsyncUnaryCall<global::KubeMQ.Grpc.PeakQueueMessageResponse> PeakQueueMessageAsync(global::KubeMQ.Grpc.PeakQueueMessageRequest request, grpc::CallOptions options)
-      {
-        return CallInvoker.AsyncUnaryCall(__Method_PeakQueueMessage, null, options, request);
       }
       public virtual global::KubeMQ.Grpc.AckAllQueueMessagesResponse AckAllQueueMessages(global::KubeMQ.Grpc.AckAllQueueMessagesRequest request, grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
       {
@@ -456,7 +392,6 @@ namespace KubeMQ.Grpc {
           .AddMethod(__Method_SendQueueMessagesBatch, serviceImpl.SendQueueMessagesBatch)
           .AddMethod(__Method_ReceiveQueueMessages, serviceImpl.ReceiveQueueMessages)
           .AddMethod(__Method_StreamQueueMessage, serviceImpl.StreamQueueMessage)
-          .AddMethod(__Method_PeakQueueMessage, serviceImpl.PeakQueueMessage)
           .AddMethod(__Method_AckAllQueueMessages, serviceImpl.AckAllQueueMessages)
           .AddMethod(__Method_Ping, serviceImpl.Ping).Build();
     }
