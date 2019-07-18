@@ -59,5 +59,19 @@ namespace KubeMQ.SDK.csharp.Tools
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return (long)(timestamp.ToUniversalTime() - epoch).TotalSeconds;
         }
+
+        public static Google.Protobuf.Collections.MapField<string, string> ConvertTags(System.Collections.Generic.IEnumerable<(string, string)> tags)
+        {
+            Google.Protobuf.Collections.MapField<string, string> keyValuePairs = new Google.Protobuf.Collections.MapField<string, string>();
+            if (tags != null)
+            {
+                foreach (var item in tags)
+                {
+                    keyValuePairs.Add(item.Item1, item.Item2);
+                }
+            }
+            return keyValuePairs;
+        }
+
     }
 }
