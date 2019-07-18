@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using KubeMQ.Grpc;
 using Microsoft.Extensions.Logging;
 
 namespace KubeMQ.SDK.csharp.Events
@@ -74,6 +75,16 @@ namespace KubeMQ.SDK.csharp.Events
         public async Task ClosesEventStreamAsync()
         {
             await _sender.ClosesEventStreamAsync();
+        }
+
+        /// <summary>
+        /// Ping check Kubemq response using channel.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
+        public PingResult Ping()
+        {
+            return _sender.Ping();
+
         }
 
         private bool IsValide(out Exception ex)
