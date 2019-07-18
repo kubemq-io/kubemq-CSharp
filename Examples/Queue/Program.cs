@@ -7,12 +7,29 @@ namespace Queue
 {
     class Program
     {
+        /// <summary>
+        /// KubeMQ ClientID for tracing and persistency tracking.
+        /// </summary>
+        private static string ClientID = Environment.GetEnvironmentVariable("CLIENT") ?? $"MSMQ_Demo_{Environment.MachineName}";
+        /// <summary>
+        /// KubeMQ Command Chanel subscriber for handling  command request.
+        /// </summary>
+        private static string QueueName = Environment.GetEnvironmentVariable("QUEUENAME") ?? "QUEUE_DEMO";
+
+        private static string KubeMQServerAddress = Environment.GetEnvironmentVariable("KubeMQServerAddress") ?? "localhost:50000";
+
+        private static string testGui = DateTime.UtcNow.ToBinary().ToString();
+
+
         static void Main(string[] args)
         {
-            string testGui= DateTime.UtcNow.ToBinary().ToString();
+            
             Console.WriteLine("Hello World!");
+            Console.WriteLine($"[Demo] ClientID:{ClientID}");
+            Console.WriteLine($"[Demo] QueueName:{QueueName}");
+            Console.WriteLine($"[Demo] KubeMQServerAddress:{KubeMQServerAddress}");
 
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("ido1", "test1","localhost:50000");
+            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
 
             try
             {
@@ -88,16 +105,16 @@ namespace Queue
             }
 
 
-            //var msg = queue.ReceiveQueueMessages();
-            //if (msg.IsError)
-            //{
-            //    Console.WriteLine($"message dequeue error, error:{msg.Error}");
-            //}
-            //foreach (var item in msg.Messages)
-            //{
-            //    Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
+            var msg = queue.ReceiveQueueMessages();
+            if (msg.IsError)
+            {
+                Console.WriteLine($"message dequeue error, error:{msg.Error}");
+            }
+            foreach (var item in msg.Messages)
+            {
+                Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
 
-            //}
+            }
 
             //#endregion
 
