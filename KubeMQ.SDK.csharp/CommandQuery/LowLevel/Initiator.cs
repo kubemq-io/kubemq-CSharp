@@ -6,6 +6,7 @@ using KubeMQ.SDK.csharp.Basic;
 using KubeMQ.SDK.csharp.Tools;
 using InnerRequest = KubeMQ.Grpc.Request;
 using InnerResponse = KubeMQ.Grpc.Response;
+using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
 {
@@ -150,6 +151,18 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
                 logger.LogError(ex, "Exception in Initiator.SendRequestAsync");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Ping check Kubemq response using "low level" Initiator.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
+        public PingResult Ping()
+        {
+            PingResult rec = GetKubeMQClient().Ping(new Empty());
+            logger.LogTrace($"Initiator sent ping successfully to address {this.ServerAddress}");
+            return rec;
+
         }
 
         private void LogRequest(Request request)

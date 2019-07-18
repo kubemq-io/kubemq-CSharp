@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using KubeMQ.SDK.csharp.Basic;
 using InnerEvent = KubeMQ.Grpc.Event;
 using KubeMQGrpc = KubeMQ.Grpc;
+using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Events.LowLevel
 {
@@ -89,6 +90,18 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
 
                 throw new Exception(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Ping check Kubemq response using "low level" sender.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
+        public PingResult Ping()
+        {
+            logger.LogTrace($"sender sent ping successfully to address {this.ServerAddress}");
+            PingResult rec = GetKubeMQClient().Ping(new Empty());
+            return rec;
+
         }
 
         internal async Task StreamEventWithoutResponse(Event notification)

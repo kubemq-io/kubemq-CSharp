@@ -182,6 +182,10 @@ namespace KubeMQ.SDK.csharp.Queue {
     
         #endregion
 
+        /// <summary>
+        /// Ping check Kubemq response.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
         public PingResult Ping()
         {
             PingResult rec = GetKubeMQClient().Ping(new Empty());

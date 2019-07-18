@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using KubeMQ.Grpc;
 using Microsoft.Extensions.Logging;
 
 namespace KubeMQ.SDK.csharp.CommandQuery
@@ -94,6 +95,16 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         public async Task SendRequest(Request request, HandleResponseDelegate handler, RequestParameters overrideParams = null)
         {
             await _initiator.SendRequest(CreateLowLevelRequest(request, overrideParams), handler);
+        }
+
+        /// <summary>
+        /// Ping check Kubemq response using Channel.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
+        public PingResult Ping()
+        {
+            return _initiator.Ping();
+
         }
 
         private bool IsValid(out Exception ex)

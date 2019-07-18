@@ -37,7 +37,7 @@ namespace EventSubscriber
 
         public void SubcribeToEventsWithoutStore()
         {
-            subscriber = new Subscriber( logger);
+            subscriber = new Subscriber(logger);
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Events);
             subscriber.SubscribeToEvents(subscribeRequest, HandleIncomingEvents);
 
