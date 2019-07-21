@@ -29,6 +29,13 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <returns></returns>
         public delegate Response RespondDelegate(RequestReceive request);
 
+        /// <summary>
+        /// Represents a delegate that receive Exception and return to user.
+        /// </summary>
+        /// <param name="QueryReceive">Represents an Exception that occurred during Query/Commend receiving </param>
+        public delegate void HandleCommendQueryDelegate(Exception QueryReceive);
+
+
         #region C'tor
         /// <summary>
         /// Initialize a new Responder to subscribe to Response
@@ -69,8 +76,9 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// </summary>
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
         /// <param name="handler">Method the perform when receiving KubeMQ.SDK.csharp.RequestReplay.RequestReceive </param>
+        /// <param name="queryDelegate">Method the perform when receiving Exception from kubemq </param>
         /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
-        public void SubscribeToRequests(SubscribeRequest subscribeRequest, RespondDelegate handler)
+        public void SubscribeToRequests(SubscribeRequest subscribeRequest, RespondDelegate handler , HandleCommendQueryDelegate queryDelegate)
         {
             ValidateSubscribeRequest(subscribeRequest);// throws ArgumentException
 
@@ -95,6 +103,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
                     catch (Exception ex)
                     {
                         logger.LogWarning(ex, $"An exception occurred while listening for request");
+                        queryDelegate(ex);
                     }
                     await Task.Delay(1000);
                 }
@@ -128,6 +137,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "An exception occurred while handling the response");
+                        queryDelegate(ex);
                     }
                 }
             }));
