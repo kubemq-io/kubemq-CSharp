@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using KubeMQ.SDK.csharp.Tools;
 using InnerEvent = KubeMQ.Grpc.Event;
 
@@ -33,6 +34,10 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
         /// Represents if the events should be send to persistence.
         /// </summary>
         public bool Store { get; set; }
+        /// <summary>
+        /// Represents a set of Key value pair that help categorize the message. 
+        /// </summary>
+        public Dictionary<string, string> Tags { get; set; }
 
         public bool ReturnResult { get; set; }
 
@@ -40,7 +45,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
 
         public Event() { }
 
-        public Event(string channel, string metadata, byte[] body, string eventID, string clientID, bool store)
+        public Event(string channel, string metadata, byte[] body, string eventID, string clientID, bool store,Dictionary<string,string>tags)
         {
             Channel = channel;
             Metadata = metadata;
@@ -48,6 +53,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
             EventID = eventID;
             ClientID = clientID;
             Store = store;
+            Tags = tags;
         }
 
         internal Event(InnerEvent innerEvent)
@@ -72,7 +78,8 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
 
                 EventID = string.IsNullOrEmpty(this.EventID) ? GetNextId().ToString() : EventID,
                 ClientID = this.ClientID,
-                Store = this.Store
+                Store = this.Store,
+                Tags = { Converter.CreateTags(this.Tags) }
             };
         }
 

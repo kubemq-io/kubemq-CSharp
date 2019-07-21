@@ -1,4 +1,6 @@
-﻿using InnerRecivedEvent = KubeMQ.Grpc.EventReceive;
+﻿using KubeMQ.SDK.csharp.Tools;
+using System.Collections.Generic;
+using InnerRecivedEvent = KubeMQ.Grpc.EventReceive;
 
 namespace KubeMQ.SDK.csharp.Events
 {
@@ -11,6 +13,10 @@ namespace KubeMQ.SDK.csharp.Events
         public long Timestamp { get; set; }
         public ulong Sequence { get; set; }
 
+        /// <summary>
+        /// Represents a set of Key value pair that help categorize the message. 
+        /// </summary>
+        public Dictionary<string, string> Tags { get; set; }
         public EventReceive() { }
         public EventReceive(InnerRecivedEvent inner)
         {
@@ -20,6 +26,7 @@ namespace KubeMQ.SDK.csharp.Events
             Body = inner.Body.ToByteArray();
             Timestamp = inner.Timestamp;
             Sequence = inner.Sequence;
+            Tags = Converter.ReadTags(inner.Tags);
         }
 
     }

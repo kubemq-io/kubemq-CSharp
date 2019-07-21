@@ -8,6 +8,7 @@ using InnerRecivedEvent = KubeMQ.Grpc.EventReceive;
 using KubeMQ.SDK.csharp.Basic;
 using KubeMQ.SDK.csharp.Tools;
 using KubeMQ.SDK.csharp.Subscription;
+using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Events
 {
@@ -22,6 +23,13 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="eventReceive">Represents an instance of KubeMQ.SDK.csharp.PubSub.EventReceive</param>
         public delegate void HandleEventDelegate(EventReceive eventReceive);
+
+
+        /// <summary>
+        /// Represents a delegate that receive Exception and return to user.
+        /// </summary>
+        /// <param name="eventReceive">Represents an Exception that occurred during event receiving </param>
+        public delegate void HandleEventErrorDelegate(Exception eventReceive);
 
         #region C'tor
 
@@ -65,10 +73,21 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
         /// <param name="handler">Method the perform when receiving KubeMQ.SDK.csharp.PubSub.EventReceive .</param>
-        /// <returns>A task that represents the Subscribe Request.</returns>
-        public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler)
+        /// <param name="errorDelegate">Method the perform when receiving error from KubeMQ.SDK.csharp.PubSub.EventReceive .</param>
+        /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
+        public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler,HandleEventErrorDelegate errorDelegate)
         {
             ValidateSubscribeRequest(subscribeRequest);// throws ArgumentException
+            try
+            {
+                this.Ping();
+            }
+            catch (Exception pingEx)
+            {
+                logger.LogWarning(pingEx, "n exception occurred while sending ping to kubemq");
+                throw pingEx;
+            }
+
 
             var grpcListnerTask = Task.Run((Func<Task>)(async () =>
             {
@@ -81,6 +100,7 @@ namespace KubeMQ.SDK.csharp.Events
                     catch (Exception ex)
                     {
                         logger.LogWarning(ex, $"An exception occurred while listening for events");
+                        errorDelegate(ex);
                     }
                     await Task.Delay(1000);
                 }
@@ -107,6 +127,7 @@ namespace KubeMQ.SDK.csharp.Events
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "An exception occurred while handling the event");
+                        errorDelegate(ex);
                     }
                 }
             }));
@@ -128,6 +149,17 @@ namespace KubeMQ.SDK.csharp.Events
                     LogIncomingEvent(eventReceive);
                 }
             }
+        }
+
+        /// <summary>
+        /// Ping check Kubemq response.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
+        public PingResult Ping()
+        {
+            PingResult rec = GetKubeMQClient().Ping(new Empty());
+            return rec;
+
         }
 
         private void ValidateSubscribeRequest(SubscribeRequest subscribeRequest)
@@ -167,6 +199,7 @@ namespace KubeMQ.SDK.csharp.Events
                 logger.LogError(ex, "failed in  LogIncomingEvent.");//TODO: Check if this works 
             }
         }
+
 
     }
 }

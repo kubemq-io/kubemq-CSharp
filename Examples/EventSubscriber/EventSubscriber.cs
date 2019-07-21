@@ -32,14 +32,14 @@ namespace EventSubscriber
         {
             subscriber = new Subscriber(logger);
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.EventsStore,EventsStoreType.StartAtSequence,2);
-            subscriber.SubscribeToEvents(subscribeRequest, HandleIncomingEvents);
+            subscriber.SubscribeToEvents(subscribeRequest, HandleIncomingEvents, HandleIncomingError);
         }
 
         public void SubcribeToEventsWithoutStore()
         {
-            subscriber = new Subscriber( logger);
+            subscriber = new Subscriber(logger);
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Events);
-            subscriber.SubscribeToEvents(subscribeRequest, HandleIncomingEvents);
+            subscriber.SubscribeToEvents(subscribeRequest, HandleIncomingEvents, HandleIncomingError);
 
         }
 
@@ -52,6 +52,11 @@ namespace EventSubscriber
 
                 logger.LogInformation($"Subscriber Received Event: Metadata:'{@event.Metadata}', Channel:'{@event.Channel}', Body:'{strMsg}'");
             }
+        }
+
+        private void HandleIncomingError(Exception ex)
+        {
+            logger.LogWarning($"Received Exception :{ex}");
         }
 
     }
