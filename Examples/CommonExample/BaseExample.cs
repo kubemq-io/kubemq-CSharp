@@ -48,7 +48,12 @@ namespace CommonExample
                 Store=false,
                 Channel= ChannelName,
                 ClientID=this.ClientID,
-                ReturnResult=false
+                ReturnResult=false,
+                Tags=new System.Collections.Generic.Dictionary<string, string>()
+                {
+                    {"FirstTag","FirstValue" },
+                    {"SecondTag","SecondValue" }
+                }
             };
             return @event;
         }
@@ -80,7 +85,12 @@ namespace CommonExample
                 Channel=this.ChannelName,
                 ClientID=this.ClientID,
                 Timeout=this.Timeout,
-                RequestType=requestType
+                RequestType=requestType,
+                Tags= new System.Collections.Generic.Dictionary<string, string>()
+                {
+                    {"FirstTag","FirstValue" },
+                    {"SecondTag","SecondValue" }
+                }
             };
         }
     }
