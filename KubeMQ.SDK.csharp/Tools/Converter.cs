@@ -1,5 +1,9 @@
 ﻿using Google.Protobuf;
+using Google.Protobuf.Collections;
+using KubeMQ.Grpc;
+using KubeMQ.SDK.csharp.Queue;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -54,6 +58,18 @@ namespace KubeMQ.SDK.csharp.Tools
             return new DateTime(timeSpan.Ticks).ToLocalTime();
         }
 
+
+        internal static IEnumerable<TransactionMessage> QueueMessages(RepeatedField<QueueMessage> messages)
+        {
+            List<Message> msgs = new List<Message>();
+            foreach (var item in messages)
+            {
+                yield return TransactionMessage(item);
+            }         
+        }
+
+      
+
         internal static long ToUnixTime(DateTime timestamp)
         {       
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -72,6 +88,6 @@ namespace KubeMQ.SDK.csharp.Tools
             }
             return keyValuePairs;
         }
-
+      
     }
 }

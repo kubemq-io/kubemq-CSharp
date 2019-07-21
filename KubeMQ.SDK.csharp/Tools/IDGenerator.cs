@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace KubeMQ.SDK.csharp.Tools
 {
-    class IDGenerator
+   public class IDGenerator
     {
         public class ReqID
         {

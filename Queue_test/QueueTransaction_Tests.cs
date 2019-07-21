@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Queue;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,12 +11,114 @@ namespace Queue_test
     {
 
         [TestMethod]
+        public void SendReciveTranAck_Pass()
+        {
+            Queue queue = initLocalQueue("SendReciveTranAck_Pass");
+            var smres =queue.SendQueueMessage(new Message
+            {
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                Metadata = "first test Ack"   ,
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+            });
+            Transaction tr = queue.CreateTransaction();
+            var recms=  tr.Receive();
+            var ackms= tr.AckMessage(recms.Message);
+
+
+            Assert.IsTrue(!ackms.IsError);
+
+        }
+
+        [TestMethod]
+        public void SendReciveTranAcknRecive_Fail()
+        {
+            Queue queue = initLocalQueue("SendReciveTranAcknRecive_Pass");
+            var smres = queue.SendQueueMessage(new Message
+            {
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                Metadata = "first test Ack",
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+            });
+            Transaction tr = queue.CreateTransaction();
+            var recms = tr.Receive();
+            var ackms = tr.AckMessage(recms.Message);
+            try
+            {
+                var recms2 = tr.Receive();
+            }
+            catch (Exception ex)
+            {
+
+                Assert.AreEqual(ex.InnerException.Message, "No current element is available.");
+            }  
+          
+
+
+            Assert.IsTrue(!ackms.IsError);
+
+        }
+
+        [TestMethod]
+        public void SendReciveTranVisabilityExpire_Fail()
+        {
+            Queue queue = initLocalQueue("SendReciveTranAcknRecive_Pass");
+            var smres = queue.SendQueueMessage(new Message
+            {
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                Metadata = "first test Ack",
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid(),
+               
+            });
+            Transaction tr = queue.CreateTransaction();
+            var recms = tr.Receive();
+
+            Thread.Sleep(tr.VisibilitySeconds+1 * 1000);
+            var ackms = tr.AckMessage(recms.Message);
+
+            Assert.AreEqual(ackms.Error, "Error 129: current visibility timer expired");
+
+        }
+
+        [TestMethod]
+        public void SendReciveTranVisabilityModAck_Pass()
+        {
+            Queue queue = initLocalQueue("SendReciveTranAcknRecive_Pass");
+            var smres = queue.SendQueueMessage(new Message
+            {
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                Metadata = "first test Ack",
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+            });
+            Transaction tr = queue.CreateTransaction();
+            var recms = tr.Receive();
+            tr.ModifyVisibility(recms.Message, 5);
+            Thread.Sleep(4 * 1000);
+            var ackms = tr.AckMessage(recms.Message);
+
+            Assert.IsTrue(!ackms.IsError);
+        }
+
+
+        [TestMethod]
         public void ModifyNewMassage_Fail()
         {
             Queue queue = initLocalQueue();
-          Transaction transaction =  queue.CreateTransaction();
-           transaction.ModifiedMessage(mockMsg());
 
+          Transaction tr =  queue.CreateTransaction();
+            var recms = tr.Receive();
+            try
+            {
+         //       recms.Message.Attributes.Sequence = 45654654;
+
+            var resMod = tr.ModifiedMessage(recms.Message);
+                var recms2 = tr.Receive();
+
+            }
+            catch (Grpc.Core.RpcException rpc)
+            {
+
+           
+            }
 
         }
 
@@ -51,9 +154,9 @@ namespace Queue_test
             };
         }
 
-        private Queue initLocalQueue()
+        private Queue initLocalQueue(string name="test")
         {
-            return new Queue("test", "test", "localhost:50000");
+            return new Queue(name, "test", "localhost:50000");
         }
 
         [TestMethod]
