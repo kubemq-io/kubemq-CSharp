@@ -50,7 +50,10 @@ namespace Queue
                 MessageID = "123",            
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi my name is dodo"),
                 Metadata = "MetaAleha",
-                Tags = new List<(string, string)>() { ("Action", $"SendQueueMessage_{testGui}") },
+                Tags = new Dictionary<string, string>() 
+                {
+                    {"Action",$"SendQueueMessage_{testGui}" }
+                }
             });
             if (res.IsError)
             {
@@ -82,7 +85,10 @@ namespace Queue
                     MessageID = i.ToString(),
                     Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"im Message {i}"),
                     Metadata = "Meta",
-                    Tags = new List<(string, string)>() { ("Action", $"Batch_{testGui}_{i}") },
+                    Tags = new Dictionary<string, string>()/* ("Action", $"Batch_{testGui}_{i}")*/ 
+                    {
+                        {"Action",$"Batch_{testGui}_{i}"}
+                    }
                 });
             }
 

@@ -24,12 +24,12 @@ namespace KubeMQ.SDK.csharp.Queue {
         private static int _id = 0;
         public string MessageID { get; set; }
         public string Metadata { get; set; }
-        public IEnumerable < (string, string) > Tags { get; set; }
+        public Dictionary < string, string > Tags { get; set; }
         public byte[] Body { get; set; }      
         public Message () {
 
         }
-        public Message (byte[] body, string metadata, string messageID = null, IEnumerable < (string, string) > tags = null) {
+        public Message (byte[] body, string metadata, string messageID = null, Dictionary<string, string> tags = null) {
             MessageID = string.IsNullOrEmpty (messageID) ? Tools.IDGenerator.ReqID.Getid() : messageID;
             Metadata = metadata;
             Tags = tags;
@@ -92,7 +92,7 @@ namespace KubeMQ.SDK.csharp.Queue {
                 Metadata = message.Metadata,
                 ClientID = ClientID,
                 Channel = QueueName,
-                Tags = { Tools.Converter.ConvertTags(message.Tags) },
+                Tags = { Tools.Converter.CreateTags(message.Tags) },
                 Body = ByteString.CopyFrom(message.Body)
             });
 
@@ -124,7 +124,7 @@ namespace KubeMQ.SDK.csharp.Queue {
                     MessageID = item.MessageID,
                     Body = ByteString.CopyFrom(item.Body),
                     Metadata = item.Metadata,
-                    Tags = { Tools.Converter.ConvertTags(item.Tags) },
+                    Tags = { Tools.Converter.CreateTags(item.Tags) },
                 });
             }
             return testc;
