@@ -70,7 +70,7 @@ namespace Queue
                 }
                 foreach (var item in peakmsg.Messages)
                 {
-                    Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
+                    Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
                 }
             }
 
@@ -112,7 +112,7 @@ namespace Queue
             }
             foreach (var item in msg.Messages)
             {
-                Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body.ToByteArray())}");
+                Console.WriteLine($"message received body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
 
             }
 
@@ -122,7 +122,7 @@ namespace Queue
 
             var transaction = queue.CreateTransaction();
             Console.WriteLine($"Transaction status:{transaction.Status}");
-            KubeMQ.Grpc.StreamQueueMessagesResponse ms;
+            TransactionMessagesResponse ms;
             try
             {
                 ms = transaction.Receive();
@@ -162,7 +162,6 @@ namespace Queue
             Console.WriteLine($"{ms.IsError}");
 
             #endregion
-            
 
         }
     }
