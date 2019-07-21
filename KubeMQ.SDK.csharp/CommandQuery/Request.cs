@@ -1,4 +1,6 @@
-﻿namespace KubeMQ.SDK.csharp.CommandQuery
+﻿using System.Collections.Generic;
+
+namespace KubeMQ.SDK.csharp.CommandQuery
 {
     /// <summary>
     /// Represents the Request used in RequestReply KubeMQ.SDK.csharp.RequestReply.channel.
@@ -18,6 +20,10 @@
         /// Represents The content of the KubeMQ.SDK.csharp.RequestReply.Request.
         /// </summary>
         public byte[] Body { get; set; }
+        /// <summary>
+        /// Represents a set of Key value pair that help categorize the message. 
+        /// </summary>
+        public Dictionary<string, string> Tags { get; set; }
         #endregion
 
         #region C'tor

@@ -22,7 +22,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="channelName">Represents The channel name to send to using the KubeMQ .</param>
         /// <param name="clientID">Represents the sender ID that the messages will be send under.</param>
-        /// <param name="store"></param>
+        /// <param name="store">If true will save data to kubemq storage.</param>
         /// <param name="KubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000". </param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
         public Channel(string channelName, string clientID, bool store, string KubeMQAddress, ILogger logger=null)
@@ -109,7 +109,8 @@ namespace KubeMQ.SDK.csharp.Events
 
                 EventID = notification.EventID,
                 Body = notification.Body,
-                Metadata = notification.Metadata
+                Metadata = notification.Metadata,
+                Tags = notification.Tags
             };
         }
 

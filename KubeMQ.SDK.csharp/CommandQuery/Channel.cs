@@ -140,7 +140,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery
                 CacheTTL = this.CacheTTL,
                 RequestID = request.RequestID,
                 Body = request.Body,
-                Metadata = request.Metadata
+                Metadata = request.Metadata,
+                Tags = request.Tags
 
             };
 

@@ -60,14 +60,28 @@ namespace KubeMQ.SDK.csharp.Tools
             return (long)(timestamp.ToUniversalTime() - epoch).TotalSeconds;
         }
 
-        public static Google.Protobuf.Collections.MapField<string, string> ConvertTags(System.Collections.Generic.IEnumerable<(string, string)> tags)
+
+        internal static Google.Protobuf.Collections.MapField<string, string> CreateTags(System.Collections.Generic.Dictionary<string, string> tags)
         {
             Google.Protobuf.Collections.MapField<string, string> keyValuePairs = new Google.Protobuf.Collections.MapField<string, string>();
             if (tags != null)
             {
                 foreach (var item in tags)
                 {
-                    keyValuePairs.Add(item.Item1, item.Item2);
+                    keyValuePairs.Add(item.Key, item.Value);
+                }
+            }
+            return keyValuePairs;
+        }
+
+        public static System.Collections.Generic.Dictionary<string, string> ReadTags(Google.Protobuf.Collections.MapField<string, string> tags)
+        {
+            System.Collections.Generic.Dictionary<string, string> keyValuePairs = new System.Collections.Generic.Dictionary<string, string>();
+            if (tags != null)
+            {
+                foreach (var item in tags)
+                {
+                    keyValuePairs.Add(item.Key, item.Value);
                 }
             }
             return keyValuePairs;
