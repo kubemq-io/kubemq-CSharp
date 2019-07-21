@@ -36,13 +36,13 @@ namespace CommandQueryResponder
         private void CreateSubscribeToQueries()
         {
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Queries);
-            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests);
+            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIncomingError);
         }
 
         private void CreateSubscribeToCommands()
         {
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Commands);
-            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests);
+            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIncomingError);
         }
 
         private Response HandleIncomingRequests(RequestReceive request)
@@ -65,6 +65,11 @@ namespace CommandQueryResponder
                 Timestamp = DateTime.UtcNow,
             };
             return response;
+        }
+
+        private void HandleIncomingError(Exception ex)
+        {
+            logger.LogWarning($"Received Exception :{ex}");
         }
     }
 }

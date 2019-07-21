@@ -24,6 +24,13 @@ namespace KubeMQ.SDK.csharp.Events
         /// <param name="eventReceive">Represents an instance of KubeMQ.SDK.csharp.PubSub.EventReceive</param>
         public delegate void HandleEventDelegate(EventReceive eventReceive);
 
+
+        /// <summary>
+        /// Represents a delegate that receive Exception and return to user.
+        /// </summary>
+        /// <param name="eventReceive">Represents an Exception that occurred during event receiving </param>
+        public delegate void HandleEventErrorDelegate(Exception eventReceive);
+
         #region C'tor
 
         /// <summary>
@@ -66,8 +73,9 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
         /// <param name="handler">Method the perform when receiving KubeMQ.SDK.csharp.PubSub.EventReceive .</param>
+        /// <param name="errorDelegate">Method the perform when receiving error from KubeMQ.SDK.csharp.PubSub.EventReceive .</param>
         /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
-        public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler)
+        public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler,HandleEventErrorDelegate errorDelegate)
         {
             ValidateSubscribeRequest(subscribeRequest);// throws ArgumentException
             try
@@ -92,6 +100,7 @@ namespace KubeMQ.SDK.csharp.Events
                     catch (Exception ex)
                     {
                         logger.LogWarning(ex, $"An exception occurred while listening for events");
+                        errorDelegate(ex);
                     }
                     await Task.Delay(1000);
                 }
@@ -118,6 +127,7 @@ namespace KubeMQ.SDK.csharp.Events
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "An exception occurred while handling the event");
+                        errorDelegate(ex);
                     }
                 }
             }));
