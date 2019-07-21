@@ -57,18 +57,34 @@ namespace KubeMQ.SDK.csharp.Tools
             var timeSpan = TimeSpan.FromSeconds(UnixTime);
             return new DateTime(timeSpan.Ticks).ToLocalTime();
         }
+          
 
-
-        internal static IEnumerable<TransactionMessage> QueueMessages(RepeatedField<QueueMessage> messages)
+        internal static IEnumerable<Message> FromQueueMessages(RepeatedField<QueueMessage> messages)
         {
             List<Message> msgs = new List<Message>();
             foreach (var item in messages)
             {
-                yield return TransactionMessage(item);
-            }         
+                msgs.Add(new Message(item));
+            }
+            return msgs;
+        }
+        internal static RepeatedField<QueueMessage> ToQueueMessages(IEnumerable<Message> queueMessages, string clientID, string queueName )        {
+            RepeatedField<QueueMessage> testc = new RepeatedField<QueueMessage>();
+            foreach (var item in queueMessages)
+            {
+                testc.Add(new QueueMessage
+                {
+                    ClientID = clientID,
+                    Channel = queueName,
+                    MessageID = item.MessageID,
+                    Body = ByteString.CopyFrom(item.Body),
+                    Metadata = item.Metadata,
+                    Tags = { Tools.Converter.CreateTags(item.Tags) },
+                });
+            }
+            return testc;
         }
 
-      
 
         internal static long ToUnixTime(DateTime timestamp)
         {       

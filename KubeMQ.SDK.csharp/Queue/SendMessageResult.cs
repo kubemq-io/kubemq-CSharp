@@ -5,11 +5,12 @@ namespace KubeMQ.SDK.csharp.Queue
     public class SendMessageResult
     {
         public bool IsError { get; }
+        public string Error { get; }
         public long ExpirationAt { get; }
         public string MessageID { get; }
         public long SentAt { get; }
         public long DelayedTo { get; }
-        public string Error { get; }
+       
 
         public SendMessageResult(SendQueueMessageResult sendQueueMessageResult)
         {

@@ -104,21 +104,39 @@ namespace Queue_test
         {
             Queue queue = initLocalQueue();
 
-          Transaction tr =  queue.CreateTransaction();
+            bool pass;
+            
+            var smres = queue.SendQueueMessage(new Message
+            {
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                Metadata = "first test Ack"              
+            });
+            pass = !smres.IsError;
+
+            Transaction tr =  queue.CreateTransaction();
             var recms = tr.Receive();
+            pass = !recms.IsError;
             try
             {
-         //       recms.Message.Attributes.Sequence = 45654654;
 
             var resMod = tr.ModifiedMessage(recms.Message);
+                pass = !resMod.IsError;
+
                 var recms2 = tr.Receive();
 
             }
             catch (Grpc.Core.RpcException rpc)
             {
 
-           
+                pass = false;
             }
+
+            catch  (Exception ex)
+            {
+                pass = ex.Message == "One or more errors occurred. (No current element is available.)";
+            }
+
+            Assert.IsTrue(pass);
 
         }
 
