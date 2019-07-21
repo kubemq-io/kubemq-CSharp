@@ -91,7 +91,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 Metadata = message.Metadata,
                 ClientID = ClientID,
                 Channel = QueueName,
-                Tags = { Tools.Converter.ConvertTags(message.Tags) },
+                Tags = { Tools.Converter.CreateTags(message.Tags) },
                 Body = ByteString.CopyFrom(message.Body)
             });
 
@@ -103,7 +103,7 @@ namespace KubeMQ.SDK.csharp.Queue
             QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
             {
                 BatchID = string.IsNullOrEmpty(batchID) ? Tools.IDGenerator.ReqID.Getid() : batchID,
-                Messages = { convertMesages(queueMessages) }
+                Messages = { Tools.Converter.ToQueueMessages(queueMessages, ClientID, QueueName) }
             });
 
             return new SendBatchMessageResult(rec);
@@ -167,22 +167,6 @@ namespace KubeMQ.SDK.csharp.Queue
             return rec;
 
         }
-        private RepeatedField<QueueMessage> convertMesages(IEnumerable<Message> queueMessages)
-        {
-            RepeatedField<QueueMessage> testc = new RepeatedField<QueueMessage>();
-            foreach (var item in queueMessages)
-            {
-                testc.Add(new QueueMessage
-                {
-                    ClientID = ClientID,
-                    Channel = QueueName,
-                    MessageID = item.MessageID,
-                    Body = ByteString.CopyFrom(item.Body),
-                    Metadata = item.Metadata,
-                    Tags = { Tools.Converter.ConvertTags(item.Tags) },
-                });
-            }
-            return testc;
-        }
+       
     }
 }

@@ -46,8 +46,7 @@ namespace Queue
 
             //#region "nontran"
             var res = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
-            {
-                MessageID = "123",            
+            {                         
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi my name is dodo"),
                 Metadata = "MetaAleha",
                 Tags = new Dictionary<string, string>() 

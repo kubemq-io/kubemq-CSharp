@@ -56,11 +56,11 @@ namespace KubeMQ.SDK.csharp.Queue
             catch (Exception ex)
             {
                 throw ex;
-            }
+            }            
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
         
-        public TransactionMessagesResponse AckMessage(TransactionMessage r)
+        public TransactionMessagesResponse AckMessage(Message r)
         {
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
@@ -83,7 +83,7 @@ namespace KubeMQ.SDK.csharp.Queue
             }
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse RejectMessage(TransactionMessage r)
+        public TransactionMessagesResponse RejectMessage(Message r)
         {             
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
@@ -107,7 +107,7 @@ namespace KubeMQ.SDK.csharp.Queue
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
 
-        private QueueMessage ConvertQueueMessage(TransactionMessage r)
+        private QueueMessage ConvertQueueMessage(Message r)
         {
             return new QueueMessage
             {
@@ -118,11 +118,11 @@ namespace KubeMQ.SDK.csharp.Queue
                 MessageID = r.MessageID,
                 Metadata = r.Metadata,
                 Policy = r.Policy,
-                Tags = Tools.Converter.ConvertTags(r.Tags)
+                Tags = { Tools.Converter.CreateTags(r.Tags) }
             };
         }
 
-        public TransactionMessagesResponse ModifyVisibility(TransactionMessage r, int visibility)
+        public TransactionMessagesResponse ModifyVisibility(Message r, int visibility)
         {
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
@@ -145,7 +145,7 @@ namespace KubeMQ.SDK.csharp.Queue
             }
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse ResendMessage(TransactionMessage r)
+        public TransactionMessagesResponse ResendMessage(Message r)
         {
           
                 Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
@@ -156,7 +156,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 StreamRequestTypeData = StreamRequestType.ResendMessage,
                 VisibilitySeconds = VisibilitySeconds,
                 WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = Tools.Converter.ConvertTags(r.Tags),
+                ModifiedMessage = ConvertQueueMessage(r),
                 RefSequence = r.Attributes.Sequence
             });
             try
@@ -169,7 +169,7 @@ namespace KubeMQ.SDK.csharp.Queue
             }
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse ModifiedMessage(TransactionMessage r)
+        public TransactionMessagesResponse ModifiedMessage(Message r)
         {
 
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest

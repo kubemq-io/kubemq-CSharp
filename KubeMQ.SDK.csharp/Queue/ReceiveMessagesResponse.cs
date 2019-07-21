@@ -17,7 +17,7 @@ namespace KubeMQ.SDK.csharp.Queue
             Error = receiveQueueMessagesResponse.Error;
             IsError = receiveQueueMessagesResponse.IsError;
             IsPeak = receiveQueueMessagesResponse.IsPeak;
-            Messages = Messages = Tools.Converter.QueueMessages(receiveQueueMessagesResponse.Messages);
+            Messages = Tools.Converter.FromQueueMessages(receiveQueueMessagesResponse.Messages);
             MessagesExpired= receiveQueueMessagesResponse.MessagesExpired;
             MessagesReceived = receiveQueueMessagesResponse.MessagesReceived;
             RequestID = receiveQueueMessagesResponse.RequestID;
