@@ -14,6 +14,25 @@ namespace KubeMQ.SDK.csharp.Tools
     /// </summary>
     public class Converter
     {
+
+        /// <summary>
+        /// Convert from string to byte array
+        /// </summary>
+        public static byte[]ToUTF8(string data)
+        {
+            byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(data);
+            return utf8Bytes;
+        }
+
+        /// <summary>
+        /// Convert from byte array to string
+        /// </summary>
+        public static string FromUTF8(byte[] data)
+        {
+            string utf8String = System.Text.Encoding.UTF8.GetString(data);
+            return utf8String;
+        }
+
         /// <summary>
         /// Byte Array to ByteString
         /// </summary>
