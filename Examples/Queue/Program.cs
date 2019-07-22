@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Google.Protobuf;
 using KubeMQ.SDK.csharp.Queue;
+using KubeMQ.SDK.csharp.Queue.Stream;
 
 namespace Queue
 {
@@ -124,16 +125,49 @@ namespace Queue
             //#endregion
 
             #region "Tran"
+            msgs = new List<Message>();
+            for (int i = 0; i < 5; i++)
+            {
+                msgs.Add(new KubeMQ.SDK.csharp.Queue.Message
+                {               
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"i'm Tran Message {i}"),
+                    Metadata = "Meta",
+                    Tags = new Dictionary<string, string>()
+                    {
+                        {"Action",$"Batch_{testGui}_{i}"}
+                    }
+                });
+            }
+
+
+            resBatch = queue.SendQueueMessagesBatch(msgs);
+            if (resBatch.HaveErrors)
+            {
+                Console.WriteLine($"message sent batch has errors");
+            }
+            foreach (var item in resBatch.Results)
+            {
+                if (item.IsError)
+                {
+                    Console.WriteLine($"message enqueue error, error:{res.Error}");
+                }
+                else
+                {
+                    Console.WriteLine($"message sent at, {res.SentAt}");
+                }
+            }
+
+
 
             var transaction = queue.CreateTransaction();
-            Console.WriteLine($"Transaction status:{transaction.Status}");
+            Console.WriteLine($"Transaction status:");
             TransactionMessagesResponse ms;
             try
             {
                 ms = transaction.Receive();
                 if (ms.IsError)
                 {
-                    Console.WriteLine($"message dequeue error, error:{res.Error}");
+                    Console.WriteLine($"message dequeue error, error:{ms.Error}");
                 }
             }
             catch (Exception ex)
