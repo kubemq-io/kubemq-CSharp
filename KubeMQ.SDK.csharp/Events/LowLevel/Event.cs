@@ -42,9 +42,21 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
         public bool ReturnResult { get; set; }
 
         #endregion
-
+        /// <summary>
+        /// Create a new instance of KubeMQ.SDK.csharp.Events.LowLevel.Event to be sent through the Kubemq.
+        /// </summary>
         public Event() { }
 
+        /// <summary>
+        /// Create a new instance of KubeMQ.SDK.csharp.Events.LowLevel.Event to be sent through the Kubemq.
+        /// </summary>
+        /// <param name="channel">String: the name of the channel to send the Event to.</param>
+        /// <param name="metadata">String: General information about the message.</param>
+        /// <param name="body">Byte[] the main data of the message.</param>
+        /// <param name="eventID">string: EventID to help distinguish the message.</param>
+        /// <param name="clientID">String: Represent the sender.</param>
+        /// <param name="store">Bool:If true the event will be sent to the kubemq storage.</param>
+        /// <param name="tags">Dictionary of string , string pair:A set of Key value pair that help categorize the message.</param>
         public Event(string channel, string metadata, byte[] body, string eventID, string clientID, bool store,Dictionary<string,string>tags)
         {
             Channel = channel;

@@ -24,7 +24,9 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         public Dictionary<string, string> Tags { get; set; }
         #endregion
-
+        /// <summary>
+        /// Represents a message to be send to kubemq.
+        /// </summary>
         public Event() { }
 
         /// <summary>
