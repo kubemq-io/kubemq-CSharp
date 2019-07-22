@@ -1,10 +1,9 @@
 ﻿using KubeMQ.Grpc;
 
-namespace KubeMQ.SDK.csharp.Queue
+namespace KubeMQ.SDK.csharp.Queue.Stream
 {
     public class TransactionMessagesResponse
     {
-
         public bool IsError { get; }
         public string Error { get; }
         public Message Message { get; }

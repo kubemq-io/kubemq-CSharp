@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
-using Grpc.Core;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
 using KubeMQ.SDK.csharp.Tools;
 using Microsoft.Extensions.Logging;
+using KubeMQ.SDK.csharp.Queue.Stream;
 using KubeMQGrpc = KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Queue
@@ -17,23 +13,29 @@ namespace KubeMQ.SDK.csharp.Queue
     {
         public string QueueName { get; set; }
         public string ClientID { get; set; }
+        /// <summary>
+        ///Number of received messages in request
+        /// </summary>
         public int? MaxNumberOfMessagesQueueMessages { get; set; }
+        /// <summary>
+        /// Wait time for received messages
+        /// </summary>
         public int? WaitTimeSecondsQueueMessages { get; set; }
 
     }
 
     /// <summary>
-    /// Represents a Queue patteren.
+    /// Represents a Queue pattern.
     /// </summary>
     public class Queue : GrpcClient
     {    
         /// <summary>
-        /// Queue name 
+        /// Queue name as Channle name
         /// </summary>
         public string QueueName { get; private set; }       
         public string ClientID { get; private set; }
         /// <summary>
-        /// 
+        ///Number of received messages
         /// </summary>
         public int MaxNumberOfMessagesQueueMessages
         {
@@ -43,7 +45,7 @@ namespace KubeMQ.SDK.csharp.Queue
             }
         }
         /// <summary>
-        /// 
+        /// Wait time for received messages
         /// </summary>
         public int WaitTimeSecondsQueueMessages
         {
@@ -72,6 +74,15 @@ namespace KubeMQ.SDK.csharp.Queue
         {
 
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="clientID"></param>
+        /// <param name="maxNumberOfMessagesQueueMessages">Number of received messages in request</param>
+        /// <param name="waitTimeSecondsQueueMessages">Wait time for received messages</param>
+        /// <param name="kubeMQAddress"></param>
+        /// <param name="logger"></param>
         public Queue(string queueName, string clientID, int? maxNumberOfMessagesQueueMessages, int? waitTimeSecondsQueueMessages, string kubeMQAddress = null, ILogger logger = null)
         {
             this.QueueName = queueName;
@@ -83,6 +94,11 @@ namespace KubeMQ.SDK.csharp.Queue
             this.Ping();
         }
 
+        /// <summary>
+        /// Send single message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public SendMessageResult SendQueueMessage(Message message)
         {
             SendQueueMessageResult rec = GetKubeMQClient().SendQueueMessage(new KubeMQGrpc.QueueMessage
@@ -126,6 +142,7 @@ namespace KubeMQ.SDK.csharp.Queue
 
             return new ReceiveMessagesResponse(rec);
         }
+
         public ReceiveMessagesResponse PeakQueueMessage()
         {
             ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest

@@ -6,7 +6,8 @@ using Grpc.Core;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
 
-namespace KubeMQ.SDK.csharp.Queue
+
+namespace KubeMQ.SDK.csharp.Queue.Stream
 {
     public class Transaction : GrpcClient
     {
@@ -15,7 +16,7 @@ namespace KubeMQ.SDK.csharp.Queue
         private int _visibilitySeconds;
         private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
 
-        public string Status
+        internal string Status
         {
             get
             {
@@ -93,7 +94,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 StreamRequestTypeData = StreamRequestType.RejectMessage,
                 VisibilitySeconds = VisibilitySeconds,
                 WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = ConvertQueueMessage(r),
+                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
                 RefSequence = r.Attributes.Sequence
             });
             try
@@ -107,21 +108,6 @@ namespace KubeMQ.SDK.csharp.Queue
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
 
-        private QueueMessage ConvertQueueMessage(Message r)
-        {
-            return new QueueMessage
-            {
-                Attributes = r.Attributes,
-                Body = Google.Protobuf.ByteString.CopyFrom(r.Body),
-                Channel = r.Queue,
-                ClientID = r.ClientID,
-                MessageID = r.MessageID,
-                Metadata = r.Metadata,
-                Policy = r.Policy,
-                Tags = { Tools.Converter.CreateTags(r.Tags) }
-            };
-        }
-
         public TransactionMessagesResponse ModifyVisibility(Message r, int visibility)
         {
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
@@ -132,7 +118,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 StreamRequestTypeData = StreamRequestType.ModifyVisibility,
                 VisibilitySeconds = visibility,
                 WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = ConvertQueueMessage(r),
+                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
                 RefSequence = r.Attributes.Sequence
             });
             try
@@ -156,7 +142,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 StreamRequestTypeData = StreamRequestType.ResendMessage,
                 VisibilitySeconds = VisibilitySeconds,
                 WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = ConvertQueueMessage(r),
+                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
                 RefSequence = r.Attributes.Sequence
             });
             try
@@ -180,7 +166,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 StreamRequestTypeData = StreamRequestType.SendModifiedMessage,
                 VisibilitySeconds = VisibilitySeconds,
                 WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = ConvertQueueMessage(r),
+                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
                 RefSequence = r.Attributes.Sequence
             });
             try
@@ -194,6 +180,28 @@ namespace KubeMQ.SDK.csharp.Queue
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
 
+        public bool OpenStream()
+        {
+            if (stream == null)
+            {
+                stream = GetKubeMQClient().StreamQueueMessage();
+            }
+            else
+            {
+                try
+                {
+                    if (stream.GetStatus().StatusCode != StatusCode.OK)
+                    {
+                        stream = GetKubeMQClient().StreamQueueMessage();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    
+                }
+            }
+            return true;
+        }
 
         private async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr)
         {
@@ -225,6 +233,8 @@ namespace KubeMQ.SDK.csharp.Queue
                 throw new Exception(ex.Message);
             }
         }
+
+    
 
     }
 }
