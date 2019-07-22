@@ -9,6 +9,8 @@ using KubeMQ.SDK.csharp.Basic;
 using KubeMQ.SDK.csharp.Tools;
 using KubeMQ.SDK.csharp.Subscription;
 using KubeMQ.Grpc;
+using System.Threading;
+using Grpc.Core;
 
 namespace KubeMQ.SDK.csharp.Events
 {
@@ -74,8 +76,9 @@ namespace KubeMQ.SDK.csharp.Events
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
         /// <param name="handler">Method the perform when receiving KubeMQ.SDK.csharp.PubSub.EventReceive .</param>
         /// <param name="errorDelegate">Method the perform when receiving error from KubeMQ.SDK.csharp.PubSub.EventReceive .</param>
+        /// <param name="cancellationToken">Optional param if needed to cancel the subscriber ,will receive RPC exception with status canceled through the error Delegate is called.</param>
         /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
-        public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler,HandleEventErrorDelegate errorDelegate)
+        public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler,HandleEventErrorDelegate errorDelegate, CancellationToken cancellationToken = default(CancellationToken))
         {
             ValidateSubscribeRequest(subscribeRequest);// throws ArgumentException
             try
@@ -84,22 +87,37 @@ namespace KubeMQ.SDK.csharp.Events
             }
             catch (Exception pingEx)
             {
-                logger.LogWarning(pingEx, "n exception occurred while sending ping to kubemq");
+                logger.LogWarning(pingEx, "An exception occurred while sending ping to kubemq");
                 throw pingEx;
             }
-
-
             var grpcListnerTask = Task.Run((Func<Task>)(async () =>
             {
                 while (true)
                 {
                     try
                     {
-                        await SubscribeToEvents(subscribeRequest);
+                        await SubscribeToEvents(subscribeRequest, cancellationToken);
+                    }
+                    catch (RpcException rpcx)
+                    {
+                        if (rpcx.StatusCode == StatusCode.Cancelled)
+                        {
+                            logger.LogWarning(rpcx, $"Cancellation was called ");
+
+                            errorDelegate(rpcx);
+                            break;
+                        }
+                        else
+                        {
+                            logger.LogWarning(rpcx, $"An RPC exception occurred while listening for events");
+
+                            errorDelegate(rpcx);
+                        }
                     }
                     catch (Exception ex)
                     {
                         logger.LogWarning(ex, $"An exception occurred while listening for events");
+                        
                         errorDelegate(ex);
                     }
                     await Task.Delay(1000);
@@ -133,10 +151,11 @@ namespace KubeMQ.SDK.csharp.Events
             }));
         }
 
-        private async Task SubscribeToEvents(SubscribeRequest subscribeRequest)
+        private async Task SubscribeToEvents(SubscribeRequest subscribeRequest, CancellationToken cancellationToken)
         {
             KubeMQGrpc.Subscribe innerSubscribeRequest = subscribeRequest.ToInnerSubscribeRequest();
-            using (var call = GetKubeMQClient().SubscribeToEvents(innerSubscribeRequest, _metadata))
+
+            using (var call = GetKubeMQClient().SubscribeToEvents(innerSubscribeRequest, _metadata, null, cancellationToken))
             {
                 // Wait for event..
                 while (await call.ResponseStream.MoveNext())
