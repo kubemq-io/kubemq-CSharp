@@ -34,10 +34,8 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
 
         public TransactionMessagesResponse Receive()
         {
-            if (stream == null)
-            {
                 stream = GetKubeMQClient().StreamQueueMessage();              
-            }
+        
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
