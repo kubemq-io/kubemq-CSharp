@@ -166,6 +166,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// Register to kubeMQ Channel using KubeMQ.SDK.csharp.Subscription.SubscribeRequest.
         /// </summary>
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
+        /// <param name="cancellationToken">Optional param if needed to cancel the subscriber ,will receive RPC exception with status canceled through the error Delegate is called.</param>
         /// <returns>A task that represents the Subscribe Request.</returns>
         private async Task SubscribeToRequests(SubscribeRequest subscribeRequest, CancellationToken cancellationToken)
         {
