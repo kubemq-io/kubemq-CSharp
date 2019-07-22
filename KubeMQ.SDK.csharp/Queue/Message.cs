@@ -5,7 +5,7 @@ namespace KubeMQ.SDK.csharp.Queue
 {
     public class Message
     {
-     
+
         /// <summary>
         /// Unique for message
         /// </summary>
@@ -31,7 +31,7 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <summary>
         /// Information of received message
         /// </summary>
-        public QueueMessagePolicy Policy { get; }
+        public QueueMessagePolicy Policy { get; set; }
         private string _messageID;
         public Message(QueueMessage message)
         {

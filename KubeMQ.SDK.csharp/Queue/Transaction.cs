@@ -16,7 +16,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         private int _visibilitySeconds;
         private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
 
-        internal string Status
+        public string Status
         {
             get
             {
@@ -24,7 +24,6 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
         }
         public int VisibilitySeconds { get;  private set; }
-
 
         public Transaction(Queue queue, int visibilitySeconds = 1)
         {
@@ -59,8 +58,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 throw ex;
             }            
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
-        }
-        
+        }        
         public TransactionMessagesResponse AckMessage(Message r)
         {
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
@@ -108,7 +106,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
 
-        public TransactionMessagesResponse ModifyVisibility(Message r, int visibility)
+        public TransactionMessagesResponse ExtendVisibility(Message r, int visibility)
         {
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
@@ -131,7 +129,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse ResendMessage(Message r)
+        public TransactionMessagesResponse Resend(Message r)
         {
           
                 Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
@@ -155,7 +153,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse ModifiedMessage(Message r)
+        public TransactionMessagesResponse Modifiy(Message r)
         {
 
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
@@ -194,12 +192,15 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                     {
                         stream = GetKubeMQClient().StreamQueueMessage();
                     }
+                  
                 }
                 catch (Exception ex)
                 {
                     
                 }
             }
+
+          var res =  GetKubeMQClient().Ping(new Empty());
             return true;
         }
 
