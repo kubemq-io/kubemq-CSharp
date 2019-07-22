@@ -9,7 +9,7 @@ namespace Queue
     class Program
     {
         /// <summary>
-        /// KubeMQ ClientID for tracing and persistency tracking.
+        /// KubeMQ ClientID for tracing and tracking.
         /// </summary>
         private static string ClientID = Environment.GetEnvironmentVariable("CLIENT") ?? $"MSMQ_Demo_{Environment.MachineName}";
         /// <summary>
@@ -135,7 +135,7 @@ namespace Queue
                     Tags = new Dictionary<string, string>()
                     {
                         {"Action",$"Batch_{testGui}_{i}"}
-                    }
+                    }  
                 });
             }
 
@@ -168,6 +168,7 @@ namespace Queue
                 if (ms.IsError)
                 {
                     Console.WriteLine($"message dequeue error, error:{ms.Error}");
+                    return;
                 }
             }
             catch (Exception ex)
@@ -180,26 +181,18 @@ namespace Queue
          
             try
             {
-               ms = transaction.ModifyVisibility(qm, 100);
+               ms = transaction.ExtendVisibility(qm, 1);
+                if (ms.IsError)
+                {
+                    Console.WriteLine($"message dequeue error, error:{ms.Error}");
+                    return;
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"message dequeue error, error:{ex.Message}");
                 return;
             }
-            Console.WriteLine($"{ms.IsError}");
-
-            try
-            {
-                ms = transaction.AckMessage(qm);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"message dequeue error, error:{ex.Message}");
-                return;
-            }
-            Console.WriteLine($"{ms.IsError}");
-
             #endregion
 
         }
