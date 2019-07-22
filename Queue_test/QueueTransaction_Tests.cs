@@ -1,7 +1,9 @@
 using System;
 using System.Threading;
+
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Queue;
+using KubeMQ.SDK.csharp.Queue.Stream;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Queue_test
@@ -95,7 +97,7 @@ namespace Queue_test
             Thread.Sleep(4 * 1000);
             var ackms = tr.AckMessage(recms.Message);
 
-            Assert.IsTrue(!ackms.IsError);
+            Assert.IsFalse(ackms.IsError);
         }
 
 
@@ -104,41 +106,82 @@ namespace Queue_test
         {
             Queue queue = initLocalQueue();
 
-            bool pass;
             
             var smres = queue.SendQueueMessage(new Message
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack"              
             });
-            pass = !smres.IsError;
+            Assert.IsFalse(smres.IsError, "$SendQueueMessage error:{smres.Error}");
 
             Transaction tr =  queue.CreateTransaction();
             var recms = tr.Receive();
-            pass = !recms.IsError;
+
+
+            Assert.IsFalse(recms.IsError, "$SendQueueMessage error:{recms.Error}");
+        
             try
             {
 
             var resMod = tr.ModifiedMessage(recms.Message);
-                pass = !resMod.IsError;
-
+                Assert.IsFalse(resMod.IsError, "$SendQueueMessage error:{resMod.Error}");
+             
                 var recms2 = tr.Receive();
 
             }
             catch (Grpc.Core.RpcException rpc)
             {
-
-                pass = false;
+                Assert.Fail(rpc.Message);
             }
 
             catch  (Exception ex)
             {
-                pass = ex.Message == "One or more errors occurred. (No current element is available.)";
+                Assert.AreEqual(ex.Message, "One or more errors occurred. (No current element is available.)");
             }
+        }
 
-            Assert.IsTrue(pass);
+      
+        [TestMethod]
+        public void ReciveVisabilatiyPass10Sec_Pass()
+        {
+
 
         }
+        [TestMethod]
+        public void ModifyAfterAck_falil()
+        {
+            Queue queue = initLocalQueue("ModifyAfterAck_falil");
+
+
+            var smres = queue.SendQueueMessagesBatch(new Message[] {
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                    Metadata = "first test Ack"
+                },
+
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi again"),
+                    Metadata = "first test Ack"
+                }
+            }); 
+
+            Transaction tr = queue.CreateTransaction();
+            var recms = tr.Receive();
+            var ackms = tr.AckMessage(recms.Message);
+            try
+            {
+                var recMod = tr.ModifyVisibility(recms.Message, 5);
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual(ex.InnerException.Message, "No current element is available.", $"ex:{ex.InnerException.Message}");
+            }
+
+        }
+
+
 
         private QueueMessage mockMsg()
         {
@@ -156,7 +199,7 @@ namespace Queue_test
                     Timestamp = 1
 
                 },
-                Body =  Google.Protobuf.ByteString.Empty,
+                Body = Google.Protobuf.ByteString.Empty,
                 Channel = "123",
                 ClientID = "123",
                 MessageID = "!23",
@@ -172,22 +215,10 @@ namespace Queue_test
             };
         }
 
-        private Queue initLocalQueue(string name="test")
+        private Queue initLocalQueue(string name = "test")
         {
             return new Queue(name, "test", "localhost:50000");
         }
 
-        [TestMethod]
-        public void ReciveVisabilatiyPass10Sec_Pass()
-        {
-
-
-        }
-        [TestMethod]
-        public void ModifyAfterAck_falil()
-        {
-
-
-        }
     }
 }

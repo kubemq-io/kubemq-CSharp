@@ -14,7 +14,6 @@ namespace KubeMQ.SDK.csharp.Tools
     /// </summary>
     public class Converter
     {
-
         /// <summary>
         /// Convert from string to byte array
         /// </summary>
@@ -78,6 +77,39 @@ namespace KubeMQ.SDK.csharp.Tools
         }
           
 
+        internal static long ToUnixTime(DateTime timestamp)
+        {       
+            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            return (long)(timestamp.ToUniversalTime() - epoch).TotalSeconds;
+        }
+
+        internal static Google.Protobuf.Collections.MapField<string, string> CreateTags(System.Collections.Generic.Dictionary<string, string> tags)
+        {
+            Google.Protobuf.Collections.MapField<string, string> keyValuePairs = new Google.Protobuf.Collections.MapField<string, string>();
+            if (tags != null)
+            {
+                foreach (var item in tags)
+                {
+                    keyValuePairs.Add(item.Key, item.Value);
+                }
+            }
+            return keyValuePairs;
+        }
+
+        internal static System.Collections.Generic.Dictionary<string, string> ReadTags(Google.Protobuf.Collections.MapField<string, string> tags)
+        {
+            System.Collections.Generic.Dictionary<string, string> keyValuePairs = new System.Collections.Generic.Dictionary<string, string>();
+            if (tags != null)
+            {
+                foreach (var item in tags)
+                {
+                    keyValuePairs.Add(item.Key, item.Value);
+                }
+            }
+            return keyValuePairs;
+        }
+
+        #region "Stream Transaction"
         internal static IEnumerable<Message> FromQueueMessages(RepeatedField<QueueMessage> messages)
         {
             List<Message> msgs = new List<Message>();
@@ -87,7 +119,10 @@ namespace KubeMQ.SDK.csharp.Tools
             }
             return msgs;
         }
-        internal static RepeatedField<QueueMessage> ToQueueMessages(IEnumerable<Message> queueMessages, string clientID, string queueName )        {
+
+
+        internal static RepeatedField<QueueMessage> ToQueueMessages(IEnumerable<Message> queueMessages, string clientID, string queueName)
+        {
             RepeatedField<QueueMessage> testc = new RepeatedField<QueueMessage>();
             foreach (var item in queueMessages)
             {
@@ -104,39 +139,22 @@ namespace KubeMQ.SDK.csharp.Tools
             return testc;
         }
 
-
-        internal static long ToUnixTime(DateTime timestamp)
-        {       
-            var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            return (long)(timestamp.ToUniversalTime() - epoch).TotalSeconds;
-        }
-
-
-        internal static Google.Protobuf.Collections.MapField<string, string> CreateTags(System.Collections.Generic.Dictionary<string, string> tags)
+        internal static QueueMessage ConvertQueueMessage(Message r)
         {
-            Google.Protobuf.Collections.MapField<string, string> keyValuePairs = new Google.Protobuf.Collections.MapField<string, string>();
-            if (tags != null)
+            return new QueueMessage
             {
-                foreach (var item in tags)
-                {
-                    keyValuePairs.Add(item.Key, item.Value);
-                }
-            }
-            return keyValuePairs;
+                Attributes = r.Attributes,
+                Body = Google.Protobuf.ByteString.CopyFrom(r.Body),
+                Channel = r.Queue,
+                ClientID = r.ClientID,
+                MessageID = r.MessageID,
+                Metadata = r.Metadata,
+                Policy = r.Policy,
+                Tags = { Tools.Converter.CreateTags(r.Tags) }
+            };
         }
 
-        public static System.Collections.Generic.Dictionary<string, string> ReadTags(Google.Protobuf.Collections.MapField<string, string> tags)
-        {
-            System.Collections.Generic.Dictionary<string, string> keyValuePairs = new System.Collections.Generic.Dictionary<string, string>();
-            if (tags != null)
-            {
-                foreach (var item in tags)
-                {
-                    keyValuePairs.Add(item.Key, item.Value);
-                }
-            }
-            return keyValuePairs;
-        }
-      
+        #endregion
+
     }
 }
