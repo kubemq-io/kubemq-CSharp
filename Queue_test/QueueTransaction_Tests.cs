@@ -13,6 +13,57 @@ namespace Queue_test
     {
 
         [TestMethod]
+        public void Get_2_messages_pass()
+        {
+            Queue queue = initLocalQueue($"Get_2_messages_pass{DateTime.UtcNow.ToBinary().ToString()}");
+
+
+            var smres = queue.SendQueueMessagesBatch(new Message[] {
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                    Metadata = "first test Ack",
+                    MessageID = "test1"
+                  
+
+                },
+
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi again"),
+                    Metadata = "sec  test Ack",
+                    MessageID = "test2"
+
+
+                }
+            }); ;
+
+            Transaction tr = new Transaction(queue, 10);
+            try
+            {
+
+
+                var recms = tr.Receive();
+             //   Transaction tr = new Transaction(queue, 10);
+                var recms2 = tr.Receive();
+                //var ack =    tr.AckMessage(recms.Message);
+
+                //var pek = queue.PeakQueueMessage();
+                //var nextm = tr.next();
+
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+        }
+
+
+
+        [TestMethod]
         public void SendReciveTranAck_Pass()
         {
             Queue queue = initLocalQueue("SendReciveTranAck_Pass");
