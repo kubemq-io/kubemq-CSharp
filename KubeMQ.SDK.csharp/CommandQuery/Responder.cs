@@ -10,6 +10,8 @@ using InnerResponse = KubeMQ.Grpc.Response;
 using KubeMQ.SDK.csharp.Tools;
 using KubeMQ.SDK.csharp.Subscription;
 using KubeMQ.Grpc;
+using System.Threading;
+using Grpc.Core;
 
 namespace KubeMQ.SDK.csharp.CommandQuery
 {
@@ -28,12 +30,6 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <param name="request">Represents an instance of KubeMQ.SDK.csharp.RequestReply.Responder .</param>
         /// <returns></returns>
         public delegate Response RespondDelegate(RequestReceive request);
-
-        /// <summary>
-        /// Represents a delegate that receive Exception and return to user.
-        /// </summary>
-        /// <param name="QueryReceive">Represents an Exception that occurred during Query/Commend receiving </param>
-        public delegate void HandleCommendQueryDelegate(Exception QueryReceive);
 
 
         #region C'tor
@@ -59,6 +55,12 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         public Responder(string KubeMQAddress) : this(KubeMQAddress, null) { }
 
         /// <summary>
+        /// Represents a delegate that receive Exception and return to user.
+        /// </summary>
+        /// <param name="eventReceive">Represents an Exception that occurred during CommandQuery receiving </param>
+        public delegate void HandleCommandQueryErrorDelegate(Exception eventReceive);
+
+        /// <summary>
         /// Initialize a new Responder to subscribe to Response  
         /// </summary>
         /// <param name="KubeMQAddress">KubeMQ server address</param>
@@ -76,9 +78,10 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// </summary>
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
         /// <param name="handler">Method the perform when receiving KubeMQ.SDK.csharp.RequestReplay.RequestReceive </param>
-        /// <param name="queryDelegate">Method the perform when receiving Exception from kubemq </param>
+        /// <param name="errorDelegate">Method the perform when receiving error from KubeMQ.SDK.csharp.CommandQuery .</param>
+        /// <param name="cancellationToken">Optional param if needed to cancel the subscriber ,will receive RPC exception with status canceled through the error Delegate is called.</param>
         /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
-        public void SubscribeToRequests(SubscribeRequest subscribeRequest, RespondDelegate handler , HandleCommendQueryDelegate queryDelegate)
+        public void SubscribeToRequests(SubscribeRequest subscribeRequest, RespondDelegate handler , HandleCommandQueryErrorDelegate errorDelegate, CancellationToken cancellationToken = default(CancellationToken))
         {
             ValidateSubscribeRequest(subscribeRequest);// throws ArgumentException
 
@@ -98,12 +101,28 @@ namespace KubeMQ.SDK.csharp.CommandQuery
                 {
                     try
                     {
-                        await SubscribeToRequests(subscribeRequest);
+                        await SubscribeToRequests(subscribeRequest, cancellationToken);
+                    }
+                    catch (RpcException rpcx)
+                    {
+                        if (rpcx.StatusCode == StatusCode.Cancelled)
+                        {
+                            logger.LogWarning(rpcx, $"Cancellation was called ");
+
+                            errorDelegate(rpcx);
+                            break;
+                        }
+                        else
+                        {
+                            logger.LogWarning(rpcx, $"An RPC exception occurred while listening for events");
+
+                            errorDelegate(rpcx);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        logger.LogWarning(ex, $"An exception occurred while listening for request");
-                        queryDelegate(ex);
+                        logger.LogWarning(ex, $"An exception occurred while receiving request");
+                        errorDelegate(ex);
                     }
                     await Task.Delay(1000);
                 }
@@ -137,7 +156,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
                     catch (Exception ex)
                     {
                         logger.LogError(ex, "An exception occurred while handling the response");
-                        queryDelegate(ex);
+                        errorDelegate(ex);
                     }
                 }
             }));
@@ -148,11 +167,11 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// </summary>
         /// <param name="subscribeRequest">Parameters list represent by KubeMQ.SDK.csharp.Subscription.SubscribeRequest that will determine the subscription configuration.</param>
         /// <returns>A task that represents the Subscribe Request.</returns>
-        private async Task SubscribeToRequests(SubscribeRequest subscribeRequest)
+        private async Task SubscribeToRequests(SubscribeRequest subscribeRequest, CancellationToken cancellationToken)
         {
             KubeMQGrpc.Subscribe innerSubscribeRequest = subscribeRequest.ToInnerSubscribeRequest();
 
-            using (var call = GetKubeMQClient().SubscribeToRequests(innerSubscribeRequest, _metadata))
+            using (var call = GetKubeMQClient().SubscribeToRequests(innerSubscribeRequest, _metadata, null, cancellationToken))
             {
                 // await for requests form GRPC stream.
                 while (await call.ResponseStream.MoveNext())
