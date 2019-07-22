@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using KubeMQ.Grpc;
@@ -24,7 +25,7 @@ namespace Queue_test
                     Metadata = "first test Ack",
                     Policy = new QueueMessagePolicy
                     {
-                        DelaySeconds =10
+                        DelaySeconds =3
                     }
 
                 },
@@ -35,32 +36,25 @@ namespace Queue_test
                     Metadata = "first test Ack",
                      Policy = new QueueMessagePolicy
                     {
-                        DelaySeconds =15
+                        DelaySeconds =5
                     }
                 }
             }); ;
 
-            Transaction tr = queue.CreateTransaction();
 
-            var recms = tr.Receive();
-            Assert.IsTrue(recms.IsError);
-            Assert.AreEqual(recms.Error, "Error 138: no new message in queue, wait time expired");
-
-            try
-            {
-                recms = tr.Receive();
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
-
+            var recms = queue.ReceiveQueueMessages();
+            Assert.IsFalse(recms.IsError);
+            Assert.AreEqual(0, new List<Message>(recms.Messages).Count);
+            Thread.Sleep(3000);
+            recms = queue.ReceiveQueueMessages();
+            Assert.IsFalse(recms.IsError);
+            Assert.AreEqual(1, new List<Message>(recms.Messages).Count);
+            Thread.Sleep(2000);
+            recms = queue.ReceiveQueueMessages();
+            Assert.IsFalse(recms.IsError);
+            Assert.AreEqual(1, new List<Message>(recms.Messages).Count);
 
         }
-
-      
-
 
         private QueueMessage mockMsg()
         {
