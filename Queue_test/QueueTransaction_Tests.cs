@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-
+using System.Threading.Tasks;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Queue;
 using KubeMQ.SDK.csharp.Queue.Stream;
@@ -93,7 +93,7 @@ namespace Queue_test
             });
             Transaction tr = queue.CreateTransaction();
             var recms = tr.Receive();
-            tr.ModifyVisibility(recms.Message, 5);
+            tr.ExtendVisibility(recms.Message, 5);
             Thread.Sleep(4 * 1000);
             var ackms = tr.AckMessage(recms.Message);
 
@@ -123,7 +123,7 @@ namespace Queue_test
             try
             {
 
-            var resMod = tr.ModifiedMessage(recms.Message);
+            var resMod = tr.Modifiy(recms.Message);
                 Assert.IsFalse(resMod.IsError, "$SendQueueMessage error:{resMod.Error}");
              
                 var recms2 = tr.Receive();
@@ -172,7 +172,7 @@ namespace Queue_test
             var ackms = tr.AckMessage(recms.Message);
             try
             {
-                var recMod = tr.ModifyVisibility(recms.Message, 5);
+                var recMod = tr.ExtendVisibility(recms.Message, 5);
             }
             catch (Exception ex)
             {
@@ -180,6 +180,8 @@ namespace Queue_test
             }
 
         }
+
+       
 
 
 
