@@ -121,22 +121,14 @@ namespace KubeMQ.SDK.csharp.Tools
         }
 
 
-        internal static RepeatedField<QueueMessage> ToQueueMessages(IEnumerable<Message> queueMessages, string clientID, string queueName)
+        internal static IEnumerable<QueueMessage> ToQueueMessages(IEnumerable<Message> queueMessages, KubeMQ.SDK.csharp.Queue.Queue queue)
         {
-            RepeatedField<QueueMessage> testc = new RepeatedField<QueueMessage>();
             foreach (var item in queueMessages)
             {
-                testc.Add(new QueueMessage
-                {
-                    ClientID = clientID,
-                    Channel = queueName,
-                    MessageID = item.MessageID,
-                    Body = ByteString.CopyFrom(item.Body),
-                    Metadata = item.Metadata,
-                    Tags = { Tools.Converter.CreateTags(item.Tags) },
-                });
+                item.Queue = item.Queue?? queue.QueueName;
+                item.ClientID = item.ClientID ?? queue.ClientID;                
+                yield return ConvertQueueMessage(item);
             }
-            return testc;
         }
 
         internal static QueueMessage ConvertQueueMessage(Message r)

@@ -108,8 +108,8 @@ namespace KubeMQ.SDK.csharp.Queue
                 ClientID = ClientID,
                 Channel = QueueName,
                 Tags = { Tools.Converter.CreateTags(message.Tags) },
-                Body = ByteString.CopyFrom(message.Body)
-            });
+                Body = ByteString.CopyFrom(message.Body),              
+            }) ;
 
             return new SendMessageResult(rec);
         }
@@ -119,7 +119,7 @@ namespace KubeMQ.SDK.csharp.Queue
             QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
             {
                 BatchID = string.IsNullOrEmpty(batchID) ? Tools.IDGenerator.ReqID.Getid() : batchID,
-                Messages = { Tools.Converter.ToQueueMessages(queueMessages, ClientID, QueueName) }
+                Messages = { Tools.Converter.ToQueueMessages(queueMessages, this) }
             });
 
             return new SendBatchMessageResult(rec);
@@ -158,7 +158,7 @@ namespace KubeMQ.SDK.csharp.Queue
             return new ReceiveMessagesResponse(rec);
         }
 
-        public AckAllMessagesResponse ackAllQueueMessagesResponse()
+        public AckAllMessagesResponse AckAllQueueMessagesResponse()
         {
             AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
             {
