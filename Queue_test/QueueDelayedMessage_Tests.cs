@@ -56,6 +56,94 @@ namespace Queue_test
 
         }
 
+        [TestMethod]
+        public void DelayedTransactionMessage_pass()
+        {
+            Queue queue = initLocalQueue($"DelayedMessage_pass_{DateTime.UtcNow.ToBinary().ToString()}");
+
+
+            var smres = queue.SendQueueMessagesBatch(new Message[] {
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                    Metadata = "first test Ack",
+                    Policy = new QueueMessagePolicy
+                    {
+                        DelaySeconds =3
+                    }
+
+                },
+
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi again"),
+                    Metadata = "first test Ack",
+                     Policy = new QueueMessagePolicy
+                    {
+                        DelaySeconds =5
+                    }
+                }
+            }); ;
+
+            Transaction tr = new Transaction(queue,10);
+            try
+            {
+
+           
+            var recms = tr.Receive();
+            Assert.IsTrue(recms.IsError);
+            Assert.AreEqual("Error 138: no new message in queue, wait time expired", recms.Error);
+           // Thread.Sleep(5000);
+            recms = tr.Receive();
+            Assert.IsFalse(recms.IsError);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+        }
+
+        [TestMethod]
+        public void DelayedTransactionM2essage_pass()
+        {
+            Queue queue = initLocalQueue($"DelayedMessage_pass_{DateTime.UtcNow.ToBinary().ToString()}");
+
+
+            var smres = queue.SendQueueMessage(new Message
+            {
+
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                Metadata = "first test Ack",
+                Policy = new QueueMessagePolicy
+                {
+                    DelaySeconds = 3
+                }         
+            });
+
+           
+
+            Transaction tr = new Transaction(queue, 10);
+            try
+            {
+
+
+                var recms = tr.Receive();
+                Assert.IsTrue(recms.IsError);
+                Assert.AreEqual("Error 138: no new message in queue, wait time expired", recms.Error);
+                // Thread.Sleep(5000);
+                recms = tr.Receive();
+                Assert.IsFalse(recms.IsError);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+        }
+
         private QueueMessage mockMsg()
         {
             return new QueueMessage()
