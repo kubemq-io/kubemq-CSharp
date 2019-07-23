@@ -1,4 +1,6 @@
-﻿using InnerRequest = KubeMQ.Grpc.Request;
+﻿using KubeMQ.SDK.csharp.Tools;
+using System.Collections.Generic;
+using InnerRequest = KubeMQ.Grpc.Request;
 
 namespace KubeMQ.SDK.csharp.CommandQuery
 {
@@ -45,7 +47,10 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// Cache time to live : for how long does the request should be saved in Cache
         /// </summary>
         public int CacheTTL { get; set; }
-
+        /// <summary>
+        /// Represents a set of Key value pair that help categorize the message. 
+        /// </summary>
+        public Dictionary<string, string> Tags { get; set; }
         #endregion
         internal RequestReceive(InnerRequest innerRequest)
         {
@@ -59,6 +64,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
             Timeout = innerRequest.Timeout;
             CacheKey = innerRequest.CacheKey;
             CacheTTL = innerRequest.CacheTTL;
+            Tags = Converter.ReadTags(innerRequest.Tags);
         }
     }
 }
