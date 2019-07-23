@@ -2,16 +2,25 @@ syntax = "proto3";
 option csharp_namespace = "KubeMQ.Grpc"; // Namespace for c# generated classes; if omitted, will be the package.
 package kubemq;
 service kubemq {
-
     rpc SendEvent (Event) returns (Result) {}
     rpc SendEventsStream (stream Event) returns (stream Result) {}
     rpc SubscribeToEvents (Subscribe) returns (stream EventReceive) {}
     rpc SubscribeToRequests (Subscribe) returns (stream Request) {}
     rpc SendRequest (Request) returns (Response) {}
     rpc SendResponse(Response) returns (Empty) {}
-
+    rpc SendQueueMessage(QueueMessage) returns (SendQueueMessageResult) {}
+    rpc SendQueueMessagesBatch(QueueMessagesBatchRequest) returns (QueueMessagesBatchResponse) {}
+    rpc ReceiveQueueMessages(ReceiveQueueMessagesRequest) returns (ReceiveQueueMessagesResponse) {}
+    rpc StreamQueueMessage(stream StreamQueueMessagesRequest) returns (stream StreamQueueMessagesResponse) {}
+    rpc AckAllQueueMessages(AckAllQueueMessagesRequest) returns (AckAllQueueMessagesResponse) {}
+    rpc Ping (Empty) returns (PingResult) {}
 }
-
+message PingResult {
+    string  Host        =1;
+    string Version      =2;
+    int64  ServerStartTime   =3;
+    int64  ServerUpTimeSeconds =4;
+}
 message Empty {}
 
 message Result {
@@ -27,6 +36,7 @@ message Event {
     string  Metadata            =4;
     bytes   Body                =5;
     bool    Store               =6;
+    map<string,string>  Tags    =7;
 }
 
 message EventReceive {
@@ -36,6 +46,7 @@ message EventReceive {
     bytes   Body                =4;
     int64   Timestamp           =5;
     uint64  Sequence            =6;
+    map<string,string>  Tags    =7;
 }
 
 message Subscribe {
@@ -80,8 +91,9 @@ message Request {
     int32   Timeout             =8;
     string  CacheKey            =9;
     int32   CacheTTL            =10;
-    bytes   Span             =11;
-}
+    bytes   Span                =11;
+    map<string,string>  Tags             =12;
+ }
 message Response {
     string  ClientID        =1;
     string  RequestID       =2;
@@ -92,5 +104,115 @@ message Response {
     int64   Timestamp       =7;
     bool    Executed        =8;
     string  Error           =9;
-    bytes   Span         =10;
+    bytes   Span            =10;
+    map<string,string>  Tags  =11;
+}
+
+message QueueMessage {
+    string  MessageID        =1;
+    string  ClientID         =2;
+    string  Channel        =3;
+    string  Metadata         =4;
+    bytes   Body             =5;
+    map<string,string>  Tags             =6;
+    QueueMessageAttributes Attributes    =7;
+    QueueMessagePolicy Policy            =8;
+}
+message QueueMessagesBatchRequest {
+    string      BatchID                 =1;
+    repeated    QueueMessage Messages   =2;
+}
+message QueueMessagesBatchResponse {
+    string      BatchID                         =1;
+    repeated    SendQueueMessageResult Results  =2;
+    bool        HaveErrors                      =3;
+}
+
+message QueueMessageAttributes {
+    int64               Timestamp                   =1;
+    uint64              Sequence                    =2;
+    string              MD5OfBody                   =3;
+    int32               ReceiveCount                =4;
+    bool                ReRouted                    =5;
+    string              ReRoutedFromQueue           =6;
+    int64               ExpirationAt                =7;
+    int64               DelayedTo                   =8;
+
+}
+
+message QueueMessagePolicy {
+    int32               ExpirationSeconds           =1;
+    int32               DelaySeconds                =2;
+    int32               MaxReceiveCount             =3;
+    string              MaxReceiveQueue             =4;
+
+}
+message SendQueueMessageResult {
+    string  MessageID       =1;
+    int64   SentAt          =2;
+    int64   ExpirationAt    =3;
+    int64   DelayedTo       =4;
+    bool    IsError         =5;
+    string  Error           =6;
+}
+
+message ReceiveQueueMessagesRequest {
+    string RequestID                =1;
+    string  ClientID                =2;
+    string  Channel               =3;
+    int32   MaxNumberOfMessages     =4;
+    int32   WaitTimeSeconds         =5;
+    bool    IsPeak                     =6;
+}
+message ReceiveQueueMessagesResponse {
+    string   RequestID                  =1;
+    repeated QueueMessage   Messages    =2;
+    int32    MessagesReceived            =3;
+    int32    MessagesExpired             =4;
+    bool     IsPeak                         =5;
+    bool     IsError                     =6;
+    string   Error                       =7;
+}
+
+
+message AckAllQueueMessagesRequest {
+    string RequestID                 =1;
+    string  ClientID                 =2;
+    string Channel                   =3;
+    int32 WaitTimeSeconds                =4;
+}
+message AckAllQueueMessagesResponse {
+    string RequestID                =1;
+    uint64 AffectedMessages         =2;
+    bool    IsError                 =3;
+    string  Error                   =4;
+}
+
+enum StreamRequestType {
+    StreamRequestTypeUnknown      =0;
+    ReceiveMessage         =1;
+    AckMessage             =2;
+    RejectMessage          =3;
+    ModifyVisibility       =4;
+    ResendMessage          =5;
+    SendModifiedMessage    =6;
+}
+message StreamQueueMessagesRequest {
+    string RequestID                =1;
+    string ClientID                 =2;
+    StreamRequestType StreamRequestTypeData   =3;
+    string Channel                  =4;
+    int32 VisibilitySeconds         =5;
+    int32 WaitTimeSeconds               =6;
+    uint64 RefSequence              =7;
+    QueueMessage ModifiedMessage    =8;
+}
+
+
+message StreamQueueMessagesResponse {
+    string RequestID                =1;
+    StreamRequestType StreamRequestTypeData   =2;
+    QueueMessage Message            =3;
+    bool IsError                    =4;
+    string Error                    =5;
 }

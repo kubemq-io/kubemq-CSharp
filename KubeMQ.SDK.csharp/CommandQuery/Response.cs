@@ -53,6 +53,10 @@ namespace KubeMQ.SDK.csharp.CommandQuery
 
         #region C'Tors
 
+        /// <summary>
+        /// Create a KubeMQ.SDK.csharp.CommandQuery.Response from KubeMQ.SDK.csharp.CommandQuery.RequestReceive.
+        /// </summary>
+        /// <param name="request"></param>
         public Response(RequestReceive request)
         {
             RequestID = request.RequestID;
