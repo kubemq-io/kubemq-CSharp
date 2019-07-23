@@ -31,11 +31,10 @@ namespace Queue
             Console.WriteLine($"[Demo] QueueName:{QueueName}");
             Console.WriteLine($"[Demo] KubeMQServerAddress:{KubeMQServerAddress}");
 
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
-
+            KubeMQ.SDK.csharp.Queue.Queue queue = null;
             try
             {
-                queue.Ping();
+                queue = new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
             }
             catch (System.Exception ex)
             {
@@ -46,11 +45,14 @@ namespace Queue
 
             }
 
-           #region "nontran"
+           #region "non tran"
+
+
+            //Simple send message
             var res = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
-                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi my name is dodo"),
-                Metadata = "MetaAleha",
+                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi, new message"),
+                Metadata = "Meta",
                 Tags = new Dictionary<string, string>()
                 {
                     {"Action",$"SendQueueMessage_{testGui}" }
@@ -65,8 +67,9 @@ namespace Queue
                 Console.WriteLine($"message sent at, {res.SentAt}");
             }
 
-        
-            var peakmsg = queue.PeakQueueMessage();
+
+            //Simple peak message
+            var peakmsg = queue.PeakQueueMessage(1);
             {
                 if (peakmsg.IsError)
                 {
@@ -78,6 +81,8 @@ namespace Queue
                 }
             }
 
+
+            //Simple send Bulk of messages
             List<Message> msgs = new List<Message>();
             for (int i = 0; i < 5; i++)
             {
@@ -93,7 +98,7 @@ namespace Queue
                 });
             }
 
-
+            //Batch send messages
             var resBatch = queue.SendQueueMessagesBatch(msgs);
             if (resBatch.HaveErrors)
             {
@@ -111,7 +116,7 @@ namespace Queue
                 }
             }
 
-
+            //Queue receive messages
             var msg = queue.ReceiveQueueMessages();
             if (msg.IsError)
             {
@@ -123,9 +128,11 @@ namespace Queue
 
             }
 
-            //#endregion
+            #endregion
 
             #region "Tran"
+
+            //Transaction queue for rerouting messages
             msgs = new List<Message>();
             for (int i = 0; i < 5; i++)
             {
@@ -139,8 +146,7 @@ namespace Queue
                     }
                 });
             }
-
-
+            
             resBatch = queue.SendQueueMessagesBatch(msgs);
             if (resBatch.HaveErrors)
             {
@@ -159,11 +165,12 @@ namespace Queue
             }
 
 
-
+            //create a new transaction stream instance 
             var transaction = queue.CreateTransaction();
             Console.WriteLine($"Transaction status:");
             TransactionMessagesResponse ms;
 
+            //receive a massage with visibility of 5 seconds
             ms = transaction.Receive(5);
             if (ms.IsError)
             {
@@ -171,11 +178,10 @@ namespace Queue
                 return;
             }
 
-
             var qm = ms.Message;
 
-
-            ms = transaction.ExtendVisibility(1);
+            //Modify msg to ExtendVisibility to 5 seconds 
+            ms = transaction.ExtendVisibility(5);
             if (ms.IsError)
             {
                 Console.WriteLine($"message dequeue error, error:{ms.Error}");
@@ -184,7 +190,9 @@ namespace Queue
 
             Thread.Sleep(1000);
 
+            //Acknowledge message
             transaction.AckMessage(qm.Attributes.Sequence);
+            //Close the transaction
             transaction.Close();
 
 

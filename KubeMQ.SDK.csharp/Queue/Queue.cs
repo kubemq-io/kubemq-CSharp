@@ -116,36 +116,49 @@ namespace KubeMQ.SDK.csharp.Queue
             return new SendMessageResult(rec);
         }
 
-        public SendBatchMessageResult SendQueueMessagesBatch(IEnumerable<Message> queueMessages, string batchID = null)
+        /// <summary>
+        /// Sending queue messages array request , waiting for response or timeout 
+        /// </summary>
+        /// <param name="queueMessages">Array of Messages</param>
+        /// <param name="batchID"></param>
+        /// <returns></returns>
+        public SendBatchMessageResult SendQueueMessagesBatch(IEnumerable<Message> queueMessages)
         {
             QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
             {
-                BatchID = string.IsNullOrEmpty(batchID) ? Tools.IDGenerator.ReqID.Getid() : batchID,
+                BatchID = Tools.IDGenerator.ReqID.Getid(),
                 Messages = { Tools.Converter.ToQueueMessages(queueMessages, this) }
             });
 
             return new SendBatchMessageResult(rec);
         }
 
-        public ReceiveMessagesResponse ReceiveQueueMessages()
+        /// <summary>
+        /// Recessive messages from queues
+        /// </summary>
+        /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32</param>
+        /// <returns></returns>
+        public ReceiveMessagesResponse ReceiveQueueMessages(int? maxNumberOfMessagesQueueMessages = null)
         {
          
             ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
             {
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 ClientID = ClientID,
-                
                 Channel = QueueName,
-
-
-                MaxNumberOfMessages = MaxNumberOfMessagesQueueMessages,
+                MaxNumberOfMessages = maxNumberOfMessagesQueueMessages??MaxNumberOfMessagesQueueMessages,
                 WaitTimeSeconds = WaitTimeSecondsQueueMessages
             });
 
             return new ReceiveMessagesResponse(rec);
         }
 
-        public ReceiveMessagesResponse PeakQueueMessage()
+        /// <summary>
+        /// QueueMessagesRequest for peak queue messages
+        /// </summary>
+        /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32 </param>
+        /// <returns></returns>
+        public ReceiveMessagesResponse PeakQueueMessage(int? maxNumberOfMessagesQueueMessages=null)
         {
             ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
             {
@@ -153,7 +166,7 @@ namespace KubeMQ.SDK.csharp.Queue
                 ClientID = ClientID,
                 Channel= QueueName,
                 IsPeak = true,
-                MaxNumberOfMessages = MaxNumberOfMessagesQueueMessages,
+                MaxNumberOfMessages = maxNumberOfMessagesQueueMessages??MaxNumberOfMessagesQueueMessages,
                 WaitTimeSeconds = WaitTimeSecondsQueueMessages
             });
 
