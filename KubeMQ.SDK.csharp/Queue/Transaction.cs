@@ -14,27 +14,31 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         private Queue _queue;
        
         private int _visibilitySeconds;
+
         private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
 
-        public string Status
-        {
-            get
-            {
-                return stream == null ? "stream is null" : stream.GetStatus().Detail;
-            }
-        }
-        public int VisibilitySeconds { get;  private set; }
 
-        public Transaction(Queue queue, int visibilitySeconds = 1)
+        CancellationTokenSource cts;
+
+        internal Transaction(Queue queue )
         {
             this._queue = queue;
-            _kubemqAddress = queue.ServerAddress;
-            VisibilitySeconds = visibilitySeconds;
+            _kubemqAddress = queue.ServerAddress;  
+            
         }
 
-        public TransactionMessagesResponse Receive()
+        /// <summary>
+        /// Receive queue messages request , waiting for response or timeout.
+        /// </summary>
+        /// <param name="visibilitySeconds">message access lock by receiver.</param>
+        /// <param name="waitTimeSeconds">Wait time of request.</param>
+        /// <returns></returns>
+        public TransactionMessagesResponse Receive(int visibilitySeconds = 1, int? waitTimeSeconds=null)
         {
-                stream = GetKubeMQClient().StreamQueueMessage();              
+          if( !OpenStream())
+            {
+                return new TransactionMessagesResponse("active queue message wait for ack/reject");
+            }
         
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
@@ -42,8 +46,8 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 Channel = _queue.QueueName,     
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.ReceiveMessage,
-                VisibilitySeconds = VisibilitySeconds,
-                WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
+                VisibilitySeconds = visibilitySeconds,
+                WaitTimeSeconds = waitTimeSeconds??_queue.WaitTimeSecondsQueueMessages,
                 ModifiedMessage = new QueueMessage(),
                 RefSequence = 0
             });
@@ -56,20 +60,30 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 throw ex;
             }            
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
-        }        
-        public TransactionMessagesResponse AckMessage(Message r)
-        {
+        }
+
+        /// <summary>
+        /// Will mark Message dequeued on queue.
+        /// </summary>
+        /// <param name="msgSequence">Received message sequence Attributes.Sequence</param>
+        /// <returns></returns>
+        public TransactionMessagesResponse AckMessage(ulong msgSequence)
+        {        
+            if(CheckCallStatus())
+            {
+                return new TransactionMessagesResponse("no active message to ack, call Receive first");
+            }
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.AckMessage,
-                VisibilitySeconds = VisibilitySeconds,
-                WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = new QueueMessage(),
-                RefSequence = r.Attributes.Sequence
-            }) ;
+                VisibilitySeconds = 0,
+                WaitTimeSeconds = 0,
+                ModifiedMessage = null,
+                RefSequence = msgSequence
+            }); ;
             try
             {
                 streamQueueMessagesResponse.Wait();
@@ -78,20 +92,30 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 throw ex;
             }
+            //stream = null;
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse RejectMessage(Message r)
-        {             
+        /// <summary>
+        /// Will return message to queue.
+        /// </summary>
+        /// <param name="msgSequence">Received message sequence Attributes.Sequence</param>
+        /// <returns></returns>
+        public TransactionMessagesResponse RejectMessage(ulong msgSequence)
+        {
+            if (CheckCallStatus())
+            {
+                return new TransactionMessagesResponse("no active message to reject, call Receive first");
+            }
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.RejectMessage,
-                VisibilitySeconds = VisibilitySeconds,
-                WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
-                RefSequence = r.Attributes.Sequence
+                VisibilitySeconds = 0,
+                WaitTimeSeconds = 0,
+                ModifiedMessage = null,
+                RefSequence = msgSequence
             });
             try
             {
@@ -100,22 +124,30 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             catch (Exception ex)
             {
                 throw ex;
-            }
+            }           
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-
-        public TransactionMessagesResponse ExtendVisibility(Message r, int visibility)
+        /// <summary>
+        /// Extend the visibility time for the current receive message
+        /// </summary>        
+        /// <param name="visibilityinSeconds">new viability time</param>
+        /// <returns></returns>
+        public TransactionMessagesResponse ExtendVisibility(int visibilityinSeconds)
         {
+            if (CheckCallStatus())
+            {
+                return new TransactionMessagesResponse("no active message to extend visibility, call Next first");
+            }
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.ModifyVisibility,
-                VisibilitySeconds = visibility,
-                WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
-                RefSequence = r.Attributes.Sequence
+                VisibilitySeconds = visibilityinSeconds,
+                WaitTimeSeconds = 0,
+                ModifiedMessage = null,
+                RefSequence = 0
             });
             try
             {
@@ -127,19 +159,28 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse Resend(Message r)
+
+        /// <summary>
+        /// Resend the current received message to a new channel and ack the current message
+        /// </summary>
+        /// <param name="queueName">Resend queue name</param>
+        /// <returns></returns>
+        public TransactionMessagesResponse Resend(string queueName)
         {
-          
-                Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+            if (CheckCallStatus())
+            {
+                return new TransactionMessagesResponse("no active message to resend, call Receive first");
+            }
+            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
-                Channel = _queue.QueueName,
+                Channel = queueName,
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.ResendMessage,
-                VisibilitySeconds = VisibilitySeconds,
-                WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
-                RefSequence = r.Attributes.Sequence
+                VisibilitySeconds = 0,
+                WaitTimeSeconds = 0,
+                ModifiedMessage =null,
+                RefSequence = 0
             });
             try
             {
@@ -149,21 +190,38 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 throw ex;
             }
+            stream = null;
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
-        public TransactionMessagesResponse Modifiy(Message r)
+
+        /// <summary>
+        /// Resend the new message to a new channel.
+        /// </summary>
+        /// <param name="msg">New Message</param>
+        /// <returns></returns>
+        public TransactionMessagesResponse Modifiy(Message msg)
         {
+            if (CheckCallStatus())
+            {
+                return new TransactionMessagesResponse("no active message to resend, call Receive first");
+            }
+
+            msg.ClientID = _queue.ClientID;
+            msg.MessageID = Tools.IDGenerator.ReqID.Getid();
+            msg.Queue = msg.Queue ?? _queue.QueueName;
+            msg.Metadata = msg.Metadata ?? "";
+
 
             Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
-                Channel = _queue.QueueName,
+                Channel = "",
                 RequestID = Tools.IDGenerator.ReqID.Getid(),
                 StreamRequestTypeData = StreamRequestType.SendModifiedMessage,
-                VisibilitySeconds = VisibilitySeconds,
-                WaitTimeSeconds = _queue.WaitTimeSecondsQueueMessages,
-                ModifiedMessage = Tools.Converter.ConvertQueueMessage(r),
-                RefSequence = r.Attributes.Sequence
+                VisibilitySeconds = 0,
+                WaitTimeSeconds = 0,
+                ModifiedMessage = Tools.Converter.ConvertQueueMessage(msg),
+                RefSequence = 0
             });
             try
             {
@@ -176,46 +234,72 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
 
-        public bool OpenStream()
+
+        /// <summary>
+        /// End the current stream of queue messages
+        /// </summary>
+        public void Close()
         {
+            cts.Cancel();          
+        }
+
+        private bool OpenStream()
+        {
+            
             if (stream == null)
             {
-                stream = GetKubeMQClient().StreamQueueMessage();
+                cts = new CancellationTokenSource();
+                stream = GetKubeMQClient().StreamQueueMessage(null,null,cts.Token);
             }
             else
             {
-                try
+
+                if (CheckCallStatus())
                 {
-                    if (stream.GetStatus().StatusCode != StatusCode.OK)
-                    {
-                        stream = GetKubeMQClient().StreamQueueMessage();
-                    }
-                  
+                    cts = new CancellationTokenSource();
+                    stream = GetKubeMQClient().StreamQueueMessage(null, null, cts.Token);
                 }
-                catch (Exception ex)
+                else
                 {
-                    
+                    return false;
                 }
-            }
+                
+              }
 
           var res =  GetKubeMQClient().Ping(new Empty());
-            return true;
+          return true;
+        }
+
+        private bool CheckCallStatus()
+        {
+            try
+            {
+                if (stream.GetStatus().StatusCode == StatusCode.OK)
+                {
+                    return true;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         private async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr)
         {
-
             if (stream == null )
             {
                 throw new RpcException(new Status(StatusCode.NotFound, "stream is null"), "Transaction stream is not opened, please Receive new Message");
             }
+
             // implement bi-di streams 'SendEventStream (stream Event) returns (stream Result)'
             try
             {
                 // Send Event via GRPC RequestStream
                 await stream.RequestStream.WriteAsync(sr);
                 await stream.ResponseStream.MoveNext(CancellationToken.None);
-              
+            
                 return stream.ResponseStream.Current;
                 
             }
@@ -232,8 +316,6 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 throw new Exception(ex.Message);
             }
         }
-
-    
 
     }
 }

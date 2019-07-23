@@ -58,6 +58,8 @@ namespace KubeMQ.SDK.csharp.Queue
         private int _MaxNumberOfMessagesQueueMessages = 32;
         private int _WaitTimeSecondsQueueMessages =1;
         private static ILogger logger;
+        private Transaction _transation;
+
         /// <summary>
         /// 
         /// </summary>
@@ -171,9 +173,17 @@ namespace KubeMQ.SDK.csharp.Queue
         }
 
         #region "Transactional"
+        /// <summary>
+        /// Advance manipulation of messages using stream
+        /// </summary>
+        /// <returns>Static Transaction stream</returns>
         public Transaction CreateTransaction()
         {
-             return new Transaction(this);
+            if (_transation == null)
+            {
+                _transation = new Transaction(this);
+            }
+             return _transation;
         }
     
         #endregion

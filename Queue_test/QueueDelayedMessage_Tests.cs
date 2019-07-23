@@ -85,63 +85,18 @@ namespace Queue_test
                 }
             }); ;
 
-            Transaction tr = new Transaction(queue,10);
-            try
-            {
+            var tr =  queue.CreateTransaction();
 
-           
-            var recms = tr.Receive();
-            Assert.IsTrue(recms.IsError);
-            Assert.AreEqual("Error 138: no new message in queue, wait time expired", recms.Error);
-           // Thread.Sleep(5000);
-            recms = tr.Receive();
-            Assert.IsFalse(recms.IsError);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
-        }
-
-        [TestMethod]
-        public void DelayedTransactionM2essage_pass()
-        {
-            Queue queue = initLocalQueue($"DelayedMessage_pass_{DateTime.UtcNow.ToBinary().ToString()}");
-
-
-            var smres = queue.SendQueueMessage(new Message
-            {
-
-                Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
-                Metadata = "first test Ack",
-                Policy = new QueueMessagePolicy
-                {
-                    DelaySeconds = 3
-                }         
-            });
-
-           
-
-            Transaction tr = new Transaction(queue, 10);
-            try
-            {
-
-
-                var recms = tr.Receive();
-                Assert.IsTrue(recms.IsError);
-                Assert.AreEqual("Error 138: no new message in queue, wait time expired", recms.Error);
-                // Thread.Sleep(5000);
-                recms = tr.Receive();
-                Assert.IsFalse(recms.IsError);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-
+            var recms = tr.Receive();      
+            Assert.AreEqual(recms.Error,"Error 138: no new message in queue, wait time expired");
+            tr.Close();
+            Thread.Sleep(100);
+            recms = tr.Receive(2,3);
+            Assert.IsFalse(recms.IsError, $"{recms.Error}");
+            tr.Close();
+            Thread.Sleep(10);
+            recms = tr.Receive(2,5);
+            Assert.IsFalse(recms.IsError, $"{recms.Error}"); 
         }
 
         private QueueMessage mockMsg()

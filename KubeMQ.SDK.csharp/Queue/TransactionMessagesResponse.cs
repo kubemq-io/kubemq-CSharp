@@ -7,7 +7,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         public bool IsError { get; }
         public string Error { get; }
         public Message Message { get; }
-        public object RequestID { get; }
+        public string RequestID { get; }
         public StreamRequestType StreamRequestTypeData { get; }
 
         public TransactionMessagesResponse(StreamQueueMessagesResponse streamQueueMessagesResponse)
@@ -17,6 +17,13 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             Message = streamQueueMessagesResponse.Message!=null? new Message(streamQueueMessagesResponse.Message): null;
             RequestID  = streamQueueMessagesResponse.RequestID;
             StreamRequestTypeData = streamQueueMessagesResponse.StreamRequestTypeData;
+        }
+        public TransactionMessagesResponse(string errorMessage, Message msg=null, string requestID=null)
+        {
+            IsError = true;
+            Error = errorMessage;
+            Message = msg;
+            RequestID = requestID;
         }
 
     }

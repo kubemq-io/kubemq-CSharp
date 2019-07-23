@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using Google.Protobuf;
 using KubeMQ.SDK.csharp.Queue;
 using KubeMQ.SDK.csharp.Queue.Stream;
@@ -24,7 +25,7 @@ namespace Queue
 
         static void Main(string[] args)
         {
-            
+
             Console.WriteLine("Hello World!");
             Console.WriteLine($"[Demo] ClientID:{ClientID}");
             Console.WriteLine($"[Demo] QueueName:{QueueName}");
@@ -45,12 +46,12 @@ namespace Queue
 
             }
 
-            //#region "nontran"
+           #region "nontran"
             var res = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
-            {                         
+            {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi my name is dodo"),
                 Metadata = "MetaAleha",
-                Tags = new Dictionary<string, string>() 
+                Tags = new Dictionary<string, string>()
                 {
                     {"Action",$"SendQueueMessage_{testGui}" }
                 }
@@ -64,7 +65,7 @@ namespace Queue
                 Console.WriteLine($"message sent at, {res.SentAt}");
             }
 
-            //TODO:Bug, peak when queue 0
+        
             var peakmsg = queue.PeakQueueMessage();
             {
                 if (peakmsg.IsError)
@@ -129,13 +130,13 @@ namespace Queue
             for (int i = 0; i < 5; i++)
             {
                 msgs.Add(new KubeMQ.SDK.csharp.Queue.Message
-                {               
+                {
                     Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"i'm Tran Message {i}"),
                     Metadata = "Meta",
                     Tags = new Dictionary<string, string>()
                     {
                         {"Action",$"Batch_{testGui}_{i}"}
-                    }  
+                    }
                 });
             }
 
@@ -162,37 +163,31 @@ namespace Queue
             var transaction = queue.CreateTransaction();
             Console.WriteLine($"Transaction status:");
             TransactionMessagesResponse ms;
-            try
+
+            ms = transaction.Receive(5);
+            if (ms.IsError)
             {
-                ms = transaction.Receive();
-                if (ms.IsError)
-                {
-                    Console.WriteLine($"message dequeue error, error:{ms.Error}");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"message dequeue error, error:{ex.Message}");
+                Console.WriteLine($"message dequeue error, error:{ms.Error}");
                 return;
             }
 
+
             var qm = ms.Message;
-         
-            try
+
+
+            ms = transaction.ExtendVisibility(1);
+            if (ms.IsError)
             {
-               ms = transaction.ExtendVisibility(qm, 1);
-                if (ms.IsError)
-                {
-                    Console.WriteLine($"message dequeue error, error:{ms.Error}");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"message dequeue error, error:{ex.Message}");
+                Console.WriteLine($"message dequeue error, error:{ms.Error}");
                 return;
             }
+
+            Thread.Sleep(1000);
+
+            transaction.AckMessage(qm.Attributes.Sequence);
+            transaction.Close();
+
+
             #endregion
 
         }
