@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using KubeMQ.SDK.csharp.CommandQuery;
 using KubeMQ.SDK.csharp.Subscription;
 using KubeMQ.SDK.csharp.Tools;
+using System.Threading;
 
 namespace CommandQueryResponder
 {
@@ -24,6 +25,7 @@ namespace CommandQueryResponder
             try
             {
                 CreateSubscribeToQueries();
+                CreateSubscribeToQueriesWithCancellation();
                 CreateSubscribeToCommands();
             }
             catch (Exception ex)
@@ -36,13 +38,27 @@ namespace CommandQueryResponder
         private void CreateSubscribeToQueries()
         {
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Queries);
-            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests);
+            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIncomingError);
         }
+
+
+        private void CreateSubscribeToQueriesWithCancellation()
+        {
+            SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Queries);
+            CancellationTokenSource source = new CancellationTokenSource();
+            CancellationToken token = source.Token;
+            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIncomingError, token);
+            logger.LogInformation($"Press any key to close the token");
+            Console.ReadKey();
+            source.Cancel();
+            source.Dispose();
+        }
+
 
         private void CreateSubscribeToCommands()
         {
             SubscribeRequest subscribeRequest = CreateSubscribeRequest(SubscribeType.Commands);
-            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests);
+            responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIncomingError);
         }
 
         private Response HandleIncomingRequests(RequestReceive request)
@@ -65,6 +81,11 @@ namespace CommandQueryResponder
                 Timestamp = DateTime.UtcNow,
             };
             return response;
+        }
+
+        private void HandleIncomingError(Exception ex)
+        {
+            logger.LogWarning($"Received Exception :{ex}");
         }
     }
 }

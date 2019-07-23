@@ -48,7 +48,32 @@ namespace CommonExample
                 Store=false,
                 Channel= ChannelName,
                 ClientID=this.ClientID,
-                ReturnResult=false
+                ReturnResult=false,
+                Tags=new System.Collections.Generic.Dictionary<string, string>()
+                {
+                    {"FirstTag","FirstValue" },
+                    {"SecondTag","SecondValue" }
+                }
+            };
+            return @event;
+        }
+
+        protected KubeMQ.SDK.csharp.Events.LowLevel.Event CreateLowLevelEventWithoutStoreUtf8()
+        {
+            logger.LogDebug("Start Creating Event");
+            KubeMQ.SDK.csharp.Events.LowLevel.Event @event = new KubeMQ.SDK.csharp.Events.LowLevel.Event()
+            {
+                Metadata = "EventMetaData",
+                Body = Converter.ToUTF8($"Event Created on time {DateTime.UtcNow}"),
+                Store = false,
+                Channel = ChannelName,
+                ClientID = this.ClientID,
+                ReturnResult = false,
+                Tags = new System.Collections.Generic.Dictionary<string, string>()
+                {
+                    {"FirstTag","FirstValue" },
+                    {"SecondTag","SecondValue" }
+                }
             };
             return @event;
         }
@@ -80,7 +105,12 @@ namespace CommonExample
                 Channel=this.ChannelName,
                 ClientID=this.ClientID,
                 Timeout=this.Timeout,
-                RequestType=requestType
+                RequestType=requestType,
+                Tags= new System.Collections.Generic.Dictionary<string, string>()
+                {
+                    {"FirstTag","FirstValue" },
+                    {"SecondTag","SecondValue" }
+                }
             };
         }
     }
