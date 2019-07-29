@@ -48,6 +48,38 @@ namespace Queue_test
             tr.Close();
         }
 
+        [TestMethod]
+        public void Get_Message_Expiration_fail()
+        {
+            Queue queue = initLocalQueue("Get_Messages_fail");
+
+
+            //var smres = queue.SendQueueMessagesBatch(new Message[] {
+            //    new Message
+            //    {
+            //        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+            //        Metadata = "first test Ack",
+            //        MessageID = "test1"
+
+
+            //    },
+
+            //    new Message
+            //    {
+            //        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi again"),
+            //        Metadata = "sec  test Ack",
+            //        MessageID = "test2"
+
+
+            //    }
+            //}); ;
+
+            var tr = queue.CreateTransaction();
+            var recms = tr.Receive(3);
+            Assert.IsTrue(recms.IsError);           
+            tr.Close();
+        }
+
 
 
         [TestMethod]
@@ -93,8 +125,8 @@ namespace Queue_test
                 Metadata = "first test Ack",     
             });
             Transaction tr = queue.CreateTransaction();
-            var recms = tr.Receive(3);
-            Thread.Sleep(5 * 1000);    
+            var recms = tr.Receive(2);
+            Thread.Sleep(2 * 1000);    
             var ackms = tr.AckMessage(recms.Message.Attributes.Sequence);
             Assert.AreEqual(ackms.Error, "Error 129: current visibility timer expired");
 
@@ -145,7 +177,7 @@ namespace Queue_test
               Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("well hello"),
               Queue = queue.QueueName
             };
-            var resMod = tr.Modifiy(modMsg);
+            var resMod = tr.Modify(modMsg);
             Assert.IsFalse(resMod.IsError, $"SendQueueMessage error:{resMod.Error}");
             tr.Close();
            Thread.Sleep(10);
@@ -252,7 +284,9 @@ namespace Queue_test
 
         private Queue initLocalQueue(string name = "test")
         {
-            return new Queue(name, "test", "localhost:50000");
+            var queue = new Queue(name, "test", "localhost:50000");
+            queue.AckAllQueueMessagesResponse();
+            return queue;
         }
 
     }
