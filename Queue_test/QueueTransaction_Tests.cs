@@ -90,16 +90,12 @@ namespace Queue_test
             var smres = queue.SendQueueMessage(new Message
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
-                Metadata = "first test Ack",
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid(),
-               
+                Metadata = "first test Ack",     
             });
             Transaction tr = queue.CreateTransaction();
-            var recms = tr.Receive(10);
-
-            Thread.Sleep(11 * 1000);
+            var recms = tr.Receive(3);
+            Thread.Sleep(5 * 1000);    
             var ackms = tr.AckMessage(recms.Message.Attributes.Sequence);
-
             Assert.AreEqual(ackms.Error, "Error 129: current visibility timer expired");
 
         }
@@ -189,7 +185,36 @@ namespace Queue_test
 
         }
 
-       
+        [TestMethod]
+        public void Concurrent_transaction_pass()
+        {
+
+            Queue queue = initLocalQueue("Concurrent_transaction_pass");     
+
+            var smres = queue.SendQueueMessagesBatch(new Message[] {
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
+                    Metadata = "first test Ack"
+                },
+
+                new Message
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi again"),
+                    Metadata = "first test Ack"
+                }
+            });
+
+            var tr = queue.CreateTransaction();
+            var rec  = tr.Receive();
+            var tr2 = queue.CreateTransaction();
+           var ready=   tr.InTransaction;
+            tr2.RejectMessage(rec.Message.Attributes.Sequence);
+            var rec2 =    tr2.Receive();
+           
+
+
+        }
 
 
 
