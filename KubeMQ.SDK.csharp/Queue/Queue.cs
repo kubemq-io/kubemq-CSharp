@@ -105,9 +105,21 @@ namespace KubeMQ.SDK.csharp.Queue
         {
             message.Queue = message.Queue ?? this.QueueName;
             message.ClientID = message.ClientID ?? this.ClientID;
-            SendQueueMessageResult rec = GetKubeMQClient().SendQueueMessage(Tools.Converter.ConvertQueueMessage(message));
+            try
+            {
+                SendQueueMessageResult rec = GetKubeMQClient().SendQueueMessage(Tools.Converter.ConvertQueueMessage(message));
+                return new SendMessageResult(rec);
+            }
+            catch (System.Exception ex)
+            {
+                return new SendMessageResult(new SendQueueMessageResult
+                {
+                    IsError = true,
+                    Error = ex.Message,                   
+                }); 
+            }
 
-            return new SendMessageResult(rec);
+           
         }
 
         /// <summary>
@@ -118,13 +130,28 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <returns></returns>
         public SendBatchMessageResult SendQueueMessagesBatch(IEnumerable<Message> queueMessages)
         {
-            QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
+            try
             {
-                BatchID = Tools.IDGenerator.ReqID.Getid(),
-                Messages = { Tools.Converter.ToQueueMessages(queueMessages, this) }
-            });
+                QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
+                {
+                    BatchID = Tools.IDGenerator.ReqID.Getid(),
+                    Messages = { Tools.Converter.ToQueueMessages(queueMessages, this) }
+                });
 
-            return new SendBatchMessageResult(rec);
+                return new SendBatchMessageResult(rec);
+            }
+
+            catch (System.Exception ex)
+            {
+                return new SendBatchMessageResult(new QueueMessagesBatchResponse
+                {
+                    HaveErrors = true,
+                    Results = {new List<SendQueueMessageResult>
+                   {
+                       new SendQueueMessageResult{ Error =ex.Message }
+                   } }
+                });
+            }
         }
 
         /// <summary>
@@ -134,17 +161,29 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <returns></returns>
         public ReceiveMessagesResponse ReceiveQueueMessages(int? maxNumberOfMessagesQueueMessages = null)
         {
-         
-            ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
+            try
             {
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
-                ClientID = ClientID,
-                Channel = QueueName,
-                MaxNumberOfMessages = maxNumberOfMessagesQueueMessages??MaxNumberOfMessagesQueueMessages,
-                WaitTimeSeconds = WaitTimeSecondsQueueMessages
-            });
 
-            return new ReceiveMessagesResponse(rec);
+
+                ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
+                {
+                    RequestID = Tools.IDGenerator.ReqID.Getid(),
+                    ClientID = ClientID,
+                    Channel = QueueName,
+                    MaxNumberOfMessages = maxNumberOfMessagesQueueMessages ?? MaxNumberOfMessagesQueueMessages,
+                    WaitTimeSeconds = WaitTimeSecondsQueueMessages
+                });
+
+                return new ReceiveMessagesResponse(rec);
+            }
+            catch (System.Exception ex)
+            {
+                return new ReceiveMessagesResponse(new ReceiveQueueMessagesResponse
+                {
+                    IsError = true,
+                    Error = ex.Message
+                });
+            }
         }
 
         /// <summary>
@@ -152,31 +191,59 @@ namespace KubeMQ.SDK.csharp.Queue
         /// </summary>
         /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32 </param>
         /// <returns></returns>
-        public ReceiveMessagesResponse PeakQueueMessage(int? maxNumberOfMessagesQueueMessages=null)
+        public ReceiveMessagesResponse PeakQueueMessage(int? maxNumberOfMessagesQueueMessages = null)
         {
-            ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
+            try
             {
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
-                ClientID = ClientID,
-                Channel= QueueName,
-                IsPeak = true,
-                MaxNumberOfMessages = maxNumberOfMessagesQueueMessages??MaxNumberOfMessagesQueueMessages,
-                WaitTimeSeconds = WaitTimeSecondsQueueMessages
-            });
 
-            return new ReceiveMessagesResponse(rec);
+
+                ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
+                {
+                    RequestID = Tools.IDGenerator.ReqID.Getid(),
+                    ClientID = ClientID,
+                    Channel = QueueName,
+                    IsPeak = true,
+                    MaxNumberOfMessages = maxNumberOfMessagesQueueMessages ?? MaxNumberOfMessagesQueueMessages,
+                    WaitTimeSeconds = WaitTimeSecondsQueueMessages
+                });
+
+                return new ReceiveMessagesResponse(rec);
+
+            }
+            catch (System.Exception ex)
+            {
+                return new ReceiveMessagesResponse(new ReceiveQueueMessagesResponse
+                {
+                    IsError = true,
+                    Error = ex.Message
+                });
+            }
         }
 
         public AckAllMessagesResponse AckAllQueueMessagesResponse()
         {
-            AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
+            try
             {
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
-                Channel = QueueName,
-                ClientID = ClientID,
-                WaitTimeSeconds = WaitTimeSecondsQueueMessages
-            }) ;
-            return new AckAllMessagesResponse(rec);
+
+
+                AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
+                {
+                    RequestID = Tools.IDGenerator.ReqID.Getid(),
+                    Channel = QueueName,
+                    ClientID = ClientID,
+                    WaitTimeSeconds = WaitTimeSecondsQueueMessages
+                });
+                return new AckAllMessagesResponse(rec);
+
+            }
+            catch (System.Exception ex)
+            {
+                return new AckAllMessagesResponse(new AckAllQueueMessagesResponse
+                {
+                    IsError = true,
+                    Error = ex.Message
+                });
+            }
         }
 
         #region "Transactional"
