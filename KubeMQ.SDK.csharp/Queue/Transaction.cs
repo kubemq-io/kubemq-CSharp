@@ -16,7 +16,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         private int _visibilitySeconds;
 
         private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
-
+        public bool InTransaction
+        {
+            get { return !CheckCallStatus(); }
+        }
 
         CancellationTokenSource cts;
 
@@ -270,7 +273,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
           return true;
         }
 
-        private bool CheckCallStatus()
+        internal bool CheckCallStatus()
         {
             try
             {
@@ -282,7 +285,14 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
-                return false;
+                if (ex.Message == "Status can only be accessed once the call has finished.")
+                {
+                    return false;
+                }
+                else
+                    throw ex;
+
+               
             }
         }
 

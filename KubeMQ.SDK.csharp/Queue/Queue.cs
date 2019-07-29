@@ -85,7 +85,7 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <param name="waitTimeSecondsQueueMessages">Wait time for received messages</param>
         /// <param name="kubeMQAddress"></param>
         /// <param name="logger"></param>
-        public Queue(string queueName, string clientID, int? maxNumberOfMessagesQueueMessages, int? waitTimeSecondsQueueMessages, string kubeMQAddress = null, ILogger logger = null)
+        public Queue(string queueName, string clientID, int? maxNumberOfMessagesQueueMessages=null, int? waitTimeSecondsQueueMessages = null, string kubeMQAddress = null, ILogger logger = null)
         {
             this.QueueName = queueName;
             this.ClientID = clientID;
@@ -103,15 +103,9 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <returns></returns>
         public SendMessageResult SendQueueMessage(Message message)
         {
-            SendQueueMessageResult rec = GetKubeMQClient().SendQueueMessage(new KubeMQGrpc.QueueMessage
-            {
-                MessageID = message.MessageID,
-                Metadata = message.Metadata,
-                ClientID = ClientID,
-                Channel = QueueName,
-                Tags = { Tools.Converter.CreateTags(message.Tags) },
-                Body = ByteString.CopyFrom(message.Body),              
-            }) ;
+            message.Queue = message.Queue ?? this.QueueName;
+            message.ClientID = message.ClientID ?? this.ClientID;
+            SendQueueMessageResult rec = GetKubeMQClient().SendQueueMessage(Tools.Converter.ConvertQueueMessage(message));
 
             return new SendMessageResult(rec);
         }
@@ -195,7 +189,7 @@ namespace KubeMQ.SDK.csharp.Queue
             if (_transation == null)
             {
                 _transation = new Transaction(this);
-            }
+            } 
              return _transation;
         }
     
