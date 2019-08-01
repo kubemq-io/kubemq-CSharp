@@ -63,6 +63,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+                if (ex.InnerException.GetType() == typeof(RpcException))
+                {
+                    throw ex.InnerException;
+                }
                 return new TransactionMessagesResponse(ex.Message);
             }            
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
@@ -96,6 +100,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+                if (ex.InnerException.GetType() == typeof(RpcException))
+                {
+                    throw ex.InnerException;
+                }
                 return new TransactionMessagesResponse(ex.Message);
             }
             //stream = null;
@@ -130,6 +138,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+                if (ex.InnerException.GetType() == typeof(RpcException))
+                {
+                    throw ex.InnerException;
+                }
                 return new TransactionMessagesResponse(ex.Message);
                
             }           
@@ -165,6 +177,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+                if (ex.InnerException.GetType() == typeof(RpcException))
+                {
+                    throw ex.InnerException;
+                }
                 return new TransactionMessagesResponse(ex.Message);
             }
             
@@ -197,7 +213,11 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
             }
             catch (Exception ex)
-            {                
+            {
+                if (ex.InnerException.GetType() == typeof(RpcException))
+                {
+                    throw ex.InnerException;
+                }
                 return new TransactionMessagesResponse(ex.Message);
             }
      
@@ -238,6 +258,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+                if (ex.InnerException.GetType() == typeof(RpcException))
+                {
+                    throw ex.InnerException;
+                }
                 return new TransactionMessagesResponse(ex.Message, msg);
             }
             

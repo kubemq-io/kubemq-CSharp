@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Grpc.Core;
+using System;
+using System.Threading;
 
 namespace QueueSimpleSender
 {
@@ -26,18 +28,10 @@ namespace QueueSimpleSender
             Console.WriteLine($"[DemoSender] QueueName:{QueueName}");
             Console.WriteLine($"[DemoSender] KubeMQServerAddress:{KubeMQServerAddress}");
 
-            KubeMQ.SDK.csharp.Queue.Queue queue = null;
-            try
+            KubeMQ.SDK.csharp.Queue.Queue queue = creatreQueue();
+           if (queue ==null)
             {
-                queue = new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{ex.Message}");
-
-                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{KubeMQServerAddress}");
-                Console.ReadLine();
-
+                return;
             }
 
             Console.WriteLine($"Enter 'peak' to peak the {QueueName}_done");
@@ -45,6 +39,14 @@ namespace QueueSimpleSender
             Console.WriteLine($"Enter 'loopX' to loop X messages to {QueueName}");
             while (true)
             {
+
+                if (queue == null)
+                {
+                    Thread.Sleep(1000);
+                    queue = creatreQueue();
+
+                    continue;
+                }
                 Console.WriteLine($"Enter new message to queue {QueueName}, peak, ackall, loopx");
                
                 var readline = Console.ReadLine();
@@ -65,6 +67,9 @@ namespace QueueSimpleSender
                     continue;
                 }
 
+                try
+                {
+
 
                 var res = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
                 {
@@ -79,7 +84,33 @@ namespace QueueSimpleSender
                 {
                     Console.WriteLine($"[DemoSender]Sent:{readline}");
                 }
+
+                }
+                catch (RpcException rpcex)
+                {
+                    Console.WriteLine($"rpc error: {rpcex.Message} will restart queue");
+                    queue =   creatreQueue();
+                }
+                catch (Exception ex )
+                {
+                    Console.WriteLine($"Exception has accrued: {ex.Message} will restart queue");
+                }
             }
+        }
+
+        private static KubeMQ.SDK.csharp.Queue.Queue creatreQueue()
+        {
+            try
+            {
+               return new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{ex.Message}");
+
+                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{KubeMQServerAddress}");   
+            }
+            return null;
         }
 
         private static void loopmsg(string queueName,string loop)
@@ -88,45 +119,74 @@ namespace QueueSimpleSender
 
             for (int i = 0; i < int.Parse(loop); i++)
             {
-                var res = q.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
+                try
                 {
-                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"loop_{i}"),
-                    Metadata = $"loop_{ i }"
-                });
-                if (res.IsError)
-                {
-                    Console.WriteLine($"[DemoSender][loop]Sent:{$"loop_{ i }"} error, error:{res.Error}");
+                    var res = q.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
+                    {
+                        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"loop_{i}"),
+                        Metadata = $"loop_{ i }"
+                    });
+                    if (res.IsError)
+                    {
+                        Console.WriteLine($"[DemoSender][loop]Sent:{$"loop_{ i }"} error, error:{res.Error}");
+                    }
+                    Console.WriteLine($"[DemoSender][loop]Sent:{$"loop_{ i }"}");
+
                 }
-                Console.WriteLine($"[DemoSender][loop]Sent:{$"loop_{ i }"}");
+                catch (Exception ex)
+                {
+
+                    Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{ex.Message}");
+
+                    Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{KubeMQServerAddress}");
+                }
             }
         }
 
         private static void acallkmsgs(string queueName)
         {
-            var q = new KubeMQ.SDK.csharp.Queue.Queue(queueName, ClientID, KubeMQServerAddress);
-            var res = q.AckAllQueueMessagesResponse();
-            if (res.IsError)
+            try
             {
-                Console.WriteLine($"[DemoSender][acallkmsgs]message dequeue error, error:{res.Error}");
-                return;
+                var q = new KubeMQ.SDK.csharp.Queue.Queue(queueName, ClientID, KubeMQServerAddress);
+                var res = q.AckAllQueueMessagesResponse();
+                if (res.IsError)
+                {
+                    Console.WriteLine($"[DemoSender][acallkmsgs]message dequeue error, error:{res.Error}");
+                    return;
+                }
+                Console.WriteLine("[DemoSender][acallkmsgs]acked all messages");
             }
-            Console.WriteLine("[DemoSender][acallkmsgs]acked all messages");
-          
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{ex.Message}");
+
+                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{KubeMQServerAddress}");
+            }
         }
 
         private static void peakmsgs(string queueName)
         {
-            var q = new KubeMQ.SDK.csharp.Queue.Queue(queueName, ClientID, KubeMQServerAddress);
-            var res = q.PeakQueueMessage();
-            if (res.IsError)
+            try
             {
-                Console.WriteLine($"[DemoSender][peakmsgs]message dequeue error, error:{res.Error}");
-                return;
+                var q = new KubeMQ.SDK.csharp.Queue.Queue(queueName, ClientID, KubeMQServerAddress);
+                var res = q.PeakQueueMessage();
+                if (res.IsError)
+                {
+                    Console.WriteLine($"[DemoSender][peakmsgs]message dequeue error, error:{res.Error}");
+                    return;
+                }
+                foreach (var item in res.Messages)
+                {
+                    Console.WriteLine($"[DemoSender][peakmsgs]read:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
+                }
             }
-                        foreach (var item in res.Messages)
+            catch (Exception ex)
             {
-                Console.WriteLine($"[DemoSender][peakmsgs]read:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
+                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{ex.Message}");
+
+                Console.WriteLine($"[DemoSender]Error while pinging to kubeMQ address:{KubeMQServerAddress}");
             }
+           
 
 
         }
