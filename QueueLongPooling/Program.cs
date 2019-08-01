@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Grpc.Core;
 using KubeMQ.SDK.csharp.Queue.Stream;
 
 namespace QueueLongPooling
@@ -29,20 +30,27 @@ namespace QueueLongPooling
             Console.WriteLine($"[DemoPoll] KubeMQServerAddress:{KubeMQServerAddress}");
 
             KubeMQ.SDK.csharp.Queue.Queue queue = null;
-            try
-            {
-                queue = new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine($"[DemoPoll]Error while ping:{ex.Message}, kubeMQ address{KubeMQServerAddress}");
+          
+             queue =queue = creatreQueue();
+            if (queue == null)
+            {             
                 Console.ReadLine();
 
             }
+
+
+        
            
 
             while (true)
             {
+                if (queue==null)
+                {
+                    Thread.Sleep(1000);
+                    queue = creatreQueue();
+
+                    continue;
+                }
                 var transaction = queue.CreateTransaction();
 
                 if (transaction.InTransaction==true)
@@ -51,16 +59,23 @@ namespace QueueLongPooling
                     continue;
                 }
                 Console.WriteLine($"[DemoPoll][Tran]Transaction ready and listening");
-
-                TransactionMessagesResponse ms = transaction.Receive((int)new TimeSpan(1, 0, 0).TotalSeconds, (int)new TimeSpan(1, 0, 0).TotalSeconds);
-                if (ms.IsError)
+                try
                 {
-                    Console.WriteLine($"[DemoPoll][Tran]message dequeue error, error:{ms.Error}");
-                    continue;
+                    TransactionMessagesResponse ms = transaction.Receive((int)new TimeSpan(1, 0, 0).TotalSeconds, (int)new TimeSpan(1, 0, 0).TotalSeconds);
+
+                    if (ms.IsError)
+                    {
+                        Console.WriteLine($"[DemoPoll][Tran]message dequeue error, error:{ms.Error}");
+                        continue;
+                    }
+
+                    HandleMSG(ms, transaction);
                 }
+                catch (RpcException ex)
+                {
 
-                HandleMSG(ms,transaction);
-
+                    queue= creatreQueue();
+                }
                 transaction.Close();
                 Thread.Sleep(1);
             }
@@ -86,6 +101,21 @@ namespace QueueLongPooling
             }
             Console.WriteLine($"[DemoPoll][HandleMSG]Modify message ID{ms.Message.MessageID}, body:{body}_done, queue:{QueueName + "_done"}");
 
+        }
+
+        private static KubeMQ.SDK.csharp.Queue.Queue creatreQueue()
+        {
+            try
+            {
+                return new KubeMQ.SDK.csharp.Queue.Queue(QueueName, ClientID, KubeMQServerAddress);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine($"[DemoPoll]Error while pinging to kubeMQ address:{ex.Message}");
+
+                Console.WriteLine($"[DemoPoll]Error while pinging to kubeMQ address:{KubeMQServerAddress}");
+            }
+            return null;
         }
     }
 }
