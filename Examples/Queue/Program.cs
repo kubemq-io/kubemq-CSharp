@@ -18,7 +18,7 @@ namespace Queue
         /// </summary>
         private static string QueueName = Environment.GetEnvironmentVariable("QUEUENAME") ?? "QUEUE_DEMO";
 
-        private static string KubeMQServerAddress = Environment.GetEnvironmentVariable("KubeMQServerAddress") ?? "localhost:50000";
+        private static string KubeMQServerAddress = Environment.GetEnvironmentVariable("KUBEMQSERVERADDRESS") ?? "localhost:50000";
 
         private static string testGui = DateTime.UtcNow.ToBinary().ToString();
 
