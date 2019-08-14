@@ -15,7 +15,7 @@ namespace KubeMQ.SDK.csharp.Basic
         {
             if (!string.IsNullOrWhiteSpace(_path)) return _path;
 
-            _path = GetFromEnvironmentVariable("KubeMQServerAddress");
+            _path = GetFromEnvironmentVariable("KUBEMQSERVERADDRESS");
 
             if (!string.IsNullOrWhiteSpace(_path)) return _path;
 
@@ -78,7 +78,7 @@ namespace KubeMQ.SDK.csharp.Basic
 
             for (int target = 0; target < 3; target++)// look in all location where an environment variable is stored 
             {
-                serverAddress = Environment.GetEnvironmentVariable(key, (EnvironmentVariableTarget)target);// returns null if not found.
+                serverAddress = Environment.GetEnvironmentVariable(key.ToUpper(), (EnvironmentVariableTarget)target);// returns null if not found.
 
                 if (!string.IsNullOrWhiteSpace(serverAddress))
                 {
