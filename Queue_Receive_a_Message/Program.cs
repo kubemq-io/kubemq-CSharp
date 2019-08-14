@@ -40,10 +40,6 @@ namespace Queue_Receive_a_Message
             {
                 Console.WriteLine(ex.Message);
             }
-
-
-
-
         }
     }
 }

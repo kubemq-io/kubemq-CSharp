@@ -34,6 +34,9 @@ namespace PubSub_Subscribe_to_a_Channel
             {
                 Console.WriteLine(ex.Message);
             }
-        }
+            Console.WriteLine("press any key to close PubSub_Subscribe_to_a_Channel");
+            Console.ReadLine();
+        }  
+        
     }
 }
