@@ -12,6 +12,8 @@ namespace RPC_Send_a_Command_Channel
 
             var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
             {
+                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Command,
+                Timeout = 10000,
                 ChannelName = ChannelName,
                 ClientID = ClientID,
                 KubeMQAddress = KubeMQServerAddress
