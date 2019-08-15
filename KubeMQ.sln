@@ -36,17 +36,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QueueSender", "Examples\Que
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Get_Started", "Get_Started", "{4E345794-B800-44B1-8B50-0BB3D067FB3B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Queue_Send_a_Message", "Queue_Send_a_Message\Queue_Send_a_Message.csproj", "{5D3BC1C6-B54C-43F1-BB6A-40C2F145FA3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Queue_Send_a_Message", "Get_Started\Queue_Send_a_Message\Queue_Send_a_Message.csproj", "{5D3BC1C6-B54C-43F1-BB6A-40C2F145FA3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queue_Receive_a_Message", "Queue_Receive_a_Message\Queue_Receive_a_Message.csproj", "{5D194667-DC7D-48E9-8D26-D6E9DA719C4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queue_Receive_a_Message", "Get_Started\Queue_Receive_a_Message\Queue_Receive_a_Message.csproj", "{5D194667-DC7D-48E9-8D26-D6E9DA719C4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub_Subscribe_to_a_Channel", "PubSub_Subscribe_to_a_Channel\PubSub_Subscribe_to_a_Channel.csproj", "{ED072A12-281D-48A9-8848-C4ACD5D216CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub_Subscribe_to_a_Channel", "Get_Started\PubSub_Subscribe_to_a_Channel\PubSub_Subscribe_to_a_Channel.csproj", "{ED072A12-281D-48A9-8848-C4ACD5D216CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub_Publish_to_a_Channel", "PubSub_Publish_to_a_Channel\PubSub_Publish_to_a_Channel.csproj", "{348BB336-877E-4484-BF8B-13AAE671C238}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PubSub_Publish_to_a_Channel", "Get_Started\PubSub_Publish_to_a_Channel\PubSub_Publish_to_a_Channel.csproj", "{348BB336-877E-4484-BF8B-13AAE671C238}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPC_Subscribe_to_a_Channel", "RPC_Subscribe_to_a_Channel\RPC_Subscribe_to_a_Channel.csproj", "{4912AB12-0DA1-4CD6-9DE6-F05EB874E58D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPC_Subscribe_to_a_Channel", "Get_Started\RPC_Subscribe_to_a_Channel\RPC_Subscribe_to_a_Channel.csproj", "{4912AB12-0DA1-4CD6-9DE6-F05EB874E58D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPC_Send_a_Command_Channel", "RPC_Send_a_Command_Channel\RPC_Send_a_Command_Channel.csproj", "{0C862163-1470-4B10-8F67-F25FB2150A18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RPC_Send_a_Command_Channel", "Get_Started\RPC_Send_a_Command_Channel\RPC_Send_a_Command_Channel.csproj", "{0C862163-1470-4B10-8F67-F25FB2150A18}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
