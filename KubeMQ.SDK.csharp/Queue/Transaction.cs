@@ -337,15 +337,12 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 
             }
             catch (RpcException ex)
-            {
-                // logger.LogError(ex, "RPC Exception in StreamEvent");
+            {               
 
                 throw new RpcException(ex.Status);
             }
             catch (Exception ex)
-            {
-                // logger.LogError(ex, "Exception in StreamEvent");
-
+            {               
                 throw new Exception(ex.Message);
             }
         }
