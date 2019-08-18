@@ -23,8 +23,352 @@ namespace DocSiteUseCases
             Transactional_Queue_Extend_Visibility();
             Transactional_Queue_Resend_to_New_Queue();
             Transactional_Queue_Resend_Modified_Message();
+
+            Sending_Events_Single_Event();
+            Sending_Events_Stream_Events();
+            Receiving_Events();
+            Sending_Events_Store_Single_Event_to_Store();
+            Sending_Events_Store_Stream_Events_Store();
+            Receiving_Events_Store();
+            Commands_Sending_Command_Requests();
+            Commands_Receiving_Commands_Requests();
+            Queries_Sending_Query_Requests();
+            Queries_Receiving_Query_Requests();
         }
 
+        private static void Queries_Receiving_Query_Requests()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-subscriber";
+            var KubeMQServerAddress = "localhost:50000";
+
+
+            KubeMQ.SDK.csharp.CommandQuery.Responder responder = new KubeMQ.SDK.csharp.CommandQuery.Responder(KubeMQServerAddress);
+            try
+            {
+                responder.SubscribeToRequests(new KubeMQ.SDK.csharp.Subscription.SubscribeRequest()
+                {
+                    Channel = ChannelName,
+                    SubscribeType = KubeMQ.SDK.csharp.Subscription.SubscribeType.Queries,
+                    ClientID = ClientID
+                }, (queryReceive) => {
+                    Console.WriteLine($"Command Received: Id:{queryReceive.RequestID} Channel:{queryReceive.Channel} Metadata:{queryReceive.Metadata} Body:{ KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(queryReceive.Body)} ");
+                    return new KubeMQ.SDK.csharp.CommandQuery.Response(queryReceive)
+                    {
+                        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("got your query, you are good to go"),
+                        CacheHit = false,
+                        Error = "None",
+                        ClientID = ClientID,
+                        Executed = true,
+                        Metadata = "this is a response",
+                        Timestamp = DateTime.UtcNow                        
+                    };
+
+                }, (errorHandler) =>
+                {
+                    Console.WriteLine(errorHandler.Message);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Queries_Sending_Query_Requests()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+
+            var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
+            {
+                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Query,
+                Timeout = 1000,
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+            try
+            {
+
+                var result = channel.SendRequest(new KubeMQ.SDK.csharp.CommandQuery.Request
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a command, please reply")                    
+                });
+
+                if (!result.Executed)
+                {
+                    Console.WriteLine($"Response error:{result.Error}");
+                    return;
+                }
+                Console.WriteLine($"Response Received:{result.RequestID} ExecutedAt:{result.Timestamp}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Commands_Receiving_Commands_Requests()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-subscriber";
+            var KubeMQServerAddress = "localhost:50000";
+
+
+            KubeMQ.SDK.csharp.CommandQuery.Responder responder = new KubeMQ.SDK.csharp.CommandQuery.Responder(KubeMQServerAddress);
+            try
+            {
+                responder.SubscribeToRequests(new KubeMQ.SDK.csharp.Subscription.SubscribeRequest()
+                {
+                    Channel = ChannelName,
+                    SubscribeType = KubeMQ.SDK.csharp.Subscription.SubscribeType.Commands,
+                    ClientID = ClientID
+                }, (commandReceive) => {
+                    Console.WriteLine($"Command Received: Id:{commandReceive.RequestID} Channel:{commandReceive.Channel} Metadata:{commandReceive.Metadata} Body:{ KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(commandReceive.Body)} ");
+                    return new KubeMQ.SDK.csharp.CommandQuery.Response(commandReceive)
+                    {
+                        Body = new byte[0],
+                        CacheHit = false,
+                        Error = "None",
+                        ClientID = ClientID,
+                        Executed = true,
+                        Metadata = string.Empty,
+                        Timestamp = DateTime.UtcNow,
+                    };
+
+                }, (errorHandler) =>
+                {
+                    Console.WriteLine(errorHandler.Message);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Commands_Sending_Command_Requests()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+
+            var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
+            {
+                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Command,
+                Timeout = 1000,
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+            try
+            {
+
+                var result = channel.SendRequest(new KubeMQ.SDK.csharp.CommandQuery.Request
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a command, please reply")
+                });
+
+                if (!result.Executed)
+                {
+                    Console.WriteLine($"Response error:{result.Error}");
+                    return;
+                }
+                Console.WriteLine($"Response Received:{result.RequestID} ExecutedAt:{result.Timestamp}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Receiving_Events_Store()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-subscriber";
+            var KubeMQServerAddress = "localhost:50000";
+
+            var subscriber = new KubeMQ.SDK.csharp.Events.Subscriber(KubeMQServerAddress);
+            try
+            {
+                subscriber.SubscribeToEvents(new KubeMQ.SDK.csharp.Subscription.SubscribeRequest
+                {
+                    Channel = ChannelName,
+                    SubscribeType = KubeMQ.SDK.csharp.Subscription.SubscribeType.EventsStore,
+                    ClientID = ClientID,
+                    EventsStoreType= KubeMQ.SDK.csharp.Subscription.EventsStoreType.StartFromFirst,
+                    EventsStoreTypeValue = 0
+
+                }, (eventReceive) =>
+                {
+
+                    Console.WriteLine($"Event Received: EventID:{eventReceive.EventID} Channel:{eventReceive.Channel} Metadata:{eventReceive.Metadata} Body:{ KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(eventReceive.Body)} ");
+                },
+                (errorHandler) =>
+                {
+                    Console.WriteLine(errorHandler.Message);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Sending_Events_Store_Stream_Events_Store()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+            var channel = new KubeMQ.SDK.csharp.Events.Channel(new KubeMQ.SDK.csharp.Events.ChannelParameters
+            {
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+
+            try
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    _ = channel.StreamEvent(new KubeMQ.SDK.csharp.Events.Event
+                    {
+                        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending single event")
+                    });
+                }   
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Sending_Events_Store_Single_Event_to_Store()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+
+
+            var channel = new KubeMQ.SDK.csharp.Events.Channel(new KubeMQ.SDK.csharp.Events.ChannelParameters
+            {
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress,
+                Store = true
+            });
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    var result = channel.SendEvent(new KubeMQ.SDK.csharp.Events.Event()
+                    {
+                        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending single event"),
+                        EventID = $"event-Store-{i}",
+                        Metadata = "some-metadata"
+                    });
+                    if (!result.Sent)
+                    {
+                        Console.WriteLine($"Could not send single message:{result.Error}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+        }
+
+        private static void Receiving_Events()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-subscriber";
+            var KubeMQServerAddress = "localhost:50000";
+
+            var subscriber = new KubeMQ.SDK.csharp.Events.Subscriber(KubeMQServerAddress);
+            try
+            {
+                subscriber.SubscribeToEvents(new KubeMQ.SDK.csharp.Subscription.SubscribeRequest
+                {
+                    Channel = ChannelName,
+                    SubscribeType = KubeMQ.SDK.csharp.Subscription.SubscribeType.Events,
+                    ClientID = ClientID
+
+                }, (eventReceive) =>
+                {
+
+                    Console.WriteLine($"Event Received: EventID:{eventReceive.EventID} Channel:{eventReceive.Channel} Metadata:{eventReceive.Metadata} Body:{ KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(eventReceive.Body)} ");
+                },
+                (errorHandler) =>
+                {
+                    Console.WriteLine(errorHandler.Message);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private static void Sending_Events_Stream_Events()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+            var channel = new KubeMQ.SDK.csharp.Events.Channel(new KubeMQ.SDK.csharp.Events.ChannelParameters
+            {
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+
+            try
+            {
+                _ = channel.StreamEvent(new KubeMQ.SDK.csharp.Events.Event
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending single event")
+                });
+               
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+        }
+
+        private static void Sending_Events_Single_Event()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+
+
+            var channel = new KubeMQ.SDK.csharp.Events.Channel(new KubeMQ.SDK.csharp.Events.ChannelParameters
+            {
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+
+            try
+            {
+                var result = channel.SendEvent(new KubeMQ.SDK.csharp.Events.Event()
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending single event")
+                });
+                if (!result.Sent)
+                {
+                    Console.WriteLine($"Could not send single message:{result.Error}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         private static void Send_Message_to_a_Queue()
         {
