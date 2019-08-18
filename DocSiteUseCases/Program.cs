@@ -9,33 +9,26 @@ namespace DocSiteUseCases
     {
         static void Main(string[] args)
         {
-            Ack_All_Messages_In_a_Queue();
-        
-                //Send_Message_to_a_Queue();
-                //Send_Message_to_a_Queue_with_Expiration();
-                //Send_Message_to_a_Queue_with_Delay();
-                //Send_Message_to_a_Queue_with_Deadletter_Queue();
-
-                Send_Batch_Messages();
-                Send_Batch_Messages_no_exp();
-                Thread.Sleep(1000);
-                Receive_Messages_from_a_Queue();
-               Thread.Sleep(1000);
-           
-            Peak_Messages_from_a_Queue();
           
-
-            //Transactional_Queue_Ack();
-            //Transactional_Queue_Reject();
-            //Transactional_Queue_Extend_Visibility();
-            //Transactional_Queue_Resend_to_New_Queue();
-            //Transactional_Queue_Resend_Modified_Message();
+            Send_Message_to_a_Queue();
+            Send_Message_to_a_Queue_with_Expiration();
+            Send_Message_to_a_Queue_with_Delay();
+            Send_Message_to_a_Queue_with_Deadletter_Queue();
+            Send_Batch_Messages();
+            Receive_Messages_from_a_Queue();
+            Peak_Messages_from_a_Queue();
+            Ack_All_Messages_In_a_Queue();
+            Transactional_Queue_Ack();
+            Transactional_Queue_Reject();
+            Transactional_Queue_Extend_Visibility();
+            Transactional_Queue_Resend_to_New_Queue();
+            Transactional_Queue_Resend_Modified_Message();
         }
 
-     
+
         private static void Send_Message_to_a_Queue()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+           var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
 
             var resSend = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
@@ -49,7 +42,7 @@ namespace DocSiteUseCases
         }
         private static void Send_Message_to_a_Queue_with_Expiration()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+           var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
 
             var resSend = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
@@ -67,7 +60,7 @@ namespace DocSiteUseCases
         }
         private static void Send_Message_to_a_Queue_with_Delay()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
 
             var resSend = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
@@ -85,7 +78,7 @@ namespace DocSiteUseCases
         }
         private static void Send_Message_to_a_Queue_with_Deadletter_Queue()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
 
             var resSend = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
@@ -104,18 +97,14 @@ namespace DocSiteUseCases
         }
         private static void Send_Batch_Messages()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var batch = new List<KubeMQ.SDK.csharp.Queue.Message>();
             for (int i = 0; i < 10; i++)
             {
                 batch.Add(new KubeMQ.SDK.csharp.Queue.Message
                 {
                     Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"Batch Message {i}"),
-                    Metadata = "emptyMeta",
-                    Policy = new KubeMQ.Grpc.QueueMessagePolicy
-                    {
-                        ExpirationSeconds = 1
-                    }
+                    Metadata = "emptyMeta",                   
                 });
             }
             var resBatch = queue.SendQueueMessagesBatch(batch);
@@ -135,40 +124,10 @@ namespace DocSiteUseCases
                 }
             }
         }
-
-        private static void Send_Batch_Messages_no_exp()
-        {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
-            var batch = new List<KubeMQ.SDK.csharp.Queue.Message>();
-            for (int i = 0; i < 10; i++)
-            {
-                batch.Add(new KubeMQ.SDK.csharp.Queue.Message
-                {
-                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"Batch Message {i}"),
-                    Metadata = "emptyMeta",
-                   
-                });
-            }
-            var resBatch = queue.SendQueueMessagesBatch(batch);
-            if (resBatch.HaveErrors)
-            {
-                Console.WriteLine($"Message sent batch has errors");
-            }
-            foreach (var item in resBatch.Results)
-            {
-                if (item.IsError)
-                {
-                    Console.WriteLine($"Message enqueue error, MessageID:{item.MessageID}, error:{item.Error}");
-                }
-                else
-                {
-                    // Console.WriteLine($"Send to Queue Result: MessageID:{item.MessageID}, Sent At:{ KubeMQ.SDK.csharp.Tools.Converter.FromUnixTime(item.SentAt)}");
-                }
-            }
-        }
+    
         private static void Receive_Messages_from_a_Queue()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             queue.WaitTimeSecondsQueueMessages = 1;
             var resRec = queue.ReceiveQueueMessages(10);
             if (resRec.IsError)
@@ -184,7 +143,7 @@ namespace DocSiteUseCases
         }
         private static void Peak_Messages_from_a_Queue()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             queue.WaitTimeSecondsQueueMessages = 1;
             var resPeak = queue.PeakQueueMessage(10);
             if (resPeak.IsError)
@@ -200,7 +159,7 @@ namespace DocSiteUseCases
         }
         private static void Ack_All_Messages_In_a_Queue()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var resAck = queue.AckAllQueueMessagesResponse();
             if (resAck.IsError)
             {
@@ -211,7 +170,7 @@ namespace DocSiteUseCases
         }
         private static void Transactional_Queue_Ack()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var transaction = queue.CreateTransaction();
             // get message from the queue with visibility of 10 seconds and wait timeout of 10 seconds
             var resRec = transaction.Receive(10, 10);
@@ -239,7 +198,7 @@ namespace DocSiteUseCases
         }
         private static void Transactional_Queue_Reject()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var transaction = queue.CreateTransaction();
             // get message from the queue with visibility of 10 seconds and wait timeout of 10 seconds
             var resRec = transaction.Receive(10, 10);
@@ -259,7 +218,7 @@ namespace DocSiteUseCases
         }
         private static void Transactional_Queue_Extend_Visibility()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var transaction = queue.CreateTransaction();
             // get message from the queue with visibility of 5 seconds and wait timeout of 10 seconds
             var resRec = transaction.Receive(5, 10);
@@ -291,7 +250,7 @@ namespace DocSiteUseCases
         }
         private static void Transactional_Queue_Resend_to_New_Queue()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var transaction = queue.CreateTransaction();
             // get message from the queue with visibility of 5 seconds and wait timeout of 10 seconds
             var resRec = transaction.Receive(5, 10);
@@ -308,12 +267,11 @@ namespace DocSiteUseCases
                 Console.WriteLine($"Message Resend error, error:{resResend.Error}");
                 return;
             }
-
             Console.WriteLine("Done");
         }
         private static void Transactional_Queue_Resend_Modified_Message()
         {
-            KubeMQ.SDK.csharp.Queue.Queue queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var transaction = queue.CreateTransaction();
             // get message from the queue with visibility of 5 seconds and wait timeout of 10 seconds
             var resRec = transaction.Receive(3,5);
