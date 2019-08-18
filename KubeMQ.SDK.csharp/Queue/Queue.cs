@@ -53,6 +53,10 @@ namespace KubeMQ.SDK.csharp.Queue
             {
                 return _WaitTimeSecondsQueueMessages;
             }
+            set
+            {
+                _WaitTimeSecondsQueueMessages = value;
+            }
         }
 
         private int _MaxNumberOfMessagesQueueMessages = 32;

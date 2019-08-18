@@ -70,7 +70,7 @@ namespace KubeMQ.SDK.csharp.Tools
             }
         }
 
-        internal static DateTime FromUnixTime(long UnixTime)
+        public static DateTime FromUnixTime(long UnixTime)
         {
             var timeSpan = TimeSpan.FromSeconds(UnixTime);
             return new DateTime(timeSpan.Ticks).ToLocalTime();

@@ -108,11 +108,11 @@ namespace Queue
             {
                 if (item.IsError)
                 {
-                    Console.WriteLine($"message enqueue error, error:{res.Error}");
+                    Console.WriteLine($"message enqueue error, error:{item.Error}");
                 }
                 else
                 {
-                    Console.WriteLine($"message sent at, {res.SentAt}");
+                    Console.WriteLine($"message sent at, {item.SentAt}");
                 }
             }
 
