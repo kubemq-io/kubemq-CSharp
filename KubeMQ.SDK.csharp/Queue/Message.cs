@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace KubeMQ.SDK.csharp.Queue
 {
+    /// <summary>
+    /// Queue stored message
+    /// </summary>
     public class Message
     {
 
@@ -10,9 +13,12 @@ namespace KubeMQ.SDK.csharp.Queue
         /// Unique for message
         /// </summary>
         public string MessageID { get => string.IsNullOrEmpty(_messageID) ? Tools.IDGenerator.ReqID.Getid() : _messageID; set => _messageID = value; }
+        /// <summary>
+        /// Represents the sender ID that the messages will be send under.
+        /// </summary>
         public string ClientID { get; set; }
         /// <summary>
-        /// Queue name
+        /// Represents The FIFO queue name to send to using the KubeMQ.
         /// </summary>
         public string Queue { get; set; }
         /// <summary>
@@ -23,6 +29,9 @@ namespace KubeMQ.SDK.csharp.Queue
         /// The information that you want to pass.
         /// </summary>
         public byte[] Body { get; set; }
+        /// <summary>
+        /// Dictionary of string , string pair:A set of Key value pair that help categorize the message.
+        /// </summary>
         public Dictionary<string, string> Tags { get; set; }
         /// <summary>
         /// Information of received message
@@ -33,7 +42,11 @@ namespace KubeMQ.SDK.csharp.Queue
         /// </summary>
         public QueueMessagePolicy Policy { get; set; }
         private string _messageID;
-        public Message(QueueMessage message)
+        /// <summary>
+        /// Queue stored message
+        /// </summary>
+        /// <param name="message"></param>
+        internal Message(QueueMessage message)
         {
             this.MessageID = message.MessageID;
             this.ClientID = message.ClientID;
@@ -45,18 +58,21 @@ namespace KubeMQ.SDK.csharp.Queue
             this.Policy = message.Policy;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Message()
         {
 
         }
 
         /// <summary>
-        /// 
+        /// Queue stored message
         /// </summary>
         /// <param name="body">The information that you want to pass.</param>
         /// <param name="metadata">General information about the message body.</param>
         /// <param name="messageID">Unique for message</param>
-        /// <param name="tags"></param>
+        /// <param name="tags">Dictionary of string , string pair:A set of Key value pair that help categorize the message.</param>
 
         public Message(byte[] body, string metadata, string messageID = null, Dictionary<string, string> tags = null)
         {
