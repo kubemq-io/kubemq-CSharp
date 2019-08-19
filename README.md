@@ -15,7 +15,6 @@ The SDK implements all communication patterns available through the KubeMQ serve
 
 ### Supports:
 - .NET Framework 4.6.1
-- .NET Framework 4.7.1
 - .NET Standard 2.0
 
 
@@ -30,7 +29,7 @@ Configuration can be set by using one of the following:
 
 
 ### Configuration via Environment Variable
-Set `KubeMQServerAddress` to the KubeMQ Server Address
+Set `KUBEMQSERVERADDRESS` to the KubeMQ Server Address
 
 
 ### Configuration via appsettings.json

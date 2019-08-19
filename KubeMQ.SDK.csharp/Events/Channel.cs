@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using KubeMQ.Grpc;
 using Microsoft.Extensions.Logging;
 
 namespace KubeMQ.SDK.csharp.Events
@@ -9,20 +10,20 @@ namespace KubeMQ.SDK.csharp.Events
     /// </summary>
     public class Channel
     {
-        private LowLevel.Sender _sender;
+        private readonly LowLevel.Sender  _sender;
 
         private string ChannelName { get; set; }
         private string ClientID { get; set; }
         private bool Store { get; set; }
-        private bool ReturnResult { get; set; }
+       // private bool ReturnResult { get; set; }
 
         /// <summary>
         ///  Initializes a new instance of the KubeMQ.SDK.csharp.Events.Channel class using "Manual" Parameters. 
         /// </summary>
-        /// <param name="channelName">Represents The channel name to send to using the KubeMQ .</param>
+        /// <param name="channelName">Represents The channel name to send to using the KubeMQ.</param>
         /// <param name="clientID">Represents the sender ID that the messages will be send under.</param>
-        /// <param name="store"></param>
-        /// <param name="KubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000". </param>
+        /// <param name="store">If true will save data to kubemq storage.</param>
+        /// <param name="KubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000".</param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
         public Channel(string channelName, string clientID, bool store, string KubeMQAddress, ILogger logger=null)
         {
@@ -76,6 +77,16 @@ namespace KubeMQ.SDK.csharp.Events
             await _sender.ClosesEventStreamAsync();
         }
 
+        /// <summary>
+        /// Ping check Kubemq response using channel.
+        /// </summary>
+        /// <returns>ping status of kubemq.</returns>
+        public PingResult Ping()
+        {
+            return _sender.Ping();
+
+        }
+
         private bool IsValide(out Exception ex)
         {
             if (string.IsNullOrWhiteSpace(ChannelName))
@@ -98,7 +109,8 @@ namespace KubeMQ.SDK.csharp.Events
 
                 EventID = notification.EventID,
                 Body = notification.Body,
-                Metadata = notification.Metadata
+                Metadata = notification.Metadata,
+                Tags = notification.Tags
             };
         }
 

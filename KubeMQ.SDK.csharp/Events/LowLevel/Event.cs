@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using KubeMQ.SDK.csharp.Tools;
 using InnerEvent = KubeMQ.Grpc.Event;
 
@@ -33,14 +34,30 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
         /// Represents if the events should be send to persistence.
         /// </summary>
         public bool Store { get; set; }
+        /// <summary>
+        /// Represents a set of Key value pair that help categorize the message. 
+        /// </summary>
+        public Dictionary<string, string> Tags { get; set; }
 
         public bool ReturnResult { get; set; }
 
         #endregion
-
+        /// <summary>
+        /// Create a new instance of KubeMQ.SDK.csharp.Events.LowLevel.Event to be sent through the Kubemq.
+        /// </summary>
         public Event() { }
 
-        public Event(string channel, string metadata, byte[] body, string eventID, string clientID, bool store)
+        /// <summary>
+        /// Create a new instance of KubeMQ.SDK.csharp.Events.LowLevel.Event to be sent through the Kubemq.
+        /// </summary>
+        /// <param name="channel">String: the name of the channel to send the Event to.</param>
+        /// <param name="metadata">String: General information about the message.</param>
+        /// <param name="body">Byte[] the main data of the message.</param>
+        /// <param name="eventID">string: EventID to help distinguish the message.</param>
+        /// <param name="clientID">String: Represent the sender.</param>
+        /// <param name="store">Bool:If true the event will be sent to the kubemq storage.</param>
+        /// <param name="tags">Dictionary of string , string pair:A set of Key value pair that help categorize the message.</param>
+        public Event(string channel, string metadata, byte[] body, string eventID, string clientID, bool store,Dictionary<string,string>tags)
         {
             Channel = channel;
             Metadata = metadata;
@@ -48,6 +65,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
             EventID = eventID;
             ClientID = clientID;
             Store = store;
+            Tags = tags;
         }
 
         internal Event(InnerEvent innerEvent)
@@ -72,7 +90,8 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
 
                 EventID = string.IsNullOrEmpty(this.EventID) ? GetNextId().ToString() : EventID,
                 ClientID = this.ClientID,
-                Store = this.Store
+                Store = this.Store,
+                Tags = { Converter.CreateTags(this.Tags) }
             };
         }
 
