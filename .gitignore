@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/Examples/EventSubscriber/Properties/launchSettings.json
+/Examples/EventSender/Properties/launchSettings.json
+/Examples/CommandQueryResponder/Properties/launchSettings.json
+/Examples/CommandQueryInitiator/Properties/launchSettings.json
