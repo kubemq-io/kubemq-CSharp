@@ -10,18 +10,15 @@ namespace QueueLongPolling
         /// <summary>
         /// KubeMQ ClientID for tracing and tracking.
         /// </summary>
-        private static string ClientID = Environment.GetEnvironmentVariable("CLIENT") ?? $"MSMQ_Demo_{Environment.MachineName}";
+        private static readonly string ClientID = Environment.GetEnvironmentVariable("CLIENT") ?? $"MSMQ_Demo_{Environment.MachineName}";
         /// <summary>
         /// KubeMQ Command Chanel subscriber for handling  command request.
         /// </summary>
-        private static string QueueName = Environment.GetEnvironmentVariable("QUEUENAME") ?? "QUEUE_DEMO";
+        private static readonly string QueueName = Environment.GetEnvironmentVariable("QUEUENAME") ?? "QUEUE_DEMO";
 
-        private static string KubeMQServerAddress = Environment.GetEnvironmentVariable("KUBEMQSERVERADDRESS") ?? "localhost:50000";
-
-        private static string testGui = DateTime.UtcNow.ToBinary().ToString();
-
-
-        static void Main(string[] args)
+        private static readonly string KubeMQServerAddress = Environment.GetEnvironmentVariable("KUBEMQSERVERADDRESS") ?? "localhost:50000";
+        
+        static void Main()
         {
 
             Console.WriteLine("[DemoPoll]KubeMQ Queue pattern long polling");
@@ -29,9 +26,7 @@ namespace QueueLongPolling
             Console.WriteLine($"[DemoPoll] QueueName:{QueueName}");
             Console.WriteLine($"[DemoPoll] KubeMQServerAddress:{KubeMQServerAddress}");
 
-            KubeMQ.SDK.csharp.Queue.Queue queue = null;
-          
-             queue =queue = creatreQueue();
+            KubeMQ.SDK.csharp.Queue.Queue queue = CreatreQueue();
             if (queue == null)
             {             
                 Console.ReadLine();
@@ -47,7 +42,7 @@ namespace QueueLongPolling
                 if (queue==null)
                 {
                     Thread.Sleep(1000);
-                    queue = creatreQueue();
+                    queue = CreatreQueue();
 
                     continue;
                 }
@@ -73,8 +68,9 @@ namespace QueueLongPolling
                 }
                 catch (RpcException ex)
                 {
+                    Console.WriteLine($"[DemoPoll][Tran]RPC error, error:{ex.Message}");
 
-                    queue= creatreQueue();
+                    queue = CreatreQueue();
                 }
                 transaction.Close();
                 Thread.Sleep(1);
@@ -103,7 +99,7 @@ namespace QueueLongPolling
 
         }
 
-        private static KubeMQ.SDK.csharp.Queue.Queue creatreQueue()
+        private static KubeMQ.SDK.csharp.Queue.Queue CreatreQueue()
         {
             try
             {
