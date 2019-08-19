@@ -1,4 +1,6 @@
 ﻿using Google.Protobuf;
+using KubeMQ.SDK.csharp.Tools;
+using System.Collections.Generic;
 using System.Threading;
 using InnerRequest = KubeMQ.Grpc.Request;
 
@@ -53,9 +55,13 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         /// Cache time to live : for how long does the request should be saved in Cache
         /// </summary>
         public int CacheTTL { get; set; }
+        /// <summary>
+        /// Represents a set of Key value pair that help categorize the message. 
+        /// </summary>
+        public Dictionary<string, string> Tags { get; set; }
         #endregion
 
-        #region C'tor
+        #region C'tor 
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.RequestReply.LowLevel.Request .
         /// </summary>
@@ -74,7 +80,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         /// <param name="timeout">Represents the limit for waiting for response (Milliseconds)</param>
         /// <param name="cacheKey">Represents if the request should be saved from Cache and under what "Key"(System.String) to save it.</param>
         /// <param name="cacheTTL">Cache time to live : for how long does the request should be saved in Cache.</param>
-        public Request(string requestID, RequestType requestType, string clientID, string channel, string replaychannel, string metadata, byte[] body, int timeout, string cacheKey, int cacheTTL)
+        /// <param name="tags">A set of Key value pair that help categorize the message.</param>
+        public Request(string requestID, RequestType requestType, string clientID, string channel, string replaychannel, string metadata, byte[] body, int timeout, string cacheKey, int cacheTTL, Dictionary<string, string> tags)
         {
             RequestID = requestID;
             RequestType = requestType;
@@ -121,6 +128,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
                 Timeout = this.Timeout,
                 CacheKey = this.CacheKey ?? string.Empty,
                 CacheTTL = this.CacheTTL,
+                Tags = { Converter.CreateTags(this.Tags) }
             };
         }
 
