@@ -9,16 +9,19 @@ using KubeMQ.SDK.csharp.Basic;
 
 namespace KubeMQ.SDK.csharp.Queue.Stream
 {
+    /// <summary>
+    /// Advance manipulation of messages using stream
+    /// </summary>
     public class Transaction : GrpcClient
     {
-        private Queue _queue;
-       
-        private int _visibilitySeconds;
+        private readonly Queue _queue;
 
         private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
 
         private CancellationTokenSource cts;
-
+        /// <summary>
+        /// Status of current message handled, when false there is no active message to resend, call Receive first
+        /// </summary>
         public bool InTransaction
         {
             get { return CheckCallIsInTransaction(); }
@@ -43,8 +46,6 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 return new TransactionMessagesResponse("active queue message wait for ack/reject");
             }
-
-            
 
               Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
             {

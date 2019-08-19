@@ -9,30 +9,19 @@ using KubeMQGrpc = KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Queue
 {
-    public class QueueMessageConstans
-    {
-        public string QueueName { get; set; }
-        public string ClientID { get; set; }
-        /// <summary>
-        ///Number of received messages in request
-        /// </summary>
-        public int? MaxNumberOfMessagesQueueMessages { get; set; }
-        /// <summary>
-        /// Wait time for received messages
-        /// </summary>
-        public int? WaitTimeSecondsQueueMessages { get; set; }
-
-    }
-
+  
     /// <summary>
     /// Represents a Queue pattern.
     /// </summary>
     public class Queue : GrpcClient
-    {    
+    {
         /// <summary>
-        /// Queue name as Channle name
+        /// Represents The FIFO queue name to send to using the KubeMQ.
         /// </summary>
-        public string QueueName { get; private set; }       
+        public string QueueName { get; private set; }
+        /// <summary>
+        /// Represents the sender ID that the messages will be send under.
+        /// </summary>
         public string ClientID { get; private set; }
         /// <summary>
         ///Number of received messages
@@ -59,36 +48,39 @@ namespace KubeMQ.SDK.csharp.Queue
             }
         }
 
-        private int _MaxNumberOfMessagesQueueMessages = 32;
+        private readonly int _MaxNumberOfMessagesQueueMessages = 32;
         private int _WaitTimeSecondsQueueMessages =1;
-        private static ILogger logger;
+        private static ILogger _logger;
         private Transaction _transation;
 
         /// <summary>
-        /// 
+        /// Distributed durable FIFO based queues with the following core
         /// </summary>
+        /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
         public Queue(ILogger logger = null)
         {
-
+            _logger = Logger.InitLogger(logger, "Queue");
         }
-      
-        public Queue(string queueName, string clientID, string kubeMQAddress = null, ILogger logger = null) :this(queueName,clientID,null,null,kubeMQAddress)
+        /// <summary>
+        /// Distributed durable FIFO based queues with the following core 
+        /// </summary>
+        /// <param name="queueName">Represents The FIFO queue name to send to using the KubeMQ.</param>
+        /// <param name="clientID">Represents the sender ID that the messages will be send under.</param>
+        /// <param name="kubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000".</param>
+        /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
+        public Queue(string queueName, string clientID, string kubeMQAddress = null, ILogger logger = null) :this(queueName,clientID,null,null,kubeMQAddress, logger)
         {          
 
         }
-        public Queue(QueueMessageConstans constans, ILogger logger = null) : this(constans.QueueName, constans.ClientID, constans.MaxNumberOfMessagesQueueMessages, constans.WaitTimeSecondsQueueMessages)
-        {
-
-        }
         /// <summary>
-        /// 
+        /// Distributed durable FIFO based queues with the following core 
         /// </summary>
-        /// <param name="queueName"></param>
-        /// <param name="clientID"></param>
+        /// <param name="queueName">Represents The FIFO queue name to send to using the KubeMQ.</param>
+        /// <param name="clientID">Represents the sender ID that the messages will be send under.</param>
         /// <param name="maxNumberOfMessagesQueueMessages">Number of received messages in request</param>
         /// <param name="waitTimeSecondsQueueMessages">Wait time for received messages</param>
-        /// <param name="kubeMQAddress"></param>
-        /// <param name="logger"></param>
+        /// <param name="kubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000".</param>
+        /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
         public Queue(string queueName, string clientID, int? maxNumberOfMessagesQueueMessages=null, int? waitTimeSecondsQueueMessages = null, string kubeMQAddress = null, ILogger logger = null)
         {
             this.QueueName = queueName;
@@ -96,7 +88,7 @@ namespace KubeMQ.SDK.csharp.Queue
             this._kubemqAddress = kubeMQAddress;
             this._MaxNumberOfMessagesQueueMessages = maxNumberOfMessagesQueueMessages?? _MaxNumberOfMessagesQueueMessages;
             this._WaitTimeSecondsQueueMessages = waitTimeSecondsQueueMessages?? _WaitTimeSecondsQueueMessages;
-            logger = Logger.InitLogger(logger, "Queue");
+            _logger = Logger.InitLogger(logger, "Queue");
             this.Ping();
         }
 
@@ -119,8 +111,7 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <summary>
         /// Sending queue messages array request , waiting for response or timeout 
         /// </summary>
-        /// <param name="queueMessages">Array of Messages</param>
-        /// <param name="batchID"></param>
+        /// <param name="queueMessages">Array of Messages</param>     
         /// <returns></returns>
         public SendBatchMessageResult SendQueueMessagesBatch(IEnumerable<Message> queueMessages)
         {
@@ -202,10 +193,14 @@ namespace KubeMQ.SDK.csharp.Queue
         }
     
         #endregion
-
+        /// <summary>
+        /// Ping KubeMQ address to check Grpc connection
+        /// </summary>
+        /// <returns></returns>
         public PingResult Ping()
         {
             PingResult rec = GetKubeMQClient().Ping(new Empty());
+            _logger.LogDebug($"Queue KubeMQ address:{_kubemqAddress} ping result:{rec}");
             return rec;
 
         }

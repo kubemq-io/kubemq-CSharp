@@ -3,16 +3,41 @@ using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Queue
 {
+    /// <summary>
+    /// Queue response.
+    /// </summary>
     public class ReceiveMessagesResponse
     {
-        public string Error { get; }
-        public bool IsError { get; }
-        public bool IsPeak { get; }
-        public IEnumerable<Message> Messages { get; }
-        public int MessagesExpired { get; }
-        public int MessagesReceived { get; }
+        /// <summary>
+        ///  Unique for Request
+        /// </summary>
         public string RequestID { get; }
-        public ReceiveMessagesResponse(ReceiveQueueMessagesResponse receiveQueueMessagesResponse)
+        /// <summary>
+        /// Returned from KubeMQ, false if no error.
+        /// </summary>
+        public string Error { get; }
+        /// <summary>
+        /// Error message, valid only if IsError true.
+        /// </summary>
+        public bool IsError { get; }
+        /// <summary>
+        /// Indicate if the request was peak, true if peak.
+        /// </summary>
+        public bool IsPeak { get; }
+        /// <summary>
+        /// Collection of Messages
+        /// </summary>
+        public IEnumerable<Message> Messages { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public int MessagesExpired { get; }
+        /// <summary>
+        /// Count of received messages.
+        /// </summary>
+        public int MessagesReceived { get; }
+            
+        internal ReceiveMessagesResponse(ReceiveQueueMessagesResponse receiveQueueMessagesResponse)
         {
             Error = receiveQueueMessagesResponse.Error;
             IsError = receiveQueueMessagesResponse.IsError;
