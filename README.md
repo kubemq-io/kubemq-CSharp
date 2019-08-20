@@ -301,8 +301,6 @@ responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIn
 //To call the cancellation use the following
 source.Cancel();
 source.Dispose();
-source.Cancel();
-source.Dispose();
 
 ```
 Handle requests and return responses
