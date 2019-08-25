@@ -72,10 +72,19 @@ namespace KubeMQ.SDK.csharp.Tools
 
         public static DateTime FromUnixTime(long UnixTime)
         {
-            var timeSpan = TimeSpan.FromSeconds(UnixTime);
-            return new DateTime(timeSpan.Ticks).ToLocalTime();
-        }
+            //var timeSpan = TimeSpan.FromSeconds(UnixTime);
+            //return new DateTime(timeSpan.Ticks).ToLocalTime();
+            double UnixTimeDbl = UnixTime;
+            var len = UnixTimeDbl.ToString("F0").Length;
+            if (len > 10)
+            {
+                UnixTimeDbl /= Math.Pow(10, len - 10);
+            }
           
+            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            return dtDateTime.AddSeconds(UnixTimeDbl).ToLocalTime();
+        }
+
 
         internal static long ToUnixTime(DateTime timestamp)
         {       
