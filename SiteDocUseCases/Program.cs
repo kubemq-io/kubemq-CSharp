@@ -9,15 +9,15 @@ namespace DocSiteUseCases
     {
         static void Main()
         {
-            Ack_All_Messages_In_a_Queue();
-            Send_Message_to_a_Queue();
-            Send_Message_to_a_Queue_with_Expiration();
-            Send_Message_to_a_Queue_with_Delay();
-            Send_Message_to_a_Queue_with_Deadletter_Queue();
+            //Ack_All_Messages_In_a_Queue();
+            //Send_Message_to_a_Queue();
+            //Send_Message_to_a_Queue_with_Expiration();
+            //Send_Message_to_a_Queue_with_Delay();
+            //Send_Message_to_a_Queue_with_Deadletter_Queue();
             Send_Batch_Messages();
             Receive_Messages_from_a_Queue();
             Peak_Messages_from_a_Queue();
-         
+
             Transactional_Queue_Ack();
             Transactional_Queue_Reject();
             Transactional_Queue_Extend_Visibility();
@@ -33,29 +33,31 @@ namespace DocSiteUseCases
             Sending_Events_Store_Stream_Events_Store();
 
             Commands_Receiving_Commands_Requests();
-            Commands_Sending_Command_Requests();
+            Commands_Sending_Command_Request();
+            Commands_Sending_Command_Request_async();
 
             Queries_Receiving_Query_Requests();
-            Queries_Sending_Query_Requests();
+            Queries_Sending_Query_Request();
+            Queries_Sending_Query_Request_async();
         }
 
         private static void Send_Message_to_a_Queue()
         {
-           var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
 
             var resSend = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("some-simple_queue-queue-message"),
-                Metadata = "someMeta"             
+                Metadata = "someMeta"
             });
             if (resSend.IsError)
             {
                 Console.WriteLine($"Message enqueue error, error:{resSend.Error}");
-            }           
+            }
         }
         private static void Send_Message_to_a_Queue_with_Expiration()
         {
-           var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
+            var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
 
             var resSend = queue.SendQueueMessage(new KubeMQ.SDK.csharp.Queue.Message
             {
@@ -69,7 +71,7 @@ namespace DocSiteUseCases
             if (resSend.IsError)
             {
                 Console.WriteLine($"Message enqueue error, error:{resSend.Error}");
-            }          
+            }
         }
         private static void Send_Message_to_a_Queue_with_Delay()
         {
@@ -81,13 +83,13 @@ namespace DocSiteUseCases
                 Metadata = "emptyMeta",
                 Policy = new KubeMQ.Grpc.QueueMessagePolicy
                 {
-                    DelaySeconds =5
+                    DelaySeconds = 5
                 }
             });
             if (resSend.IsError)
             {
                 Console.WriteLine($"Message enqueue error, error:{resSend.Error}");
-            }         
+            }
         }
         private static void Send_Message_to_a_Queue_with_Deadletter_Queue()
         {
@@ -117,7 +119,7 @@ namespace DocSiteUseCases
                 batch.Add(new KubeMQ.SDK.csharp.Queue.Message
                 {
                     Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray($"Batch Message {i}"),
-                    Metadata = "emptyMeta",                   
+                    Metadata = "emptyMeta",
                 });
             }
             var resBatch = queue.SendQueueMessagesBatch(batch);
@@ -126,18 +128,18 @@ namespace DocSiteUseCases
                 Console.WriteLine($"Message sent batch has errors");
             }
             foreach (var item in resBatch.Results)
-            {               
+            {
                 if (item.IsError)
                 {
                     Console.WriteLine($"Message enqueue error, MessageID:{item.MessageID}, error:{item.Error}");
                 }
                 else
                 {
-                   // Console.WriteLine($"Send to Queue Result: MessageID:{item.MessageID}, Sent At:{ KubeMQ.SDK.csharp.Tools.Converter.FromUnixTime(item.SentAt)}");
+                    Console.WriteLine($"Send to Queue Result: MessageID:{item.MessageID}, Sent At:{ KubeMQ.SDK.csharp.Tools.Converter.FromUnixTime(item.SentAt)}");
                 }
             }
         }
-    
+
         private static void Receive_Messages_from_a_Queue()
         {
             var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000")
@@ -212,7 +214,7 @@ namespace DocSiteUseCases
             {
                 Console.WriteLine($"Message dequeue error, error:{resRec.Error}");
                 return;
-            }  
+            }
         }
         private static void Transactional_Queue_Reject()
         {
@@ -292,7 +294,7 @@ namespace DocSiteUseCases
             var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
             var transaction = queue.CreateTransaction();
             // get message from the queue with visibility of 5 seconds and wait timeout of 10 seconds
-            var resRec = transaction.Receive(3,5);
+            var resRec = transaction.Receive(3, 5);
             if (resRec.IsError)
             {
                 Console.WriteLine($"Message dequeue error, error:{resRec.Error}");
@@ -397,7 +399,7 @@ namespace DocSiteUseCases
                 Console.WriteLine(ex.Message);
             }
         }
-      
+
         private static void Sending_Events_Store_Single_Event_to_Store()
         {
             var ChannelName = "testing_event_channel";
@@ -493,7 +495,7 @@ namespace DocSiteUseCases
             }
         }
 
-        private static void Queries_Sending_Query_Requests()
+        private static void Queries_Sending_Query_Request()
         {
             var ChannelName = "testing_event_channel";
             var ClientID = "hello-world-sender";
@@ -512,7 +514,41 @@ namespace DocSiteUseCases
 
                 var result = channel.SendRequest(new KubeMQ.SDK.csharp.CommandQuery.Request
                 {
-                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a command, please reply")
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a query, please reply")
+                });
+
+                if (!result.Executed)
+                {
+                    Console.WriteLine($"Response error:{result.Error}");
+                    return;
+                }
+                Console.WriteLine($"Response Received:{result.RequestID} ExecutedAt:{result.Timestamp}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        private static async void Queries_Sending_Query_Request_async()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
+
+            var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
+            {
+                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Query,
+                Timeout = 1000,
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+            try
+            {
+
+                var result = await channel.SendRequestAsync(new KubeMQ.SDK.csharp.CommandQuery.Request
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a query, please reply")
                 });
 
                 if (!result.Executed)
@@ -566,40 +602,6 @@ namespace DocSiteUseCases
             }
         }
 
-        private static void Commands_Sending_Command_Requests()
-        {
-            var ChannelName = "testing_event_channel";
-            var ClientID = "hello-world-sender";
-            var KubeMQServerAddress = "localhost:50000";
-
-            var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
-            {
-                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Command,
-                Timeout = 1000,
-                ChannelName = ChannelName,
-                ClientID = ClientID,
-                KubeMQAddress = KubeMQServerAddress
-            });
-            try
-            {
-
-                var result = channel.SendRequest(new KubeMQ.SDK.csharp.CommandQuery.Request
-                {
-                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a command, please reply")
-                });
-
-                if (!result.Executed)
-                {
-                    Console.WriteLine($"Response error:{result.Error}");
-                    return;
-                }
-                Console.WriteLine($"Response Received:{result.RequestID} ExecutedAt:{result.Timestamp}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
         private static void Commands_Receiving_Commands_Requests()
         {
             var ChannelName = "testing_event_channel";
@@ -638,25 +640,73 @@ namespace DocSiteUseCases
                 Console.WriteLine(ex.Message);
             }
         }
+        private static void Commands_Sending_Command_Request()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
 
-   
+            var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
+            {
+                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Command,
+                Timeout = 1000,
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+            try
+            {
 
+                var result = channel.SendRequest(new KubeMQ.SDK.csharp.CommandQuery.Request
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a command, please reply")
+                });
 
-  
+                if (!result.Executed)
+                {
+                    Console.WriteLine($"Response error:{result.Error}");
+                    return;
+                }
+                Console.WriteLine($"Response Received:{result.RequestID} ExecutedAt:{result.Timestamp}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        private static async void Commands_Sending_Command_Request_async()
+        {
+            var ChannelName = "testing_event_channel";
+            var ClientID = "hello-world-sender";
+            var KubeMQServerAddress = "localhost:50000";
 
+            var channel = new KubeMQ.SDK.csharp.CommandQuery.Channel(new KubeMQ.SDK.csharp.CommandQuery.ChannelParameters
+            {
+                RequestsType = KubeMQ.SDK.csharp.CommandQuery.RequestType.Command,
+                Timeout = 1000,
+                ChannelName = ChannelName,
+                ClientID = ClientID,
+                KubeMQAddress = KubeMQServerAddress
+            });
+            try
+            {
 
+                var result = await channel.SendRequestAsync(new KubeMQ.SDK.csharp.CommandQuery.Request
+                {
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending a command, please reply")
+                });
 
-
-
-
-
-
-
-
-
-
-
-
-
+                if (!result.Executed)
+                {
+                    Console.WriteLine($"Response error:{result.Error}");
+                    return;
+                }
+                Console.WriteLine($"Response Received:{result.RequestID} ExecutedAt:{result.Timestamp}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
     }
 }
