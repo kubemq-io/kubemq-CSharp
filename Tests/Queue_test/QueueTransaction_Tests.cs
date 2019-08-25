@@ -90,7 +90,7 @@ namespace Queue_test
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack"   ,
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.Getid()
             });
             Transaction tr = queue.CreateTransaction();
             var recms=  tr.Receive(5);
@@ -105,7 +105,7 @@ namespace Queue_test
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack",
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.Getid()
             });
             Transaction tr = queue.CreateTransaction();
             var recms = tr.Receive(5);
@@ -140,7 +140,7 @@ namespace Queue_test
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack",
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.Getid()
             });
             Transaction tr = queue.CreateTransaction();
             var recms = tr.Receive();
