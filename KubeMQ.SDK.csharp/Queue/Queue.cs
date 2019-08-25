@@ -118,7 +118,7 @@ namespace KubeMQ.SDK.csharp.Queue
           
                 QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch(new QueueMessagesBatchRequest
                 {
-                    BatchID = Tools.IDGenerator.ReqID.Getid(),
+                    BatchID = Tools.IDGenerator.Getid(),
                     Messages = { Tools.Converter.ToQueueMessages(queueMessages, this) }
                 });
 
@@ -134,7 +134,7 @@ namespace KubeMQ.SDK.csharp.Queue
         {
                 ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
                 {
-                    RequestID = Tools.IDGenerator.ReqID.Getid(),
+                    RequestID = Tools.IDGenerator.Getid(),
                     ClientID = ClientID,
                     Channel = QueueName,
                     MaxNumberOfMessages = maxNumberOfMessagesQueueMessages ?? MaxNumberOfMessagesQueueMessages,
@@ -153,7 +153,7 @@ namespace KubeMQ.SDK.csharp.Queue
         {          
                 ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
                 {
-                    RequestID = Tools.IDGenerator.ReqID.Getid(),
+                    RequestID = Tools.IDGenerator.Getid(),
                     ClientID = ClientID,
                     Channel = QueueName,
                     IsPeak = true,
@@ -165,11 +165,15 @@ namespace KubeMQ.SDK.csharp.Queue
            
         }
 
+        /// <summary>
+        /// Mark all the messages as dequeued on queue.
+        /// </summary>
+        /// <returns></returns>
         public AckAllMessagesResponse AckAllQueueMessagesResponse()
         {
                 AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
                 {
-                    RequestID = Tools.IDGenerator.ReqID.Getid(),
+                    RequestID = Tools.IDGenerator.Getid(),
                     Channel = QueueName,
                     ClientID = ClientID,
                     WaitTimeSeconds = WaitTimeSecondsQueueMessages
