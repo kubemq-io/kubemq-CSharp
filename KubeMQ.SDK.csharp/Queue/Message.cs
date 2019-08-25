@@ -53,7 +53,7 @@ namespace KubeMQ.SDK.csharp.Queue
             this.Queue = message.Channel;
             this.Metadata = message.Metadata;
             this.Body = message.Body.ToByteArray();
-            this.Tags = null;// item.Tags,
+            this.Tags = Tools.Converter.ReadTags(message.Tags);
             this.Attributes = message.Attributes;
             this.Policy = message.Policy;
         }
