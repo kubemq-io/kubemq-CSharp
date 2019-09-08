@@ -126,7 +126,7 @@ namespace KubeMQ.SDK.csharp.Queue
         }
 
         /// <summary>
-        /// Recessive messages from queues
+        /// Recessive messages from queue.
         /// </summary>
         /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32</param>
         /// <returns></returns>
@@ -169,7 +169,7 @@ namespace KubeMQ.SDK.csharp.Queue
         /// Mark all the messages as dequeued on queue.
         /// </summary>
         /// <returns></returns>
-        public AckAllMessagesResponse AckAllQueueMessagesResponse()
+        public AckAllMessagesResponse AckAllQueueMessages()
         {
                 AckAllQueueMessagesResponse rec = GetKubeMQClient().AckAllQueueMessages(new AckAllQueueMessagesRequest
                 {
