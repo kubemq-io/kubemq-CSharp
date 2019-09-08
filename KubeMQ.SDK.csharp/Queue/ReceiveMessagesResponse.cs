@@ -21,11 +21,11 @@ namespace KubeMQ.SDK.csharp.Queue
         /// </summary>
         public bool IsError { get; }
         /// <summary>
-        /// Indicate if the request was peak, true if peak.
+        /// Indicate if the request was peek, true if peek.
         /// </summary>
-        public bool IsPeak { get; }
+        public bool IsPeek { get; }
         /// <summary>
-        /// Collection of Messages
+        /// Collection of Messages.
         /// </summary>
         public IEnumerable<Message> Messages { get; }
         /// <summary>
@@ -36,18 +36,18 @@ namespace KubeMQ.SDK.csharp.Queue
         /// Count of received messages.
         /// </summary>
         public int MessagesReceived { get; }
-            
+
         internal ReceiveMessagesResponse(ReceiveQueueMessagesResponse receiveQueueMessagesResponse)
         {
             Error = receiveQueueMessagesResponse.Error;
             IsError = receiveQueueMessagesResponse.IsError;
-            IsPeak = receiveQueueMessagesResponse.IsPeak;
+            IsPeek = receiveQueueMessagesResponse.IsPeak;
             Messages = Tools.Converter.FromQueueMessages(receiveQueueMessagesResponse.Messages);
-            MessagesExpired= receiveQueueMessagesResponse.MessagesExpired;
+            MessagesExpired = receiveQueueMessagesResponse.MessagesExpired;
             MessagesReceived = receiveQueueMessagesResponse.MessagesReceived;
             RequestID = receiveQueueMessagesResponse.RequestID;
         }
 
-       
+
     }
 }
