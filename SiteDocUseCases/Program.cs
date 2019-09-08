@@ -9,11 +9,11 @@ namespace DocSiteUseCases
     {
         static void Main()
         {
-            //Ack_All_Messages_In_a_Queue();
-            //Send_Message_to_a_Queue();
-            //Send_Message_to_a_Queue_with_Expiration();
-            //Send_Message_to_a_Queue_with_Delay();
-            //Send_Message_to_a_Queue_with_Deadletter_Queue();
+            Ack_All_Messages_In_a_Queue();
+            Send_Message_to_a_Queue();
+            Send_Message_to_a_Queue_with_Expiration();
+            Send_Message_to_a_Queue_with_Delay();
+            Send_Message_to_a_Queue_with_Deadletter_Queue();
             Send_Batch_Messages();
             Receive_Messages_from_a_Queue();
             Peak_Messages_from_a_Queue();
@@ -248,7 +248,7 @@ namespace DocSiteUseCases
                 return;
             }
             Console.WriteLine($"MessageID: {resRec.Message.MessageID}, Body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(resRec.Message.Body)}");
-            Console.WriteLine("work for 1 seconds");
+            Console.WriteLine("Work for 1 seconds");
             Thread.Sleep(1000);
             Console.WriteLine("Need more time to process, extend visibility for more 3 seconds");
             var resExt = transaction.ExtendVisibility(3);
@@ -604,7 +604,7 @@ namespace DocSiteUseCases
 
         private static void Commands_Receiving_Commands_Requests()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_Command_channel";
             var ClientID = "hello-world-subscriber";
             var KubeMQServerAddress = "localhost:50000";
 

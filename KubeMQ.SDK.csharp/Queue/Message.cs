@@ -59,7 +59,7 @@ namespace KubeMQ.SDK.csharp.Queue
         }
 
         /// <summary>
-        /// 
+        ///  Queue stored message
         /// </summary>
         public Message()
         {
