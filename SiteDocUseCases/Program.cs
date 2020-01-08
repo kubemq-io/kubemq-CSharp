@@ -404,7 +404,7 @@ namespace DocSiteUseCases
 
         private static void Sending_Events_Store_Single_Event_to_Store()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_event_channel_store";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
 
@@ -438,25 +438,24 @@ namespace DocSiteUseCases
         }
         private static void Sending_Events_Store_Stream_Events_Store()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_event_channel_store";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
             var channel = new KubeMQ.SDK.csharp.Events.Channel(new KubeMQ.SDK.csharp.Events.ChannelParameters
             {
                 ChannelName = ChannelName,
                 ClientID = ClientID,
-                KubeMQAddress = KubeMQServerAddress
+                KubeMQAddress = KubeMQServerAddress,
+                Store=true
             });
 
             try
             {
-                for (int i = 0; i < 10; i++)
+
+                _ = channel.StreamEvent(new KubeMQ.SDK.csharp.Events.Event
                 {
-                    _ = channel.StreamEvent(new KubeMQ.SDK.csharp.Events.Event
-                    {
-                        Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - stream event store")
-                    });
-                }
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - stream event store")
+                });
             }
             catch (Exception ex)
             {
@@ -465,7 +464,7 @@ namespace DocSiteUseCases
         }
         private static void Receiving_Events_Store()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_event_channel_store";
             var ClientID = "hello-world-subscriber";
             var KubeMQServerAddress = "localhost:50000";
 
