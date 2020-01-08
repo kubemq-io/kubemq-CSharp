@@ -16,7 +16,7 @@ namespace DocSiteUseCases
             Send_Message_to_a_Queue_with_Deadletter_Queue();
             Send_Batch_Messages();
             Receive_Messages_from_a_Queue();
-            Peak_Messages_from_a_Queue();
+            Peek_Messages_from_a_Queue();
 
             Transactional_Queue_Ack();
             Transactional_Queue_Reject();
@@ -39,6 +39,8 @@ namespace DocSiteUseCases
             Queries_Receiving_Query_Requests();
             Queries_Sending_Query_Request();
             Queries_Sending_Query_Request_async();
+
+            Console.ReadLine();
         }
 
         private static void Send_Message_to_a_Queue()
@@ -158,13 +160,13 @@ namespace DocSiteUseCases
                 Console.WriteLine($"MessageID: {item.MessageID}, Body:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
             }
         }
-        private static void Peak_Messages_from_a_Queue()
+        private static void Peek_Messages_from_a_Queue()
         {
             var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000")
             {
                 WaitTimeSecondsQueueMessages = 1
             };
-            var resPeak = queue.PeakQueueMessage(10);
+            var resPeak = queue.PeekQueueMessage(10);
             if (resPeak.IsError)
             {
                 Console.WriteLine($"Message peak error, error:{resPeak.Error}");
@@ -179,7 +181,7 @@ namespace DocSiteUseCases
         private static void Ack_All_Messages_In_a_Queue()
         {
             var queue = new KubeMQ.SDK.csharp.Queue.Queue("QueueName", "ClientID", "localhost:50000");
-            var resAck = queue.AckAllQueueMessagesResponse();
+            var resAck = queue.AckAllQueueMessages();
             if (resAck.IsError)
             {
                 Console.WriteLine($"AckAllQueueMessagesResponse error, error:{resAck.Error}");
@@ -414,14 +416,13 @@ namespace DocSiteUseCases
                 KubeMQAddress = KubeMQServerAddress,
                 Store = true
             });
-            for (int i = 0; i < 10; i++)
-            {
+
                 try
                 {
                     var result = channel.SendEvent(new KubeMQ.SDK.csharp.Events.Event()
                     {
                         Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending single event store"),
-                        EventID = $"event-Store-{i}",
+                        EventID = $"event-Store-!",
                         Metadata = "some-metadata"
                     });
                     if (!result.Sent)
@@ -433,7 +434,7 @@ namespace DocSiteUseCases
                 {
                     Console.WriteLine(ex.Message);
                 }
-            }
+   
         }
         private static void Sending_Events_Store_Stream_Events_Store()
         {
@@ -497,7 +498,7 @@ namespace DocSiteUseCases
 
         private static void Queries_Sending_Query_Request()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_query_channel";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
 
@@ -531,7 +532,7 @@ namespace DocSiteUseCases
         }
         private static async void Queries_Sending_Query_Request_async()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_query_channel";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
 
@@ -565,7 +566,7 @@ namespace DocSiteUseCases
         }
         private static void Queries_Receiving_Query_Requests()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_query_channel";
             var ClientID = "hello-world-subscriber";
             var KubeMQServerAddress = "localhost:50000";
 
@@ -604,7 +605,7 @@ namespace DocSiteUseCases
 
         private static void Commands_Receiving_Commands_Requests()
         {
-            var ChannelName = "testing_Command_channel";
+            var ChannelName = "testing_command_channel";
             var ClientID = "hello-world-subscriber";
             var KubeMQServerAddress = "localhost:50000";
 
@@ -642,7 +643,7 @@ namespace DocSiteUseCases
         }
         private static void Commands_Sending_Command_Request()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_command_channel";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
 
@@ -676,7 +677,7 @@ namespace DocSiteUseCases
         }
         private static async void Commands_Sending_Command_Request_async()
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_command_channel";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
 

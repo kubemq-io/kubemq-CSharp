@@ -148,7 +148,7 @@ namespace QueueSimpleSender
             try
             {
                 var q = new KubeMQ.SDK.csharp.Queue.Queue(queueName, ClientID, KubeMQServerAddress);
-                var res = q.AckAllQueueMessagesResponse();
+                var res = q.AckAllQueueMessages();
                 if (res.IsError)
                 {
                     Console.WriteLine($"[DemoSender][acallkmsgs]message dequeue error, error:{res.Error}");
@@ -169,7 +169,7 @@ namespace QueueSimpleSender
             try
             {
                 var q = new KubeMQ.SDK.csharp.Queue.Queue(queueName, ClientID, KubeMQServerAddress);
-                var res = q.PeakQueueMessage();
+                var res = q.PeekQueueMessage();
                 if (res.IsError)
                 {
                     Console.WriteLine($"[DemoSender][peakmsgs]message dequeue error, error:{res.Error}");

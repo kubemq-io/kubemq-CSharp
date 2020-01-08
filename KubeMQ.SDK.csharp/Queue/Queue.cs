@@ -149,7 +149,7 @@ namespace KubeMQ.SDK.csharp.Queue
         /// </summary>
         /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32 </param>
         /// <returns></returns>
-        public ReceiveMessagesResponse PeakQueueMessage(int? maxNumberOfMessagesQueueMessages = null)
+        public ReceiveMessagesResponse PeekQueueMessage(int? maxNumberOfMessagesQueueMessages = null)
         {          
                 ReceiveQueueMessagesResponse rec = GetKubeMQClient().ReceiveQueueMessages(new ReceiveQueueMessagesRequest
                 {
