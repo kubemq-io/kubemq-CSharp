@@ -29,7 +29,7 @@ namespace QueueSimpleSender
             Console.WriteLine($"[DemoSender] KubeMQServerAddress:{KubeMQServerAddress}");
 
             KubeMQ.SDK.csharp.Queue.Queue queue = creatreQueue();
-           if (queue ==null)
+            if (queue ==null)
             {
                 return;
             }
