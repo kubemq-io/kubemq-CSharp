@@ -7,7 +7,7 @@ namespace RPC_Subscribe_to_a_Channel
         static void Main(string[] args)
         {
 
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_RPC_channel";
             var ClientID = "hello-world-subscriber";
             var KubeMQServerAddress = "localhost:50000";
 
