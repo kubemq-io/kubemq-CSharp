@@ -48,13 +48,14 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel {
         /// <param name="KubeMQAddress">KubeMQ server address.</param>
         /// <param name="plogger">Microsoft.Extensions.Logging Ilogger.</param>
         /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
-        public Sender(string KubeMQAddress, ILogger plogger, string authToken = null) {
+        public Sender(string KubeMQAddress, ILogger plogger, string authToken = null)
+        {
             logger = Tools.Logger.InitLogger(plogger, "Sender");
 
             _kubemqAddress = KubeMQAddress;
             this.addAuthToken(authToken);
-        }‎
-        endregion
+        }
+        #endregion
 
         /// <summary>
         /// Publish a single event using the KubeMQ.

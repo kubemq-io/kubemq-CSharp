@@ -67,8 +67,7 @@ namespace KubeMQ.SDK.csharp.Events {
             this.addAuthToken(authToken);
         }
 
-        #
-        endregion
+        #endregion
 
         /// <summary>
         /// Register to kubeMQ Channel using KubeMQ.SDK.csharp.Subscription.SubscribeRequest .
