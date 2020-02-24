@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace KubeMQ.SDK.csharp.Events
-{
+namespace KubeMQ.SDK.csharp.Events {
     /// <summary>
     /// Configuration parameters for channel.
     /// </summary>
-    public class ChannelParameters
-    {
+    public class ChannelParameters {
         #region Properties
         /// <summary>
         /// Represents The channel name to send to using the KubeMQ .
@@ -19,7 +17,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// <summary>
         /// Represents the channel persistence property.
         /// </summary>
-        public bool Store { get; set; }  
+        public bool Store { get; set; }
         /// <summary>
         /// KubeMQ server address.
         /// </summary>
@@ -28,12 +26,16 @@ namespace KubeMQ.SDK.csharp.Events
         /// Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK when null.
         /// </summary>
         public ILogger Logger { get; set; }
+        /// <summary>
+        /// Set KubeMQ JWT Auth token to be used for KubeMQ connection.
+        /// </summary>
+        public string AuthToken { get; set; }
         #endregion
 
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.Events.ChannelParameters class with set parameters.
         /// </summary>
-        public ChannelParameters() { }
+        public ChannelParameters () { }
 
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.Events.ChannelParameters class with set parameters.
@@ -43,14 +45,15 @@ namespace KubeMQ.SDK.csharp.Events
         /// <param name="store">Represents the channel persistence property.</param>
         /// <param name="kubeMQAddress">Represents The address of the KubeMQ server.</param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK when null.</param>
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
 
-        public ChannelParameters(string channelName, string clientID, bool store, string kubeMQAddress, ILogger logger)
-        {
+        public ChannelParameters (string channelName, string clientID, bool store, string kubeMQAddress, ILogger logger, string authToken) {
             ChannelName = channelName;
             ClientID = clientID;
             Store = store;
             KubeMQAddress = kubeMQAddress;
             Logger = logger;
+            AuthToken = authToken;
         }
     }
 }

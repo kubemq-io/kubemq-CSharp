@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -31,6 +30,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         {
             this._queue = queue;
             _kubemqAddress = queue.ServerAddress;  
+            this._metadata =   queue.Metadata;
             
         }
 
@@ -283,7 +283,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             if (!CheckCallIsInTransaction())
             {
                 cts = new CancellationTokenSource();
-                stream = GetKubeMQClient().StreamQueueMessage(null,null, cts.Token);
+                stream = GetKubeMQClient().StreamQueueMessage(Metadata,null, cts.Token);
                 return true;
             }
             else

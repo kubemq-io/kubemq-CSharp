@@ -25,7 +25,8 @@ namespace KubeMQ.SDK.csharp.Events
         /// <param name="store">If true will save data to kubemq storage.</param>
         /// <param name="KubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000".</param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
-        public Channel(string channelName, string clientID, bool store, string KubeMQAddress, ILogger logger=null)
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
+        public Channel(string channelName, string clientID, bool store, string KubeMQAddress, ILogger logger=null, string authToken = null)
         {
             ChannelName = channelName;
             ClientID = clientID;
@@ -36,7 +37,7 @@ namespace KubeMQ.SDK.csharp.Events
                 throw ex;
             }
 
-            _sender = new LowLevel.Sender(KubeMQAddress, logger);
+            _sender = new LowLevel.Sender(KubeMQAddress, logger, authToken);
         }
 
         /// <summary>
@@ -44,7 +45,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="parameters"></param>
         public Channel(ChannelParameters parameters) : this(parameters.ChannelName, parameters.ClientID,
-            parameters.Store, parameters.KubeMQAddress, parameters.Logger)
+            parameters.Store, parameters.KubeMQAddress, parameters.Logger, parameters.AuthToken)
         { }
 
         /// <summary>

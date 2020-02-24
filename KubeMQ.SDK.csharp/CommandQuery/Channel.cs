@@ -3,13 +3,11 @@ using System.Threading.Tasks;
 using KubeMQ.Grpc;
 using Microsoft.Extensions.Logging;
 
-namespace KubeMQ.SDK.csharp.CommandQuery
-{
+namespace KubeMQ.SDK.csharp.CommandQuery {
     /// <summary>
     /// Represents a Initiator with predefined parameters.
     /// </summary>
-    public class Channel
-    {
+    public class Channel {
         #region Properties
         private LowLevel.Initiator _initiator;
 
@@ -29,9 +27,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// Initializes a new instance of the RequestChannel class using RequestChannelParameters.
         /// </summary>
         /// <param name="parameters">RequestChannelParameters that present a predefined set of parameters</param>
-        public Channel(ChannelParameters parameters) : this(parameters.RequestsType, parameters.ChannelName, parameters.ClientID,
-            parameters.Timeout, parameters.CacheKey, parameters.CacheTTL, parameters.KubeMQAddress, parameters.Logger)
-        { }
+        public Channel (ChannelParameters parameters) : this (parameters.RequestsType, parameters.ChannelName, parameters.ClientID,
+            parameters.Timeout, parameters.CacheKey, parameters.CacheTTL, parameters.KubeMQAddress, parameters.Logger, parameters.AuthToken) { }
 
         /// <summary>
         /// Initializes a new instance of the RequestChannel class using a set of parameters.
@@ -44,8 +41,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <param name="cacheTTL">Cache time to live : for how long does the request should be saved in Cache</param>
         /// <param name="KubeMQAddress">KubeMQ server address.</param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
-        public Channel(RequestType requestsType, string channelName, string clientID, int timeout, string cacheKey, int cacheTTL, string KubeMQAddress, ILogger logger = null)
-        {
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
+        public Channel (RequestType requestsType, string channelName, string clientID, int timeout, string cacheKey, int cacheTTL, string KubeMQAddress, ILogger logger = null, string authToken = null) {
             RequestType = requestsType;
             ChannelName = channelName;
             ClientID = clientID;
@@ -53,12 +50,11 @@ namespace KubeMQ.SDK.csharp.CommandQuery
             CacheKey = cacheKey ?? string.Empty;
             CacheTTL = cacheTTL;
 
-            if (!IsValid(out Exception ex))
-            {
+            if (!IsValid (out Exception ex)) {
                 throw ex;
             }
 
-            _initiator = new LowLevel.Initiator(KubeMQAddress, logger);
+            _initiator = new LowLevel.Initiator (KubeMQAddress, logger, authToken);
         }
         #endregion
 
@@ -68,9 +64,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
         /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
         /// <returns>Response</returns>
-        public Response SendRequest(Request request, RequestParameters overrideParams = null)
-        {
-            return _initiator.SendRequest(CreateLowLevelRequest(request, overrideParams));
+        public Response SendRequest (Request request, RequestParameters overrideParams = null) {
+            return _initiator.SendRequest (CreateLowLevelRequest (request, overrideParams));
         }
 
         /// <summary>
@@ -79,9 +74,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
         /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
         /// <returns>Response</returns>
-        public async Task<Response> SendRequestAsync(Request request, RequestParameters overrideParams = null)
-        {
-            Response response = await _initiator.SendRequestAsync(CreateLowLevelRequest(request, overrideParams));
+        public async Task<Response> SendRequestAsync (Request request, RequestParameters overrideParams = null) {
+            Response response = await _initiator.SendRequestAsync (CreateLowLevelRequest (request, overrideParams));
             return response;
         }
 
@@ -92,73 +86,61 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <param name="handler">Method that will be activated once receiving response.</param>
         /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
         /// <returns>A task that represents the request that was sent using the SendRequest .</returns>
-        public async Task SendRequest(Request request, HandleResponseDelegate handler, RequestParameters overrideParams = null)
-        {
-            await _initiator.SendRequest(CreateLowLevelRequest(request, overrideParams), handler);
+        public async Task SendRequest (Request request, HandleResponseDelegate handler, RequestParameters overrideParams = null) {
+            await _initiator.SendRequest (CreateLowLevelRequest (request, overrideParams), handler);
         }
 
         /// <summary>
         /// Ping check Kubemq response using Channel.
         /// </summary>
         /// <returns>ping status of kubemq.</returns>
-        public PingResult Ping()
-        {
-            return _initiator.Ping();
+        public PingResult Ping () {
+            return _initiator.Ping ();
 
         }
 
-        private bool IsValid(out Exception ex)
-        {
-            if (string.IsNullOrWhiteSpace(ChannelName))
-            {
-                ex = new ArgumentException("Parameter is mandatory", "ChannelName");
+        private bool IsValid (out Exception ex) {
+            if (string.IsNullOrWhiteSpace (ChannelName)) {
+                ex = new ArgumentException ("Parameter is mandatory", "ChannelName");
                 return false;
             }
-            if (RequestType == RequestType.RequestTypeUnknown)
-            {
-                ex = new ArgumentException("Invalid Request Type", "RequestType");
+            if (RequestType == RequestType.RequestTypeUnknown) {
+                ex = new ArgumentException ("Invalid Request Type", "RequestType");
                 return false;
             }
-            if (Timeout <= 0 || Timeout > int.MaxValue)
-            {
-                ex = new ArgumentException($"Parameter must be between 1 and {int.MaxValue}", "Timeout");
+            if (Timeout <= 0 || Timeout > int.MaxValue) {
+                ex = new ArgumentException ($"Parameter must be between 1 and {int.MaxValue}", "Timeout");
                 return false;
             }
             ex = null;
             return true;
         }
 
-        private LowLevel.Request CreateLowLevelRequest(Request request, RequestParameters overrideParams = null)
-        {
-            LowLevel.Request req = new LowLevel.Request()
-            {
-                RequestType = this.RequestType,
-                Channel = this.ChannelName,
-                ClientID = this.ClientID,
-                Timeout = this.Timeout,
-                CacheKey = this.CacheKey,
-                CacheTTL = this.CacheTTL,
-                RequestID = request.RequestID,
-                Body = request.Body,
-                Metadata = request.Metadata,
-                Tags = request.Tags
+        private LowLevel.Request CreateLowLevelRequest (Request request, RequestParameters overrideParams = null) {
+            LowLevel.Request req = new LowLevel.Request () {
+            RequestType = this.RequestType,
+            Channel = this.ChannelName,
+            ClientID = this.ClientID,
+            Timeout = this.Timeout,
+            CacheKey = this.CacheKey,
+            CacheTTL = this.CacheTTL,
+            RequestID = request.RequestID,
+            Body = request.Body,
+            Metadata = request.Metadata,
+            Tags = request.Tags
 
             };
 
-            if (overrideParams != null)
-            {
-                if (overrideParams.Timeout.HasValue)
-                {
+            if (overrideParams != null) {
+                if (overrideParams.Timeout.HasValue) {
                     req.Timeout = overrideParams.Timeout.Value;
                 }
 
-                if (overrideParams.CacheKey != null)
-                {
+                if (overrideParams.CacheKey != null) {
                     req.CacheKey = overrideParams.CacheKey;
                 }
 
-                if (overrideParams.CacheTTL.HasValue)
-                {
+                if (overrideParams.CacheTTL.HasValue) {
                     req.CacheTTL = overrideParams.CacheTTL.Value;
                 }
             }
