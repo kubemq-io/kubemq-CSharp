@@ -70,8 +70,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
 
             logger = Logger.InitLogger(plogger, "Responder");
             this.addAuthToken(authToken);
-        }#
-        endregion
+        }
+        #endregion
 
         /// <summary>
         /// Register to kubeMQ Channel using KubeMQ.SDK.csharp.Subscription.SubscribeRequest with RespondDelegate .
