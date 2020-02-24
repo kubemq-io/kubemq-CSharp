@@ -1,17 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace KubeMQ.SDK.csharp.CommandQuery
-{
+namespace KubeMQ.SDK.csharp.CommandQuery {
     /// <summary>
     /// Contain a set of parameters that can be passed to KubeMQ.SDK.csharp.CommandQuery.ChannelParameters CTOR .
     /// </summary>
-    public class ChannelParameters
-    {
+    public class ChannelParameters {
         #region Properties
         /// <summary>
         ///  Represents the type of request operation using KubeMQ.SDK.csharp.CommandQuery.RequestType.
         /// </summary>
-        public RequestType RequestsType { get; set; }       
+        public RequestType RequestsType { get; set; }
         /// <summary>
         /// Represents the sender ID that the messages will be send under.
         /// </summary>
@@ -40,13 +38,15 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK when null.
         /// </summary>
         public ILogger Logger { get; set; }
+
+        public string AuthToken { get; set; }
         #endregion
 
         #region C'tor
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.CommandQuery.ChannelParameters class.
         /// </summary>
-        public ChannelParameters() { }
+        public ChannelParameters () { }
 
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.CommandQuery.ChannelParameters class with set parameters.
@@ -59,8 +59,9 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         /// <param name="cacheTTL">Represents The address of the KubeMQ server.</param>
         /// <param name="kubeMQAddress">Represents The address of the KubeMQ server.</param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK when null.</param>
-        public ChannelParameters(RequestType requestsType, string channelName,string clientID,int timeout,string cacheKey,int cacheTTL,string kubeMQAddress,ILogger logger)
-        {
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
+       
+        public ChannelParameters (RequestType requestsType, string channelName, string clientID, int timeout, string cacheKey, int cacheTTL, string kubeMQAddress, ILogger logger, string authToken) {
             RequestsType = requestsType;
             ChannelName = channelName;
             ClientID = clientID;
@@ -69,6 +70,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery
             CacheTTL = cacheTTL;
             KubeMQAddress = kubeMQAddress;
             Logger = logger;
+            AuthToken = authToken;
         }
         #endregion
     }
