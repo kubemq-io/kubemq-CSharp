@@ -177,9 +177,7 @@ namespace KubeMQ.SDK.csharp.Events {
 
         private void LogIncomingEvent(InnerRecivedEvent eventReceive) {
             try {
-                object objBody = Converter.FromByteArray(eventReceive.Body.ToByteArray()); //TODO: convert message, Check if this works
-                //string objBody = "";
-                logger.LogInformation($"Subscriber Received Event: EventID:'{eventReceive.EventID}', Channel:'{eventReceive.Channel}', Body:'{objBody}'");
+                logger.LogInformation($"Subscriber Received Event: EventID:{eventReceive.EventID}, Channel:{eventReceive.Channel}");
 
             } catch (Exception ex) {
                 logger.LogError(ex, "failed in  LogIncomingEvent."); //TODO: Check if this works 
