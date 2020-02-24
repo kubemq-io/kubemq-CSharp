@@ -12,7 +12,7 @@ namespace KubeMQ.SDK.csharp.Queue
         /// <summary>
         /// Unique for message
         /// </summary>
-        public string MessageID { get => string.IsNullOrEmpty(_messageID) ? Tools.IDGenerator.ReqID.Getid() : _messageID; set => _messageID = value; }
+        public string MessageID { get => string.IsNullOrEmpty(_messageID) ? Tools.IDGenerator.Getid() : _messageID; set => _messageID = value; }
         /// <summary>
         /// Represents the sender ID that the messages will be send under.
         /// </summary>
@@ -53,13 +53,13 @@ namespace KubeMQ.SDK.csharp.Queue
             this.Queue = message.Channel;
             this.Metadata = message.Metadata;
             this.Body = message.Body.ToByteArray();
-            this.Tags = null;// item.Tags,
+            this.Tags = Tools.Converter.ReadTags(message.Tags);
             this.Attributes = message.Attributes;
             this.Policy = message.Policy;
         }
 
         /// <summary>
-        /// 
+        ///  Queue stored message
         /// </summary>
         public Message()
         {
@@ -76,7 +76,7 @@ namespace KubeMQ.SDK.csharp.Queue
 
         public Message(byte[] body, string metadata, string messageID = null, Dictionary<string, string> tags = null)
         {
-            MessageID = string.IsNullOrEmpty(messageID) ? Tools.IDGenerator.ReqID.Getid() : messageID;
+            MessageID = string.IsNullOrEmpty(messageID) ? Tools.IDGenerator.Getid() : messageID;
             Metadata = metadata;
             Tags = tags;
             Body = body;

@@ -69,7 +69,7 @@ namespace Queue
 
 
             //Simple peak message
-            var peakmsg = queue.PeakQueueMessage(1);
+            var peakmsg = queue.PeekQueueMessage(1);
             {
                 if (peakmsg.IsError)
                 {

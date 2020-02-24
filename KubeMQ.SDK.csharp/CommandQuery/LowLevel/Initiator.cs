@@ -24,31 +24,35 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         /// Logger will write to default output with suffix KubeMQSDK
         /// KubeMQAddress will be parsed from Config or environment parameter
         /// </summary>
-        public Initiator() : this(null, null) { }
+        public Initiator() : this(null, null,null) { }
 
         /// <summary>    
         /// Initialize a new Initiator to send requests and handle response 
         /// KubeMQAddress will be parsed from Config or environment parameter
         /// </summary>
         /// <param name="plogger">Microsoft.Extensions.Logging Ilogger</param>
-        public Initiator(ILogger plogger) : this(null, plogger) { }
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
+        public Initiator(ILogger plogger, string authToken=null) : this(null, plogger,  authToken) { }
 
         /// <summary>
         /// Initialize a new Initiator to send requests and handle response 
         /// Logger will write to default output with suffix KubeMQSDK
         /// </summary>
         /// <param name="KubeMQAddress">KubeMQ server address</param>
-        public Initiator(string KubeMQAddress) : this(KubeMQAddress, null) { }
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
+        public Initiator(string KubeMQAddress, string authToken=null) : this(KubeMQAddress, null, authToken) { }
 
         /// <summary>
         /// Initialize a new Initiator to send requests and handle response 
         /// </summary>
         /// <param name="KubeMQAddress">KubeMQ server address</param>
         /// <param name="plogger">Microsoft.Extensions.Logging Ilogger</param>
-        public Initiator(string KubeMQAddress, ILogger plogger)
+        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
+        public Initiator(string KubeMQAddress, ILogger plogger, string authToken=null)
         {
             _kubemqAddress = KubeMQAddress;
             logger = Logger.InitLogger(plogger, "Initiator");
+            this.addAuthToken(authToken);
         }
         #endregion
 
@@ -67,7 +71,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
                 InnerRequest innerRequest = request.Convert();
 
                 // Send request and wait for response
-                InnerResponse innerResponse = await GetKubeMQClient().SendRequestAsync(innerRequest, _metadata);
+                InnerResponse innerResponse = await GetKubeMQClient().SendRequestAsync(innerRequest, Metadata);
 
                 // convert InnerResponse to Response and return response to end user
                 Response response = new Response(innerResponse);
@@ -103,7 +107,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
                 InnerRequest innerRequest = request.Convert();
 
                 // Send request and wait for response
-                InnerResponse innerResponse = await GetKubeMQClient().SendRequestAsync(innerRequest, _metadata);
+                InnerResponse innerResponse = await GetKubeMQClient().SendRequestAsync(innerRequest, Metadata);
 
                 // convert InnerResponse to Response and return response to end user
                 return new Response(innerResponse);
@@ -135,7 +139,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
                 InnerRequest innerRequest = request.Convert();
 
                 // Send request and wait for response
-                InnerResponse innerResponse = GetKubeMQClient().SendRequest(innerRequest, _metadata);
+                InnerResponse innerResponse = GetKubeMQClient().SendRequest(innerRequest, Metadata);
 
                 // convert InnerResponse to Response and return response to end user
                 return new Response(innerResponse);

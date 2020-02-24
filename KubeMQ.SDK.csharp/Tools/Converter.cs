@@ -1,4 +1,4 @@
-﻿using Google.Protobuf;
+using Google.Protobuf;
 using Google.Protobuf.Collections;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Queue;

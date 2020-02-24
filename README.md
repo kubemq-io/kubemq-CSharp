@@ -100,6 +100,7 @@ Struct used to send and receive Events using the Event pattern. Contains the fol
 - EventID - set internally
 - Store - Boolean, set if the event should be sent to store.
 - ClientID
+- Tags -System.Collections.Generic.Dictionary<string, string> to help categorize the message.
 
 ### The 'EventsStoreType' object:
 To receive events from persistence, the subscriber need to assign one of seven EventsStoreType and the value for EventsStoreTypeValue.
@@ -120,6 +121,8 @@ The implementation uses `await` and does not block the continuation of the code 
 
 - SubscribeRequest - Mandatory-[See SubscribeRequest](#the-subscriberequest-object).
 - Handler - Mandatory. Delegate (callback) that will handle the incoming events.
+- errorDelegate - Optional. Delegate (callback) that will handle error receiving from kubemq.
+- cacellationToken - Optional. System.Threading.CancellationToken token that can be used to cancel the listener to the kubemq.
 
 Initialize `Subscriber` with server address from code:
 ```C#
@@ -136,14 +139,26 @@ Subscribe:
 string channel = "Sample.test1";
 // Set a SubscribeRequest without Store and with Group.
 SubscribeRequest subscribeRequest = new SubscribeRequest(SubscribeType.Events, "MyClientID", channel, EventsStoreType.Undefined, 0, "MyGroup");
-subscriber.SubscribeToEvents(subscribeRequest,HandleIncomingEvents);
+CancellationTokenSource source = new CancellationTokenSource();
+CancellationToken token = source.Token;
+subscriber.SubscribeToEvents(subscribeRequest, HandleIncomingEvents, HandleIncomingError, token);
+//To call the cancellation use the following
+source.Cancel();
+source.Dispose();
 
 // delegate to handle the incoming events
 private void HandleIncomingEvents(EventReceive @event)
 {
 ...
 }
+// delegate to handle errors incoming events
+private void HandleIncomingError(EventReceive @event)
+{
+...
+}
 ```
+
+
 
 ### Method: send single
 This method allows for sending a single event.
@@ -163,7 +178,12 @@ KubeMQ.SDK.csharp.Events.LowLevel.Event @event = new KubeMQ.SDK.csharp.Events.Lo
     Metadata = "A sample string Metadata",
     Body = Tools.Converter.ToByteArray("Pubsub test Event"),
     ClientID="MyID",
-    Store=false
+    Store=false,
+    Tags = new System.Collections.Generic.Dictionary<string, string>()
+    {
+        {"FirstTag","FirstValue" },
+        {"SecondTag","SecondValue" }
+    }
 };
 // SendEvent
 sender.SendEvent(@event);
@@ -231,6 +251,7 @@ Struct used to send the request under the Request\Reply pattern. Contains the fo
 - Timeout - Mandatory. Max time for the response to return. Set per request. If exceeded an exception is thrown.
 - CacheKey - Optional.
 - CacheTTL - Optional.
+- Tags -System.Collections.Generic.Dictionary<string, string> to help categorize the message.
 
 ### The `Response` object:
 Struct used to send the response under the Request\Reply pattern.
@@ -254,6 +275,8 @@ This method allows subscribing to receive requests.
 **parameters**:
 - SubscribeRequest - Mandatory-[See SubscribeRequest](#the-subscriberequest-object).
 - Handler - Mandatory. Delegate (callback) that will handle the incoming requests.
+- errorDelegate - Optional. Delegate (callback) that will handle error receiving from kubemq.
+- cacellationToken - Optional. System.Threading.CancellationToken token that can be used to cancel the listener to the kubemq.
 
 Initialize `Responder` with server address from code:
 ```C#
@@ -272,7 +295,12 @@ string channel = "MyChannel.SimpleRequest";
 
 //Subscribe to request expecting to send a response(Queries) and no group.
 SubscribeRequest subscribeRequest = new SubscribeRequest(SubscribeType.Queries, "MyClientID", channel, EventsStoreType.Undefined, 0);
-responder.SubscribeToRequests(subscribeRequest,HandleIncomingRequests);
+CancellationTokenSource source = new CancellationTokenSource();
+CancellationToken token = source.Token;
+responder.SubscribeToRequests(subscribeRequest, HandleIncomingRequests, HandleIncomingError, token);
+//To call the cancellation use the following
+source.Cancel();
+source.Dispose();
 
 ```
 Handle requests and return responses
@@ -325,7 +353,12 @@ KubeMQ.SDK.csharp.CommandQuery.LowLevel.Request request = KubeMQ.SDK.csharp.Comm
                 CacheKey = "Simple.CacheKey",
                 CacheTTL = 5000,
                 RequestType=RequestType.Query,
-                ClientID="MyClientID"
+                ClientID="MyClientID",
+                Tags = new System.Collections.Generic.Dictionary<string, string>()
+                {
+                    {"FirstTag","FirstValue" },
+                    {"SecondTag","SecondValue" }
+                }
             };
             
 Response response = initiator.SendRequest(request);
