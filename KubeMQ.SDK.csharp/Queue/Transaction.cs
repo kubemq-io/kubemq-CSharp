@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -31,6 +30,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         {
             this._queue = queue;
             _kubemqAddress = queue.ServerAddress;  
+            this._metadata =   queue.Metadata;
             
         }
 
@@ -51,7 +51,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,     
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
+                RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.ReceiveMessage,
                 VisibilitySeconds = visibilitySeconds,
                 WaitTimeSeconds = waitTimeSeconds??_queue.WaitTimeSecondsQueueMessages,
@@ -87,7 +87,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
+                RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.AckMessage,
                 VisibilitySeconds = 0,
                 WaitTimeSeconds = 0,
@@ -125,7 +125,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
+                RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.RejectMessage,
                 VisibilitySeconds = 0,
                 WaitTimeSeconds = 0,
@@ -164,7 +164,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
+                RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.ModifyVisibility,
                 VisibilitySeconds = visibilityinSeconds,
                 WaitTimeSeconds = 0,
@@ -201,7 +201,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 ClientID = _queue.ClientID,
                 Channel = queueName,
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
+                RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.ResendMessage,
                 VisibilitySeconds = 0,
                 WaitTimeSeconds = 0,
@@ -237,7 +237,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
 
             msg.ClientID = _queue.ClientID;
-            msg.MessageID = Tools.IDGenerator.ReqID.Getid();
+            msg.MessageID = Tools.IDGenerator.Getid();
             msg.Queue = msg.Queue ?? _queue.QueueName;
             msg.Metadata = msg.Metadata ?? "";       
 
@@ -245,7 +245,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 ClientID = _queue.ClientID,
                 Channel = "",
-                RequestID = Tools.IDGenerator.ReqID.Getid(),
+                RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.SendModifiedMessage,
                 VisibilitySeconds = 0,
                 WaitTimeSeconds = 0,
@@ -283,7 +283,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             if (!CheckCallIsInTransaction())
             {
                 cts = new CancellationTokenSource();
-                stream = GetKubeMQClient().StreamQueueMessage(null,null, cts.Token);
+                stream = GetKubeMQClient().StreamQueueMessage(Metadata,null, cts.Token);
                 return true;
             }
             else

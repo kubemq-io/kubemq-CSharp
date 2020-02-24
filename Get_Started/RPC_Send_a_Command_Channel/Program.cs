@@ -6,7 +6,7 @@ namespace RPC_Send_a_Command_Channel
     {
         static void Main(string[] args)
         {
-            var ChannelName = "testing_event_channel";
+            var ChannelName = "testing_RPC_channel";
             var ClientID = "hello-world-sender";
             var KubeMQServerAddress = "localhost:50000";
 

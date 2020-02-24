@@ -43,7 +43,7 @@ namespace Queue_test
             var recms = tr.Receive(3);
             Assert.IsFalse(recms.IsError);
             Assert.IsFalse(tr.AckMessage(recms.Message.Attributes.Sequence).IsError);
-            Assert.AreEqual(1, new List<Message>(queue.PeakQueueMessage().Messages).Count);
+            Assert.AreEqual(1, new List<Message>(queue.PeekQueueMessage().Messages).Count);
             Assert.IsFalse(tr.Receive().IsError);
             tr.Close();
         }
@@ -90,7 +90,7 @@ namespace Queue_test
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack"   ,
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.Getid()
             });
             Transaction tr = queue.CreateTransaction();
             var recms=  tr.Receive(5);
@@ -105,7 +105,7 @@ namespace Queue_test
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack",
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.Getid()
             });
             Transaction tr = queue.CreateTransaction();
             var recms = tr.Receive(5);
@@ -140,7 +140,7 @@ namespace Queue_test
             {
                 Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hi there"),
                 Metadata = "first test Ack",
-                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.ReqID.Getid()
+                MessageID = KubeMQ.SDK.csharp.Tools.IDGenerator.Getid()
             });
             Transaction tr = queue.CreateTransaction();
             var recms = tr.Receive();
@@ -285,7 +285,7 @@ namespace Queue_test
         private Queue initLocalQueue(string name = "test")
         {
             var queue = new Queue(name, "test", "localhost:50000");
-            queue.AckAllQueueMessagesResponse();
+            queue.AckAllQueueMessages();
             return queue;
         }
 
