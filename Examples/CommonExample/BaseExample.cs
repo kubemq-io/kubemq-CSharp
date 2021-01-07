@@ -25,6 +25,7 @@ namespace CommonExample
         {
             ILoggerFactory loggerFactory = new LoggerFactory();
             logger = loggerFactory.CreateLogger("PubsubSubscriber");
+
         }
 
         protected Event CreateNewEvent()
