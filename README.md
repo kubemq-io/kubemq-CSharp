@@ -11,7 +11,7 @@ The SDK implements all communication patterns available through the KubeMQ serve
 
 ## Installation:
 '''
-  Install-Package KubeMQ.SDK.csharp -Version 1.0.8
+  Install-Package KubeMQ.SDK.csharp -Version 1.3.0
 '''
 ### Framework Support
 
@@ -130,6 +130,36 @@ KubeMQ supports distributed durable FIFO based queues with the following core fe
       int64               DelayedTo                   =8;
 
   }
+```
+
+
+### KubemqQueueErrors
+Each queue response with error contain QueueErrors - if there is error or empty queue 
+Can switch case on error type to check error , incase of undefined type will return :ErrGeneralError
+```
+  public enum KubemqQueueErrors
+      {
+          ErrGeneralError = 1,
+          ErrInvalidQueueName = 120,
+          ErrRegisterQueueSubscription = 121,
+          ErrInvalidMaxMessages = 122,
+          ErrAckQueueMsg = 123,
+          ErrNoCurrentMsgToAck = 124,
+          ErrInvalidAckSeq = 125,
+          ErrNoCurrentMsgToSend = 126,
+          ErrInvalidVisibility = 127,
+          ErrSubscriptionIsActive = 128,
+          ErrVisibilityExpired = 129,
+          ErrSendingQueueMessage = 130,
+          ErrInvalidQueueMessage = 131,
+          ErrInvalidStreamRequestType = 132,
+          ErrInvalidExpiration = 133,
+          ErrInvalidMaxReceiveCount = 134,
+          ErrInvalidDelay = 135,
+          ErrInvalidWaitTimeout = 136,
+          ErrNoActiveMessageToReject = 137,
+          ErrNoNewMessageQueue = 138,
+      }
 ```
 
 ### Send Message to a Queue
