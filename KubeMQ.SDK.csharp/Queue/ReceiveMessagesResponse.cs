@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using KubeMQ.Grpc;
+using KubeMQ.SDK.csharp.Queue.KubemqQueueErrors;
 
 namespace KubeMQ.SDK.csharp.Queue
 {
@@ -37,6 +38,11 @@ namespace KubeMQ.SDK.csharp.Queue
         /// </summary>
         public int MessagesReceived { get; }
 
+        /// <summary>
+        /// Queue error set internally 
+        /// </summary>
+        public KubemqQueueErrors.KubemqQueueErrors QueueErrors { get; private set; }
+
         internal ReceiveMessagesResponse(ReceiveQueueMessagesResponse receiveQueueMessagesResponse)
         {
             Error = receiveQueueMessagesResponse.Error;
@@ -46,7 +52,20 @@ namespace KubeMQ.SDK.csharp.Queue
             MessagesExpired = receiveQueueMessagesResponse.MessagesExpired;
             MessagesReceived = receiveQueueMessagesResponse.MessagesReceived;
             RequestID = receiveQueueMessagesResponse.RequestID;
+            if (IsError)
+            {
+                SetQueueError(Error);
+            }
         }
+
+        internal void SetQueueError(string errorMsg)
+        {
+            if (!string.IsNullOrEmpty(errorMsg))
+            {
+                QueueErrors = KubemqQueueErrorConverter.GetQueueError(errorMsg);
+            }
+        }
+        
 
 
     }

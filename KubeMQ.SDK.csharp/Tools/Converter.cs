@@ -5,7 +5,9 @@ using KubeMQ.SDK.csharp.Queue;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using KubeMQ.SDK.csharp.Queue.KubemqQueueErrors;
 
 namespace KubeMQ.SDK.csharp.Tools
 {
@@ -14,6 +16,7 @@ namespace KubeMQ.SDK.csharp.Tools
     /// </summary>
     public class Converter
     {
+
         /// <summary>
         /// Convert from string to byte array
         /// </summary>
@@ -40,9 +43,12 @@ namespace KubeMQ.SDK.csharp.Tools
             return ByteString.CopyFrom(byteArray);
         }
 
+
         /// <summary>
-        /// Convert from byte array to object
+        /// Convert from byte array to object in  BinaryFormatter
         /// </summary>
+        /// <param name="data">Byte Array</param>
+        /// <returns>object</returns>
         public static object FromByteArray(byte[] data)
         {
             if (data == null || data.Length == 0)
@@ -55,9 +61,29 @@ namespace KubeMQ.SDK.csharp.Tools
             }
         }
 
+
         /// <summary>
-        /// Convert from object to byte array
+        /// Convert from object to byte array in selected  IFormatter
         /// </summary>
+        /// <param name="data">Byte Array</param>
+        /// <param name="formatter">IFormatter type</param>
+        /// <returns>byte array</returns>
+        public static object FromByteArray(byte[] data, IFormatter formatter)
+        {
+            if (data == null || data.Length == 0)
+                return null;
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                object obj = formatter.Deserialize(ms);
+                return obj;
+            }
+        }
+
+        /// <summary>
+        /// Convert from object to byte array in  BinaryFormatter
+        /// </summary>
+        /// <param name="obj">Object to format </param>
+        /// <returns>ByteArray</returns>
         public static byte[] ToByteArray(object obj)
         {
             if (obj == null)
@@ -66,6 +92,23 @@ namespace KubeMQ.SDK.csharp.Tools
             using (MemoryStream ms = new MemoryStream())
             {
                 bf.Serialize(ms, obj);
+                return ms.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Convert from object to byte array in selected  IFormatter
+        /// </summary>
+        /// <param name="obj">Object to return as bytearray </param>
+        /// <param name="formatter">IFormatter type</param>
+        /// <returns>ByteArray</returns>
+        public static byte[] ToByteArray(object obj, IFormatter formatter)
+        {
+            if (obj == null)
+                return null;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                formatter.Serialize(ms, obj);
                 return ms.ToArray();
             }
         }
