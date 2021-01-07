@@ -10,9 +10,9 @@
     <Description>.NET SDK Client for KubeMQ</Description>
     <AssemblyVersion>1.0.8.0</AssemblyVersion>
     <FileVersion>1.0.8.0</FileVersion>
-    <Version>1.0.8</Version>
+    <Version>1.3.0</Version>
     <RepositoryUrl>https://github.com/kubemq-io/CSharp_SDK</RepositoryUrl>
-    <Copyright>Copyright 2019</Copyright>
+    <Copyright>Copyright 2021</Copyright>
     <PackageProjectUrl>http://kubemq.io/</PackageProjectUrl>
     <PackageTags>Messaging Kubernetes</PackageTags>
   </PropertyGroup>
