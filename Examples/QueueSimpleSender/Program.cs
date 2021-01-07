@@ -28,13 +28,13 @@ namespace QueueSimpleSender
             Console.WriteLine($"[DemoSender] QueueName:{QueueName}");
             Console.WriteLine($"[DemoSender] KubeMQServerAddress:{KubeMQServerAddress}");
 
-            KubeMQ.SDK.csharp.Queue.Queue queue = creatreQueue();
+            KubeMQ.SDK.csharp.Queue.Queue queue = createQueue();
             if (queue ==null)
             {
                 return;
             }
 
-            Console.WriteLine($"Enter 'peak' to peak the {QueueName}_done");
+            Console.WriteLine($"Enter 'peek' to peak the {QueueName}_done");
             Console.WriteLine($"Enter 'ackall' to ack all in {QueueName}_done");
             Console.WriteLine($"Enter 'loopX' to loop X messages to {QueueName}");
             while (true)
@@ -43,27 +43,27 @@ namespace QueueSimpleSender
                 if (queue == null)
                 {
                     Thread.Sleep(1000);
-                    queue = creatreQueue();
+                    queue = createQueue();
 
                     continue;
                 }
-                Console.WriteLine($"Enter new message to queue {QueueName}, peak, ackall, loopx");
+                Console.WriteLine($"Enter new message to queue {QueueName}, peek, ackall, loopx");
                
                 var readline = Console.ReadLine();
-                if (readline=="peak")
+                if (readline=="peek")
                 {
-                    peakmsgs( QueueName+ "_done");
+                    peekmsgs( QueueName+ "_done");
                     continue;
                 }
-                if (readline == "ackall")
+                else if (readline == "ackall")
                 {
                     acallkmsgs(QueueName + "_done");
                     continue;
                 }
-                if (readline.StartsWith("loop"))
+                else if (readline.StartsWith("loop"))
                 {
-                    var splt = readline.Split("loop");
-                    loopmsg(QueueName,splt[1]);
+                    var split = readline.Split("loop");
+                    loopmsg(QueueName, split[1]);
                     continue;
                 }
 
@@ -89,7 +89,7 @@ namespace QueueSimpleSender
                 catch (RpcException rpcex)
                 {
                     Console.WriteLine($"rpc error: {rpcex.Message} will restart queue");
-                    queue =   creatreQueue();
+                    queue =   createQueue();
                 }
                 catch (Exception ex )
                 {
@@ -98,7 +98,7 @@ namespace QueueSimpleSender
             }
         }
 
-        private static KubeMQ.SDK.csharp.Queue.Queue creatreQueue()
+        private static KubeMQ.SDK.csharp.Queue.Queue createQueue()
         {
             try
             {
@@ -128,9 +128,9 @@ namespace QueueSimpleSender
                     });
                     if (res.IsError)
                     {
-                        Console.WriteLine($"[DemoSender][loop]Sent:{$"loop_{ i }"} error, error:{res.Error}");
+                        Console.WriteLine($"[DemoSender][loop]Sent:loop_{i} error, error:{res.Error}");
                     }
-                    Console.WriteLine($"[DemoSender][loop]Sent:{$"loop_{ i }"}");
+                    Console.WriteLine($"[DemoSender][loop]Sent:loop_{i}");
 
                 }
                 catch (Exception ex)
@@ -164,7 +164,7 @@ namespace QueueSimpleSender
             }
         }
 
-        private static void peakmsgs(string queueName)
+        private static void peekmsgs(string queueName)
         {
             try
             {
@@ -172,12 +172,12 @@ namespace QueueSimpleSender
                 var res = q.PeekQueueMessage();
                 if (res.IsError)
                 {
-                    Console.WriteLine($"[DemoSender][peakmsgs]message dequeue error, error:{res.Error}");
+                    Console.WriteLine($"[DemoSender][peekmsgs]message dequeue error, error:{res.Error}");
                     return;
                 }
                 foreach (var item in res.Messages)
                 {
-                    Console.WriteLine($"[DemoSender][peakmsgs]read:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
+                    Console.WriteLine($"[DemoSender][peekmsgs]read:{KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(item.Body)}");
                 }
             }
             catch (Exception ex)
