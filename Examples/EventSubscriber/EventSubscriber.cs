@@ -66,7 +66,7 @@ namespace EventSubscriber
                 string strMsg = string.Empty;
                 object body = KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(@event.Body);
 
-                logger.LogInformation($"Subscriber Received Event: Metadata:'{@event.Metadata}', Channel:'{@event.Channel}', Body:'{strMsg}'");
+                Console.WriteLine($"Subscriber Received Event: Metadata:'{@event.Metadata}', Channel:'{@event.Channel}', Body:'{body}'");
             }
         }
 
