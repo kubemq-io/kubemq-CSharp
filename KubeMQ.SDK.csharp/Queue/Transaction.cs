@@ -15,9 +15,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
     {
         private readonly Queue _queue;
 
-        private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> stream;
+        private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> _stream;
 
-        private CancellationTokenSource cts;
+        private bool _transactionState = false;
+        private CancellationTokenSource _cts;
         /// <summary>
         /// Status of current message handled, when false there is no active message to resend, call Receive first
         /// </summary>
@@ -42,7 +43,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// <returns></returns>
         public TransactionMessagesResponse Receive(int visibilitySeconds = 1, int? waitTimeSeconds=null)
         {
-          if( !OpenStream())
+            if( !OpenStream())
             {
                 return new TransactionMessagesResponse("active queue message wait for ack/reject");
             }
@@ -64,12 +65,14 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+              
                 if (ex.InnerException.GetType() == typeof(RpcException))
                 {
                     throw ex.InnerException;
                 }
                 return new TransactionMessagesResponse(ex.Message);
-            }            
+            }
+
             return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
         /// <summary>
@@ -101,6 +104,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             }
             catch (Exception ex)
             {
+                
                 if (ex.InnerException.GetType() == typeof(RpcException))
                 {
                     throw ex.InnerException;
@@ -272,18 +276,21 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// </summary>
         public void Close()
         {
-            if (cts != null)
+            if (_cts != null)
             {
-                cts.Cancel();
-            }    
+                _cts.Cancel();
+            }
+
+            _transactionState = false;
         }
 
         private bool OpenStream()
         { 
             if (!CheckCallIsInTransaction())
             {
-                cts = new CancellationTokenSource();
-                stream = GetKubeMQClient().StreamQueueMessage(Metadata,null, cts.Token);
+                _cts = new CancellationTokenSource();
+                _stream = GetKubeMQClient().StreamQueueMessage(Metadata,null, _cts.Token);
+                _transactionState = true;
                 return true;
             }
             else
@@ -295,14 +302,18 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
 
         private bool CheckCallIsInTransaction()
         {
+            if (!_transactionState)
+            {
+                return false;
+            }
             try
             {
-                if (stream == null)
+                if (_stream == null)
                 {
                     return false;
                 }
 
-                if (stream.GetStatus().StatusCode == StatusCode.OK)
+                if (_stream.GetStatus().StatusCode == StatusCode.OK)
                 {
                     return false;
                 }
@@ -322,7 +333,7 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
 
         private async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr)
         {
-            if (stream == null )
+            if (_stream == null )
             {
                 throw new RpcException(new Status(StatusCode.NotFound, "stream is null"), "Transaction stream is not opened, please Receive new Message");
             }
@@ -331,15 +342,14 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             try
             {
                 // Send Event via GRPC RequestStream
-                await stream.RequestStream.WriteAsync(sr);
-                await stream.ResponseStream.MoveNext(CancellationToken.None);
+                await _stream.RequestStream.WriteAsync(sr);
+                await _stream.ResponseStream.MoveNext(CancellationToken.None);
             
-                return stream.ResponseStream.Current;
+                return _stream.ResponseStream.Current;
                 
             }
             catch (RpcException ex)
             {               
-
                 throw new RpcException(ex.Status);
             }
             catch (Exception ex)
