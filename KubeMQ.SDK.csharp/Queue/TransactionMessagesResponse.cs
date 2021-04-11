@@ -1,4 +1,5 @@
 ﻿using KubeMQ.Grpc;
+using KubeMQ.SDK.csharp.Queue.KubemqQueueErrors;
 
 namespace KubeMQ.SDK.csharp.Queue.Stream
 {
@@ -23,7 +24,12 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// The received Message
         /// </summary>
         public Message Message { get; }
-        
+
+        /// <summary>
+        /// Queue error set internally 
+        /// </summary>
+        public KubemqQueueErrors.KubemqQueueErrors QueueErrors { get; private set; }
+
         /// <summary>
         /// Request action: ReceiveMessage, AckMessage, RejectMessage, ModifyVisibility, ResendMessage,  SendModifiedMessage, Unknown
         /// </summary>
@@ -36,6 +42,10 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             Message = streamQueueMessagesResponse.Message!=null? new Message(streamQueueMessagesResponse.Message): null;
             RequestID  = streamQueueMessagesResponse.RequestID;
             StreamRequestTypeData = streamQueueMessagesResponse.StreamRequestTypeData;
+            if (IsError)
+            {
+                SetQueueError(Error);
+            }
         }
         internal TransactionMessagesResponse(string errorMessage, Message msg=null, string requestID=null)
         {
@@ -43,6 +53,18 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             Error = errorMessage;
             Message = msg;
             RequestID = requestID;
+            if (IsError)
+            {
+                SetQueueError(Error);
+            }
+        }
+
+        internal void SetQueueError(string errorMsg)
+        {
+            if (!string.IsNullOrEmpty(errorMsg))
+            {
+                QueueErrors = KubemqQueueErrorConverter.GetQueueError(errorMsg);
+            }
         }
 
     }

@@ -129,7 +129,6 @@ namespace KubeMQ.SDK.csharp.Queue {
                     MaxNumberOfMessages = maxNumberOfMessagesQueueMessages ?? MaxNumberOfMessagesQueueMessages,
                     WaitTimeSeconds = WaitTimeSecondsQueueMessages
             },Metadata);
-
             return new ReceiveMessagesResponse (rec);
         }
 
