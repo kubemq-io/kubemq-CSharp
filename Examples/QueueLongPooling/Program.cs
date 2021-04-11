@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Grpc.Core;
+using KubeMQ.SDK.csharp.Queue.KubemqQueueErrors;
 using KubeMQ.SDK.csharp.Queue.Stream;
 
 namespace QueueLongPolling
@@ -26,7 +27,7 @@ namespace QueueLongPolling
             Console.WriteLine($"[DemoPoll] QueueName:{QueueName}");
             Console.WriteLine($"[DemoPoll] KubeMQServerAddress:{KubeMQServerAddress}");
 
-            KubeMQ.SDK.csharp.Queue.Queue queue = CreatreQueue();
+            KubeMQ.SDK.csharp.Queue.Queue queue = CreateQueue();
             if (queue == null)
             {             
                 Console.ReadLine();
@@ -42,7 +43,7 @@ namespace QueueLongPolling
                 if (queue==null)
                 {
                     Thread.Sleep(1000);
-                    queue = CreatreQueue();
+                    queue = CreateQueue();
 
                     continue;
                 }
@@ -56,11 +57,13 @@ namespace QueueLongPolling
                 Console.WriteLine($"[DemoPoll][Tran]Transaction ready and listening");
                 try
                 {
-                    TransactionMessagesResponse ms = transaction.Receive((int)new TimeSpan(1, 0, 0).TotalSeconds, (int)new TimeSpan(1, 0, 0).TotalSeconds);
+                    TransactionMessagesResponse ms = transaction.Receive((int)new TimeSpan(1, 0, 0).TotalSeconds, (int)new TimeSpan(0, 0, 5).TotalSeconds);
 
                     if (ms.IsError)
                     {
-                        Console.WriteLine($"[DemoPoll][Tran]message dequeue error, error:{ms.Error}");
+                        Console.WriteLine(ms.QueueErrors == KubemqQueueErrors.ErrNoNewMessageQueue
+                            ? $"DemoPoll][Tran]no new message found"
+                            : $"[DemoPoll][Tran]message dequeue error, error:{ms.Error}");
                         continue;
                     }
 
@@ -70,7 +73,7 @@ namespace QueueLongPolling
                 {
                     Console.WriteLine($"[DemoPoll][Tran]RPC error, error:{ex.Message}");
 
-                    queue = CreatreQueue();
+                    queue = CreateQueue();
                 }
                 transaction.Close();
                 Thread.Sleep(1);
@@ -99,7 +102,7 @@ namespace QueueLongPolling
 
         }
 
-        private static KubeMQ.SDK.csharp.Queue.Queue CreatreQueue()
+        private static KubeMQ.SDK.csharp.Queue.Queue CreateQueue()
         {
             try
             {
