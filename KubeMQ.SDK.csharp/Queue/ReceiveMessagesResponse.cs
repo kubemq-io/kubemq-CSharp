@@ -65,8 +65,6 @@ namespace KubeMQ.SDK.csharp.Queue
                 QueueErrors = KubemqQueueErrorConverter.GetQueueError(errorMsg);
             }
         }
-        
-
 
     }
 }

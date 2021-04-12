@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Google.Protobuf;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
@@ -26,7 +27,7 @@ namespace KubeMQ.SDK.csharp.Queue {
         /// </summary>
         public int MaxNumberOfMessagesQueueMessages {
             get {
-                return _MaxNumberOfMessagesQueueMessages;
+                return _maxNumberOfMessagesQueueMessages;
             }
         }
         /// <summary>
@@ -34,15 +35,15 @@ namespace KubeMQ.SDK.csharp.Queue {
         /// </summary>
         public int WaitTimeSecondsQueueMessages {
             get {
-                return _WaitTimeSecondsQueueMessages;
+                return _waitTimeSecondsQueueMessages;
             }
             set {
-                _WaitTimeSecondsQueueMessages = value;
+                _waitTimeSecondsQueueMessages = value;
             }
         }
 
-        private readonly int _MaxNumberOfMessagesQueueMessages = 32;
-        private int _WaitTimeSecondsQueueMessages = 1;
+        private readonly int _maxNumberOfMessagesQueueMessages = 32;
+        private int _waitTimeSecondsQueueMessages = 1;
         private static ILogger _logger;
         private Transaction _transation;
 
@@ -79,18 +80,31 @@ namespace KubeMQ.SDK.csharp.Queue {
             this.QueueName = queueName;
             this.ClientID = clientID;
             this._kubemqAddress = kubeMQAddress;
-            this._MaxNumberOfMessagesQueueMessages = maxNumberOfMessagesQueueMessages?? _MaxNumberOfMessagesQueueMessages;
-            this._WaitTimeSecondsQueueMessages = waitTimeSecondsQueueMessages?? _WaitTimeSecondsQueueMessages;
+            this._maxNumberOfMessagesQueueMessages = maxNumberOfMessagesQueueMessages?? _maxNumberOfMessagesQueueMessages;
+            this._waitTimeSecondsQueueMessages = waitTimeSecondsQueueMessages?? _waitTimeSecondsQueueMessages;
             this.addAuthToken (authToken);
             _logger = Logger.InitLogger (logger, "Queue");
             this.Ping ();
         }
-
         /// <summary>
         /// Send single message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
+        public SendMessageResult Send (Message message) {
+            message.Queue = message.Queue ?? this.QueueName;
+            message.ClientID = message.ClientID ?? this.ClientID;
+            SendQueueMessageResult rec = GetKubeMQClient ().SendQueueMessage (Tools.Converter.ConvertQueueMessage (message),Metadata);
+
+            return new SendMessageResult (rec);
+        }
+        
+        /// <summary>
+        /// Send single message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        [Obsolete("This method is obsolete. Call Send instead.", false)]
         public SendMessageResult SendQueueMessage (Message message) {
             message.Queue = message.Queue ?? this.QueueName;
             message.ClientID = message.ClientID ?? this.ClientID;
@@ -100,12 +114,26 @@ namespace KubeMQ.SDK.csharp.Queue {
             return new SendMessageResult (rec);
 
         }
-
         /// <summary>
         /// Sending queue messages array request , waiting for response or timeout 
         /// </summary>
         /// <param name="queueMessages">Array of Messages</param>     
         /// <returns></returns>
+        public SendBatchMessageResult Batch (IEnumerable<Message> queueMessages) {
+
+            QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch (new QueueMessagesBatchRequest {
+                BatchID = Tools.IDGenerator.Getid (),
+                Messages = { Tools.Converter.ToQueueMessages (queueMessages, this) }
+            },Metadata);
+
+            return new SendBatchMessageResult (rec);
+        }
+        /// <summary>
+        /// Sending queue messages array request , waiting for response or timeout 
+        /// </summary>
+        /// <param name="queueMessages">Array of Messages</param>     
+        /// <returns></returns>
+        [Obsolete("This method is obsolete. Call Batch instead.", false)]
         public SendBatchMessageResult SendQueueMessagesBatch (IEnumerable<Message> queueMessages) {
 
             QueueMessagesBatchResponse rec = GetKubeMQClient().SendQueueMessagesBatch (new QueueMessagesBatchRequest {
@@ -117,10 +145,81 @@ namespace KubeMQ.SDK.csharp.Queue {
         }
 
         /// <summary>
+        /// Pull messages from queue.
+        /// </summary>
+        /// <param name="maxPullMessages">number of max returned messages to pull</param>
+        /// <param name="waitTimeoutSeconds">how long to wait for all messages </param>
+        /// <returns></returns>
+        public ReceiveMessagesResponse Pull (int maxPullMessages , int waitTimeoutSeconds ) {
+            ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
+                RequestID = Tools.IDGenerator.Getid (),
+                ClientID = ClientID,
+                Channel = QueueName,
+                MaxNumberOfMessages = maxPullMessages ,
+                WaitTimeSeconds = waitTimeoutSeconds
+            },Metadata);
+            return new ReceiveMessagesResponse (rec);
+        }
+
+        /// <summary>
+        /// Pull messages from queue.
+        /// </summary>
+        /// <param name="queue">queue name to pull</param>
+        /// <param name="maxPullMessages">number of max returned messages to pull</param>
+        /// <param name="waitTimeoutSeconds">how long to wait for all messages </param>
+        /// <returns></returns>
+        public ReceiveMessagesResponse Pull (string queue, int maxPullMessages , int waitTimeoutSeconds ) {
+            ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
+                RequestID = Tools.IDGenerator.Getid (),
+                ClientID = ClientID,
+                Channel = queue,
+                MaxNumberOfMessages = maxPullMessages ,
+                WaitTimeSeconds = waitTimeoutSeconds
+            },Metadata);
+            return new ReceiveMessagesResponse (rec);
+        }
+        /// <summary>
+        /// Peek messages from queue.
+        /// </summary>
+        /// <param name="queue">queue name to peek</param>
+        /// <param name="maxPeekMessages">number of max returned messages to peek</param>
+        /// <param name="waitTimeoutSeconds">how long to wait for all messages </param>
+        /// <returns></returns>
+        public ReceiveMessagesResponse Peek (string queue, int maxPeekMessages , int waitTimeoutSeconds ) {
+            ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
+                RequestID = Tools.IDGenerator.Getid (),
+                ClientID = ClientID,
+                Channel = queue,
+                MaxNumberOfMessages = maxPeekMessages ,
+                WaitTimeSeconds = waitTimeoutSeconds,
+                IsPeak = true,
+            },Metadata);
+            return new ReceiveMessagesResponse (rec);
+        }
+        /// <summary>
+        /// Peek messages from queue.
+        /// </summary>
+        /// <param name="maxPeekMessages">number of max returned messages to peek</param>
+        /// <param name="waitTimeoutSeconds">how long to wait for all messages </param>
+        /// <returns></returns>
+       
+        public ReceiveMessagesResponse Peek (int maxPeekMessages , int waitTimeoutSeconds ) {
+            ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
+                RequestID = Tools.IDGenerator.Getid (),
+                ClientID = ClientID,
+                Channel = QueueName,
+                MaxNumberOfMessages = maxPeekMessages ,
+                WaitTimeSeconds = waitTimeoutSeconds,
+                IsPeak = true,
+            },Metadata);
+            return new ReceiveMessagesResponse (rec);
+        }
+        /// <summary>
         /// Recessive messages from queue.
         /// </summary>
         /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32</param>
         /// <returns></returns>
+        [Obsolete("This method is obsolete. Call Pull", false)]
         public ReceiveMessagesResponse ReceiveQueueMessages (int? maxNumberOfMessagesQueueMessages = null) {
             ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
                 RequestID = Tools.IDGenerator.Getid (),
@@ -137,6 +236,7 @@ namespace KubeMQ.SDK.csharp.Queue {
         /// </summary>
         /// <param name="maxNumberOfMessagesQueueMessages">number of returned messages, default is 32 </param>
         /// <returns></returns>
+        [Obsolete("This method is obsolete. Call Peek instead.", false)]
         public ReceiveMessagesResponse PeekQueueMessage (int? maxNumberOfMessagesQueueMessages = null) {
             ReceiveQueueMessagesResponse rec = GetKubeMQClient ().ReceiveQueueMessages (new ReceiveQueueMessagesRequest {
                 RequestID = Tools.IDGenerator.Getid (),
@@ -150,11 +250,26 @@ namespace KubeMQ.SDK.csharp.Queue {
             return new ReceiveMessagesResponse (rec);
 
         }
+        /// <summary>
+        /// Mark all the messages as dequeued on queue.
+        /// </summary>
+        /// <param name="waitTimeoutSeconds">how long to wait for all messages to ack</param>
+        /// <returns></returns>
+        public AckAllMessagesResponse AckAll (int waitTimeoutSeconds) {
+            AckAllQueueMessagesResponse rec = GetKubeMQClient ().AckAllQueueMessages (new AckAllQueueMessagesRequest {
+                RequestID = Tools.IDGenerator.Getid (),
+                Channel = QueueName,
+                ClientID = ClientID,
+                WaitTimeSeconds = waitTimeoutSeconds
+            },Metadata);
 
+            return new AckAllMessagesResponse (rec);
+        }
         /// <summary>
         /// Mark all the messages as dequeued on queue.
         /// </summary>
         /// <returns></returns>
+        [Obsolete("This method is obsolete. Call AckAll instead.", false)]
         public AckAllMessagesResponse AckAllQueueMessages () {
             AckAllQueueMessagesResponse rec = GetKubeMQClient ().AckAllQueueMessages (new AckAllQueueMessagesRequest {
                 RequestID = Tools.IDGenerator.Getid (),
