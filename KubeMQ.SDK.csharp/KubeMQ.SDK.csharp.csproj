@@ -15,7 +15,7 @@
     <Copyright>Copyright 2019</Copyright>
     <PackageProjectUrl>http://kubemq.io/</PackageProjectUrl>
     <PackageTags>Messaging Kubernetes</PackageTags>
-    <PackageVersion>1.3.1</PackageVersion>
+    <PackageVersion>1.4.0</PackageVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
