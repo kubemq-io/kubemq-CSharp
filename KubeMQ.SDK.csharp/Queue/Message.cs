@@ -77,7 +77,7 @@ namespace KubeMQ.SDK.csharp.Queue
         public Message(byte[] body, string metadata, string messageID = null, Dictionary<string, string> tags = null)
         {
             MessageID = string.IsNullOrEmpty(messageID) ? Tools.IDGenerator.Getid() : messageID;
-            Metadata = metadata;
+            Metadata = string.IsNullOrEmpty(metadata) ? "":metadata ;
             Tags = tags;
             Body = body;
         }
