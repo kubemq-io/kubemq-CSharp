@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Google.Protobuf;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
 using KubeMQ.SDK.csharp.Queue.Stream;
@@ -84,7 +83,7 @@ namespace KubeMQ.SDK.csharp.Queue {
             this._waitTimeSecondsQueueMessages = waitTimeSecondsQueueMessages?? _waitTimeSecondsQueueMessages;
             this.addAuthToken (authToken);
             _logger = Logger.InitLogger (logger, "Queue");
-            this.Ping ();
+            //this.Ping ();
         }
         /// <summary>
         /// Send single message
@@ -302,7 +301,6 @@ namespace KubeMQ.SDK.csharp.Queue {
             PingResult rec = GetKubeMQClient ().Ping (new Empty ());
             _logger.LogDebug ($"Queue KubeMQ address:{_kubemqAddress} ping result:{rec}");
             return rec;
-
         }
 
     }
