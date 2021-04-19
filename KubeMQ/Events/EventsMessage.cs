@@ -1,4 +1,5 @@
-﻿using KubeMQ.Client;
+﻿using System;
+using KubeMQ.Client;
 using KubeMQ.Grpc;
 using KubeMQ.Utils;
 
@@ -8,6 +9,7 @@ namespace KubeMQ.Events
     {
         public Event ToEvent ()
         {
+            
             return  new Event
             {
                 EventID = this.Id,
@@ -19,6 +21,15 @@ namespace KubeMQ.Events
                 Tags = { Convertors.ToMapFields(this.Tags)}
             };
 
+        }
+
+        public void Validate()
+        {
+            base.Validate();
+            if (string.IsNullOrEmpty(ClientId))
+            {
+                throw new ArgumentNullException( nameof(ClientId),"message must have a clientId value");
+            }
         }
     }
     

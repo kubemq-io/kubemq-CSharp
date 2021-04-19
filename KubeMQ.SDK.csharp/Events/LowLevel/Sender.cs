@@ -58,7 +58,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel {
         #endregion
 
         /// <summary>
-        /// Publish a single event using the KubeMQ.
+        /// Publish a multisubscribers event using the KubeMQ.
         /// </summary>
         /// <param name="notification">KubeMQ:Event Class.</param>
         /// <returns>KubeMQ.SDK.csharp.PubSub.Result that contain info regarding event status.</returns>

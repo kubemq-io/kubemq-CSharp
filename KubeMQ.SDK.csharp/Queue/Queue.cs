@@ -86,7 +86,7 @@ namespace KubeMQ.SDK.csharp.Queue {
             //this.Ping ();
         }
         /// <summary>
-        /// Send single message
+        /// Send multisubscribers message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -99,7 +99,7 @@ namespace KubeMQ.SDK.csharp.Queue {
         }
         
         /// <summary>
-        /// Send single message
+        /// Send multisubscribers message
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>

@@ -90,5 +90,17 @@ namespace KubeMQ.Client
             newBaseMessage._tags = tags;
             return newBaseMessage;
         }
+
+        protected void Validate()
+        {
+            if (string.IsNullOrEmpty(_channel))
+            {
+                throw new ArgumentNullException( nameof(Channel),"message must have a channel value");
+            }
+            if (string.IsNullOrEmpty(_metadata) && _body==null && _tags==null)
+            {
+                throw new ArgumentNullException( "BaseMessage","message must have at least metadata or body or tags");
+            }
+        }
     }
 }
