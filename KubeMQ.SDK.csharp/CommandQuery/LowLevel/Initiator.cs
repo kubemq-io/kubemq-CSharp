@@ -57,7 +57,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         #endregion
 
         /// <summary>
-        /// Publish a single request using the KubeMQ , response will return in the passed handler.
+        /// Publish a multisubscribers request using the KubeMQ , response will return in the passed handler.
         /// </summary>
         /// <param name="handler">Method that will be activated once receiving response.</param>
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
@@ -94,7 +94,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         }
 
         /// <summary>
-        ///  Publish a single request using the KubeMQ Async .
+        ///  Publish a multisubscribers request using the KubeMQ Async .
         /// </summary>
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
         /// <returns> A task that represents the request that was sent using the SendRequestAsync.</returns>
@@ -126,7 +126,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         }
 
         /// <summary>
-        /// Publish a single request using the KubeMQ.
+        /// Publish a multisubscribers request using the KubeMQ.
         /// </summary>
         /// <param name="request"></param>
         /// <returns>KubeMQ KubeMQ.SDK.csharp.RequestReply.Response.</returns>
