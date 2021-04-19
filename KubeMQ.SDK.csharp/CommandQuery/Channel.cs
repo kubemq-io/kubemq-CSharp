@@ -59,20 +59,20 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
         #endregion
 
         /// <summary>
-        /// Publish a single request using the KubeMQ
+        /// Publish a multisubscribers request using the KubeMQ
         /// </summary>
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
-        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
+        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a multisubscribers Request.</param>
         /// <returns>Response</returns>
         public Response SendRequest (Request request, RequestParameters overrideParams = null) {
             return _initiator.SendRequest (CreateLowLevelRequest (request, overrideParams));
         }
 
         /// <summary>
-        /// Publish a single async request using the KubeMQ 
+        /// Publish a multisubscribers async request using the KubeMQ 
         /// </summary>
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
-        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
+        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a multisubscribers Request.</param>
         /// <returns>Response</returns>
         public async Task<Response> SendRequestAsync (Request request, RequestParameters overrideParams = null) {
             Response response = await _initiator.SendRequestAsync (CreateLowLevelRequest (request, overrideParams));
@@ -80,11 +80,11 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
         }
 
         /// <summary>
-        /// Publish a single request using the KubeMQ , response will return in the passed handler.
+        /// Publish a multisubscribers request using the KubeMQ , response will return in the passed handler.
         /// </summary>
         /// <param name="request">The KubeMQ.SDK.csharp.RequestReply.LowLevel.request that will be sent to the kubeMQ.</param>
         /// <param name="handler">Method that will be activated once receiving response.</param>
-        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a single Request.</param>
+        /// <param name="overrideParams">Optional - allow overwriting "Timeout" "CacheKey" and "CacheTTL" for a multisubscribers Request.</param>
         /// <returns>A task that represents the request that was sent using the SendRequest .</returns>
         public async Task SendRequest (Request request, HandleResponseDelegate handler, RequestParameters overrideParams = null) {
             await _initiator.SendRequest (CreateLowLevelRequest (request, overrideParams), handler);

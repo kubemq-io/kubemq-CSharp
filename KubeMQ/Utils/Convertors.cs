@@ -28,10 +28,17 @@ namespace KubeMQ.Utils
         {
             return value==null ? null : value.ToByteArray();
         }
-        
+        public static byte[] ToByteArray(string value)
+        {
+            return string.IsNullOrEmpty(value) ? null : Encoding.Default.GetBytes(value);
+        }
         public static string ToString(ByteString value)
         {
             return value==null ? "" : value.ToString();
+        }
+        public static string ToString(byte[] array)
+        {
+            return array==null ? "" :  Encoding.Default.GetString(array);
         }
         public static string ToUtf8String(ByteString value)
         {
@@ -41,9 +48,21 @@ namespace KubeMQ.Utils
         {
             return value==null ? "" : value.ToBase64();
         }
-        internal  static MapField<string, string> ToMapFields(Dictionary<string, string> tags)
+        public  static MapField<string, string> ToMapFields(Dictionary<string, string> tags)
         {
             MapField<string, string> keyValuePairs = new MapField<string, string>();
+            if (tags != null)
+            {
+                foreach (var item in tags)
+                {
+                    keyValuePairs.Add(item.Key, item.Value);
+                }
+            }
+            return keyValuePairs;
+        }
+        public static Dictionary<string, string> FromMapFields(MapField<string, string> tags)
+        {
+            Dictionary<string, string> keyValuePairs = new Dictionary<string, string>();
             if (tags != null)
             {
                 foreach (var item in tags)
