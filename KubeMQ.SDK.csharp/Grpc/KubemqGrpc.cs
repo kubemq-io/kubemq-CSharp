@@ -31,6 +31,10 @@ namespace KubeMQ.Grpc {
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.AckAllQueueMessagesRequest> __Marshaller_AckAllQueueMessagesRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.AckAllQueueMessagesRequest.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.AckAllQueueMessagesResponse> __Marshaller_AckAllQueueMessagesResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.AckAllQueueMessagesResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.PingResult> __Marshaller_PingResult = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PingResult.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::KubeMQ.Grpc.QueuesDownstreamRequest> __Marshaller_QueuesDownstreamRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.QueuesDownstreamRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::KubeMQ.Grpc.QueuesDownstreamResponse> __Marshaller_QueuesDownstreamResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.QueuesDownstreamResponse.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::KubeMQ.Grpc.QueuesUpstreamRequest> __Marshaller_QueuesUpstreamRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.QueuesUpstreamRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::KubeMQ.Grpc.QueuesUpstreamResponse> __Marshaller_QueuesUpstreamResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.QueuesUpstreamResponse.Parser.ParseFrom);
 
     static readonly grpc::Method<global::KubeMQ.Grpc.Event, global::KubeMQ.Grpc.Result> __Method_SendEvent = new grpc::Method<global::KubeMQ.Grpc.Event, global::KubeMQ.Grpc.Result>(
         grpc::MethodType.Unary,
@@ -116,6 +120,20 @@ namespace KubeMQ.Grpc {
         __Marshaller_Empty,
         __Marshaller_PingResult);
 
+    static readonly grpc::Method<global::KubeMQ.Grpc.QueuesDownstreamRequest, global::KubeMQ.Grpc.QueuesDownstreamResponse> __Method_QueuesDownstream = new grpc::Method<global::KubeMQ.Grpc.QueuesDownstreamRequest, global::KubeMQ.Grpc.QueuesDownstreamResponse>(
+        grpc::MethodType.DuplexStreaming,
+        __ServiceName,
+        "QueuesDownstream",
+        __Marshaller_QueuesDownstreamRequest,
+        __Marshaller_QueuesDownstreamResponse);
+
+    static readonly grpc::Method<global::KubeMQ.Grpc.QueuesUpstreamRequest, global::KubeMQ.Grpc.QueuesUpstreamResponse> __Method_QueuesUpstream = new grpc::Method<global::KubeMQ.Grpc.QueuesUpstreamRequest, global::KubeMQ.Grpc.QueuesUpstreamResponse>(
+        grpc::MethodType.DuplexStreaming,
+        __ServiceName,
+        "QueuesUpstream",
+        __Marshaller_QueuesUpstreamRequest,
+        __Marshaller_QueuesUpstreamResponse);
+
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
     {
@@ -181,6 +199,16 @@ namespace KubeMQ.Grpc {
       }
 
       public virtual global::System.Threading.Tasks.Task<global::KubeMQ.Grpc.PingResult> Ping(global::KubeMQ.Grpc.Empty request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task QueuesDownstream(grpc::IAsyncStreamReader<global::KubeMQ.Grpc.QueuesDownstreamRequest> requestStream, grpc::IServerStreamWriter<global::KubeMQ.Grpc.QueuesDownstreamResponse> responseStream, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task QueuesUpstream(grpc::IAsyncStreamReader<global::KubeMQ.Grpc.QueuesUpstreamRequest> requestStream, grpc::IServerStreamWriter<global::KubeMQ.Grpc.QueuesUpstreamResponse> responseStream, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -370,6 +398,22 @@ namespace KubeMQ.Grpc {
       {
         return CallInvoker.AsyncUnaryCall(__Method_Ping, null, options, request);
       }
+      public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.QueuesDownstreamRequest, global::KubeMQ.Grpc.QueuesDownstreamResponse> QueuesDownstream(grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
+      {
+        return QueuesDownstream(new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.QueuesDownstreamRequest, global::KubeMQ.Grpc.QueuesDownstreamResponse> QueuesDownstream(grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncDuplexStreamingCall(__Method_QueuesDownstream, null, options);
+      }
+      public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.QueuesUpstreamRequest, global::KubeMQ.Grpc.QueuesUpstreamResponse> QueuesUpstream(grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
+      {
+        return QueuesUpstream(new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.QueuesUpstreamRequest, global::KubeMQ.Grpc.QueuesUpstreamResponse> QueuesUpstream(grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncDuplexStreamingCall(__Method_QueuesUpstream, null, options);
+      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override kubemqClient NewInstance(ClientBaseConfiguration configuration)
       {
@@ -393,7 +437,9 @@ namespace KubeMQ.Grpc {
           .AddMethod(__Method_ReceiveQueueMessages, serviceImpl.ReceiveQueueMessages)
           .AddMethod(__Method_StreamQueueMessage, serviceImpl.StreamQueueMessage)
           .AddMethod(__Method_AckAllQueueMessages, serviceImpl.AckAllQueueMessages)
-          .AddMethod(__Method_Ping, serviceImpl.Ping).Build();
+          .AddMethod(__Method_Ping, serviceImpl.Ping)
+          .AddMethod(__Method_QueuesDownstream, serviceImpl.QueuesDownstream)
+          .AddMethod(__Method_QueuesUpstream, serviceImpl.QueuesUpstream).Build();
     }
 
   }

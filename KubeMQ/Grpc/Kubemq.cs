@@ -105,54 +105,72 @@ namespace KubeMQ.Grpc {
             "ChtTdHJlYW1RdWV1ZU1lc3NhZ2VzUmVzcG9uc2USEQoJUmVxdWVzdElEGAEg",
             "ASgJEjgKFVN0cmVhbVJlcXVlc3RUeXBlRGF0YRgCIAEoDjIZLmt1YmVtcS5T",
             "dHJlYW1SZXF1ZXN0VHlwZRIlCgdNZXNzYWdlGAMgASgLMhQua3ViZW1xLlF1",
-            "ZXVlTWVzc2FnZRIPCgdJc0Vycm9yGAQgASgIEg0KBUVycm9yGAUgASgJKqoB",
-            "ChFTdHJlYW1SZXF1ZXN0VHlwZRIcChhTdHJlYW1SZXF1ZXN0VHlwZVVua25v",
-            "d24QABISCg5SZWNlaXZlTWVzc2FnZRABEg4KCkFja01lc3NhZ2UQAhIRCg1S",
-            "ZWplY3RNZXNzYWdlEAMSFAoQTW9kaWZ5VmlzaWJpbGl0eRAEEhEKDVJlc2Vu",
-            "ZE1lc3NhZ2UQBRIXChNTZW5kTW9kaWZpZWRNZXNzYWdlEAYy3wYKBmt1YmVt",
-            "cRIsCglTZW5kRXZlbnQSDS5rdWJlbXEuRXZlbnQaDi5rdWJlbXEuUmVzdWx0",
-            "IgASNwoQU2VuZEV2ZW50c1N0cmVhbRINLmt1YmVtcS5FdmVudBoOLmt1YmVt",
-            "cS5SZXN1bHQiACgBMAESQAoRU3Vic2NyaWJlVG9FdmVudHMSES5rdWJlbXEu",
-            "U3Vic2NyaWJlGhQua3ViZW1xLkV2ZW50UmVjZWl2ZSIAMAESPQoTU3Vic2Ny",
-            "aWJlVG9SZXF1ZXN0cxIRLmt1YmVtcS5TdWJzY3JpYmUaDy5rdWJlbXEuUmVx",
-            "dWVzdCIAMAESMgoLU2VuZFJlcXVlc3QSDy5rdWJlbXEuUmVxdWVzdBoQLmt1",
-            "YmVtcS5SZXNwb25zZSIAEjEKDFNlbmRSZXNwb25zZRIQLmt1YmVtcS5SZXNw",
-            "b25zZRoNLmt1YmVtcS5FbXB0eSIAEkoKEFNlbmRRdWV1ZU1lc3NhZ2USFC5r",
-            "dWJlbXEuUXVldWVNZXNzYWdlGh4ua3ViZW1xLlNlbmRRdWV1ZU1lc3NhZ2VS",
-            "ZXN1bHQiABJhChZTZW5kUXVldWVNZXNzYWdlc0JhdGNoEiEua3ViZW1xLlF1",
-            "ZXVlTWVzc2FnZXNCYXRjaFJlcXVlc3QaIi5rdWJlbXEuUXVldWVNZXNzYWdl",
-            "c0JhdGNoUmVzcG9uc2UiABJjChRSZWNlaXZlUXVldWVNZXNzYWdlcxIjLmt1",
-            "YmVtcS5SZWNlaXZlUXVldWVNZXNzYWdlc1JlcXVlc3QaJC5rdWJlbXEuUmVj",
-            "ZWl2ZVF1ZXVlTWVzc2FnZXNSZXNwb25zZSIAEmMKElN0cmVhbVF1ZXVlTWVz",
-            "c2FnZRIiLmt1YmVtcS5TdHJlYW1RdWV1ZU1lc3NhZ2VzUmVxdWVzdBojLmt1",
-            "YmVtcS5TdHJlYW1RdWV1ZU1lc3NhZ2VzUmVzcG9uc2UiACgBMAESYAoTQWNr",
-            "QWxsUXVldWVNZXNzYWdlcxIiLmt1YmVtcS5BY2tBbGxRdWV1ZU1lc3NhZ2Vz",
-            "UmVxdWVzdBojLmt1YmVtcS5BY2tBbGxRdWV1ZU1lc3NhZ2VzUmVzcG9uc2Ui",
-            "ABIrCgRQaW5nEg0ua3ViZW1xLkVtcHR5GhIua3ViZW1xLlBpbmdSZXN1bHQi",
-            "AEIOqgILS3ViZU1RLkdycGNiBnByb3RvMw=="));
+            "ZXVlTWVzc2FnZRIPCgdJc0Vycm9yGAQgASgIEg0KBUVycm9yGAUgASgJIpsC",
+            "CgtQb2xsUmVxdWVzdBIRCglSZXF1ZXN0SUQYASABKAkSEAoIQ2xpZW50SUQY",
+            "AiABKAkSNgoVU3RyZWFtUmVxdWVzdFR5cGVEYXRhGAMgASgOMhcua3ViZW1x",
+            "LlBvbGxSZXF1ZXN0VHlwZRIPCgdDaGFubmVsGAQgASgJEg8KB0F1dG9BY2sY",
+            "BSABKAgSEAoIQWNrUmFuZ2UYBiADKAMSGAoQUmVmVHJhbnNhY3Rpb25JZBgH",
+            "IAEoCRIxCgdIZWFkZXJzGAggAygLMiAua3ViZW1xLlBvbGxSZXF1ZXN0Lkhl",
+            "YWRlcnNFbnRyeRouCgxIZWFkZXJzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZh",
+            "bHVlGAIgASgJOgI4ASKfAgoMUG9sbFJlc3BvbnNlEhUKDVRyYW5zYWN0aW9u",
+            "SWQYASABKAkSFAoMUmVmUmVxdWVzdElkGAIgASgJEjYKFVN0cmVhbVJlcXVl",
+            "c3RUeXBlRGF0YRgDIAEoDjIXLmt1YmVtcS5Qb2xsUmVxdWVzdFR5cGUSJgoI",
+            "TWVzc2FnZXMYBCADKAsyFC5rdWJlbXEuUXVldWVNZXNzYWdlEg8KB0lzRXJy",
+            "b3IYBSABKAgSDQoFRXJyb3IYBiABKAkSMgoHSGVhZGVycxgHIAMoCzIhLmt1",
+            "YmVtcS5Qb2xsUmVzcG9uc2UuSGVhZGVyc0VudHJ5Gi4KDEhlYWRlcnNFbnRy",
+            "eRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBKqoBChFTdHJlYW1S",
+            "ZXF1ZXN0VHlwZRIcChhTdHJlYW1SZXF1ZXN0VHlwZVVua25vd24QABISCg5S",
+            "ZWNlaXZlTWVzc2FnZRABEg4KCkFja01lc3NhZ2UQAhIRCg1SZWplY3RNZXNz",
+            "YWdlEAMSFAoQTW9kaWZ5VmlzaWJpbGl0eRAEEhEKDVJlc2VuZE1lc3NhZ2UQ",
+            "BRIXChNTZW5kTW9kaWZpZWRNZXNzYWdlEAYqWwoPUG9sbFJlcXVlc3RUeXBl",
+            "EhoKFlBvbGxSZXF1ZXN0VHlwZVVua25vd24QABIHCgNHZXQQARIKCgZBY2tB",
+            "bGwQAhIMCghBY2tSYW5nZRADEgkKBUNsb3NlEAQymAcKBmt1YmVtcRIsCglT",
+            "ZW5kRXZlbnQSDS5rdWJlbXEuRXZlbnQaDi5rdWJlbXEuUmVzdWx0IgASNwoQ",
+            "U2VuZEV2ZW50c1N0cmVhbRINLmt1YmVtcS5FdmVudBoOLmt1YmVtcS5SZXN1",
+            "bHQiACgBMAESQAoRU3Vic2NyaWJlVG9FdmVudHMSES5rdWJlbXEuU3Vic2Ny",
+            "aWJlGhQua3ViZW1xLkV2ZW50UmVjZWl2ZSIAMAESPQoTU3Vic2NyaWJlVG9S",
+            "ZXF1ZXN0cxIRLmt1YmVtcS5TdWJzY3JpYmUaDy5rdWJlbXEuUmVxdWVzdCIA",
+            "MAESMgoLU2VuZFJlcXVlc3QSDy5rdWJlbXEuUmVxdWVzdBoQLmt1YmVtcS5S",
+            "ZXNwb25zZSIAEjEKDFNlbmRSZXNwb25zZRIQLmt1YmVtcS5SZXNwb25zZRoN",
+            "Lmt1YmVtcS5FbXB0eSIAEkoKEFNlbmRRdWV1ZU1lc3NhZ2USFC5rdWJlbXEu",
+            "UXVldWVNZXNzYWdlGh4ua3ViZW1xLlNlbmRRdWV1ZU1lc3NhZ2VSZXN1bHQi",
+            "ABJhChZTZW5kUXVldWVNZXNzYWdlc0JhdGNoEiEua3ViZW1xLlF1ZXVlTWVz",
+            "c2FnZXNCYXRjaFJlcXVlc3QaIi5rdWJlbXEuUXVldWVNZXNzYWdlc0JhdGNo",
+            "UmVzcG9uc2UiABJjChRSZWNlaXZlUXVldWVNZXNzYWdlcxIjLmt1YmVtcS5S",
+            "ZWNlaXZlUXVldWVNZXNzYWdlc1JlcXVlc3QaJC5rdWJlbXEuUmVjZWl2ZVF1",
+            "ZXVlTWVzc2FnZXNSZXNwb25zZSIAEmMKElN0cmVhbVF1ZXVlTWVzc2FnZRIi",
+            "Lmt1YmVtcS5TdHJlYW1RdWV1ZU1lc3NhZ2VzUmVxdWVzdBojLmt1YmVtcS5T",
+            "dHJlYW1RdWV1ZU1lc3NhZ2VzUmVzcG9uc2UiACgBMAESYAoTQWNrQWxsUXVl",
+            "dWVNZXNzYWdlcxIiLmt1YmVtcS5BY2tBbGxRdWV1ZU1lc3NhZ2VzUmVxdWVz",
+            "dBojLmt1YmVtcS5BY2tBbGxRdWV1ZU1lc3NhZ2VzUmVzcG9uc2UiABIrCgRQ",
+            "aW5nEg0ua3ViZW1xLkVtcHR5GhIua3ViZW1xLlBpbmdSZXN1bHQiABI3CgRQ",
+            "b2xsEhMua3ViZW1xLlBvbGxSZXF1ZXN0GhQua3ViZW1xLlBvbGxSZXNwb25z",
+            "ZSIAKAEwAUIOqgILS3ViZU1RLkdycGNiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KubeMQ.Grpc.StreamRequestType), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.PingResult), global::KubeMQ.Grpc.PingResult.Parser, new[]{ "Host", "Version", "ServerStartTime", "ServerUpTimeSeconds" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Empty), global::KubeMQ.Grpc.Empty.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Result), global::KubeMQ.Grpc.Result.Parser, new[]{ "EventID", "Sent", "Error" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Event), global::KubeMQ.Grpc.Event.Parser, new[]{ "EventID", "ClientID", "Channel", "Metadata", "Body", "Store", "Tags" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.EventReceive), global::KubeMQ.Grpc.EventReceive.Parser, new[]{ "EventID", "Channel", "Metadata", "Body", "Timestamp", "Sequence", "Tags" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Subscribe), global::KubeMQ.Grpc.Subscribe.Parser, new[]{ "SubscribeTypeData", "ClientID", "Channel", "Group", "EventsStoreTypeData", "EventsStoreTypeValue" }, null, new[]{ typeof(global::KubeMQ.Grpc.Subscribe.Types.SubscribeType), typeof(global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType) }, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Request), global::KubeMQ.Grpc.Request.Parser, new[]{ "RequestID", "RequestTypeData", "ClientID", "Channel", "Metadata", "Body", "ReplyChannel", "Timeout", "CacheKey", "CacheTTL", "Span", "Tags" }, null, new[]{ typeof(global::KubeMQ.Grpc.Request.Types.RequestType) }, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Response), global::KubeMQ.Grpc.Response.Parser, new[]{ "ClientID", "RequestID", "ReplyChannel", "Metadata", "Body", "CacheHit", "Timestamp", "Executed", "Error", "Span", "Tags" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessage), global::KubeMQ.Grpc.QueueMessage.Parser, new[]{ "MessageID", "ClientID", "Channel", "Metadata", "Body", "Tags", "Attributes", "Policy" }, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessagesBatchRequest), global::KubeMQ.Grpc.QueueMessagesBatchRequest.Parser, new[]{ "BatchID", "Messages" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessagesBatchResponse), global::KubeMQ.Grpc.QueueMessagesBatchResponse.Parser, new[]{ "BatchID", "Results", "HaveErrors" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessageAttributes), global::KubeMQ.Grpc.QueueMessageAttributes.Parser, new[]{ "Timestamp", "Sequence", "MD5OfBody", "ReceiveCount", "ReRouted", "ReRoutedFromQueue", "ExpirationAt", "DelayedTo" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessagePolicy), global::KubeMQ.Grpc.QueueMessagePolicy.Parser, new[]{ "ExpirationSeconds", "DelaySeconds", "MaxReceiveCount", "MaxReceiveQueue" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.SendQueueMessageResult), global::KubeMQ.Grpc.SendQueueMessageResult.Parser, new[]{ "MessageID", "SentAt", "ExpirationAt", "DelayedTo", "IsError", "Error" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.ReceiveQueueMessagesRequest), global::KubeMQ.Grpc.ReceiveQueueMessagesRequest.Parser, new[]{ "RequestID", "ClientID", "Channel", "MaxNumberOfMessages", "WaitTimeSeconds", "IsPeak" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.ReceiveQueueMessagesResponse), global::KubeMQ.Grpc.ReceiveQueueMessagesResponse.Parser, new[]{ "RequestID", "Messages", "MessagesReceived", "MessagesExpired", "IsPeak", "IsError", "Error" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.AckAllQueueMessagesRequest), global::KubeMQ.Grpc.AckAllQueueMessagesRequest.Parser, new[]{ "RequestID", "ClientID", "Channel", "WaitTimeSeconds" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.AckAllQueueMessagesResponse), global::KubeMQ.Grpc.AckAllQueueMessagesResponse.Parser, new[]{ "RequestID", "AffectedMessages", "IsError", "Error" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.StreamQueueMessagesRequest), global::KubeMQ.Grpc.StreamQueueMessagesRequest.Parser, new[]{ "RequestID", "ClientID", "StreamRequestTypeData", "Channel", "VisibilitySeconds", "WaitTimeSeconds", "RefSequence", "ModifiedMessage" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.StreamQueueMessagesResponse), global::KubeMQ.Grpc.StreamQueueMessagesResponse.Parser, new[]{ "RequestID", "StreamRequestTypeData", "Message", "IsError", "Error" }, null, null, null)
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KubeMQ.Grpc.StreamRequestType), typeof(global::KubeMQ.Grpc.PollRequestType), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.PingResult), global::KubeMQ.Grpc.PingResult.Parser, new[]{ "Host", "Version", "ServerStartTime", "ServerUpTimeSeconds" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Empty), global::KubeMQ.Grpc.Empty.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Result), global::KubeMQ.Grpc.Result.Parser, new[]{ "EventID", "Sent", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Event), global::KubeMQ.Grpc.Event.Parser, new[]{ "EventID", "ClientID", "Channel", "Metadata", "Body", "Store", "Tags" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.EventReceive), global::KubeMQ.Grpc.EventReceive.Parser, new[]{ "EventID", "Channel", "Metadata", "Body", "Timestamp", "Sequence", "Tags" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Subscribe), global::KubeMQ.Grpc.Subscribe.Parser, new[]{ "SubscribeTypeData", "ClientID", "Channel", "Group", "EventsStoreTypeData", "EventsStoreTypeValue" }, null, new[]{ typeof(global::KubeMQ.Grpc.Subscribe.Types.SubscribeType), typeof(global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType) }, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Request), global::KubeMQ.Grpc.Request.Parser, new[]{ "RequestID", "RequestTypeData", "ClientID", "Channel", "Metadata", "Body", "ReplyChannel", "Timeout", "CacheKey", "CacheTTL", "Span", "Tags" }, null, new[]{ typeof(global::KubeMQ.Grpc.Request.Types.RequestType) }, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.Response), global::KubeMQ.Grpc.Response.Parser, new[]{ "ClientID", "RequestID", "ReplyChannel", "Metadata", "Body", "CacheHit", "Timestamp", "Executed", "Error", "Span", "Tags" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessage), global::KubeMQ.Grpc.QueueMessage.Parser, new[]{ "MessageID", "ClientID", "Channel", "Metadata", "Body", "Tags", "Attributes", "Policy" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessagesBatchRequest), global::KubeMQ.Grpc.QueueMessagesBatchRequest.Parser, new[]{ "BatchID", "Messages" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessagesBatchResponse), global::KubeMQ.Grpc.QueueMessagesBatchResponse.Parser, new[]{ "BatchID", "Results", "HaveErrors" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessageAttributes), global::KubeMQ.Grpc.QueueMessageAttributes.Parser, new[]{ "Timestamp", "Sequence", "MD5OfBody", "ReceiveCount", "ReRouted", "ReRoutedFromQueue", "ExpirationAt", "DelayedTo" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueMessagePolicy), global::KubeMQ.Grpc.QueueMessagePolicy.Parser, new[]{ "ExpirationSeconds", "DelaySeconds", "MaxReceiveCount", "MaxReceiveQueue" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.SendQueueMessageResult), global::KubeMQ.Grpc.SendQueueMessageResult.Parser, new[]{ "MessageID", "SentAt", "ExpirationAt", "DelayedTo", "IsError", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.ReceiveQueueMessagesRequest), global::KubeMQ.Grpc.ReceiveQueueMessagesRequest.Parser, new[]{ "RequestID", "ClientID", "Channel", "MaxNumberOfMessages", "WaitTimeSeconds", "IsPeak" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.ReceiveQueueMessagesResponse), global::KubeMQ.Grpc.ReceiveQueueMessagesResponse.Parser, new[]{ "RequestID", "Messages", "MessagesReceived", "MessagesExpired", "IsPeak", "IsError", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.AckAllQueueMessagesRequest), global::KubeMQ.Grpc.AckAllQueueMessagesRequest.Parser, new[]{ "RequestID", "ClientID", "Channel", "WaitTimeSeconds" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.AckAllQueueMessagesResponse), global::KubeMQ.Grpc.AckAllQueueMessagesResponse.Parser, new[]{ "RequestID", "AffectedMessages", "IsError", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.StreamQueueMessagesRequest), global::KubeMQ.Grpc.StreamQueueMessagesRequest.Parser, new[]{ "RequestID", "ClientID", "StreamRequestTypeData", "Channel", "VisibilitySeconds", "WaitTimeSeconds", "RefSequence", "ModifiedMessage" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.StreamQueueMessagesResponse), global::KubeMQ.Grpc.StreamQueueMessagesResponse.Parser, new[]{ "RequestID", "StreamRequestTypeData", "Message", "IsError", "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.PollRequest), global::KubeMQ.Grpc.PollRequest.Parser, new[]{ "RequestID", "ClientID", "StreamRequestTypeData", "Channel", "AutoAck", "AckRange", "RefTransactionId", "Headers" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.PollResponse), global::KubeMQ.Grpc.PollResponse.Parser, new[]{ "TransactionId", "RefRequestId", "StreamRequestTypeData", "Messages", "IsError", "Error", "Headers" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
           }));
     }
     #endregion
@@ -169,10 +187,22 @@ namespace KubeMQ.Grpc {
     [pbr::OriginalName("SendModifiedMessage")] SendModifiedMessage = 6,
   }
 
+  public enum PollRequestType {
+    [pbr::OriginalName("PollRequestTypeUnknown")] Unknown = 0,
+    [pbr::OriginalName("Get")] Get = 1,
+    [pbr::OriginalName("AckAll")] AckAll = 2,
+    [pbr::OriginalName("AckRange")] AckRange = 3,
+    [pbr::OriginalName("Close")] Close = 4,
+  }
+
   #endregion
 
   #region Messages
-  public sealed partial class PingResult : pb::IMessage<PingResult> {
+  public sealed partial class PingResult : pb::IMessage<PingResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PingResult> _parser = new pb::MessageParser<PingResult>(() => new PingResult());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -293,6 +323,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Host.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(Host);
@@ -312,7 +345,33 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Host.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Host);
+      }
+      if (Version.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Version);
+      }
+      if (ServerStartTime != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(ServerStartTime);
+      }
+      if (ServerUpTimeSeconds != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(ServerUpTimeSeconds);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -357,6 +416,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -381,11 +443,46 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Host = input.ReadString();
+            break;
+          }
+          case 18: {
+            Version = input.ReadString();
+            break;
+          }
+          case 24: {
+            ServerStartTime = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            ServerUpTimeSeconds = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Empty : pb::IMessage<Empty> {
+  public sealed partial class Empty : pb::IMessage<Empty>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Empty> _parser = new pb::MessageParser<Empty>(() => new Empty());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -450,10 +547,23 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -474,6 +584,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -482,11 +595,30 @@ namespace KubeMQ.Grpc {
             break;
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Result : pb::IMessage<Result> {
+  public sealed partial class Result : pb::IMessage<Result>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Result> _parser = new pb::MessageParser<Result>(() => new Result());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -593,6 +725,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EventID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(EventID);
@@ -608,7 +743,29 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EventID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(EventID);
+      }
+      if (Sent != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(Sent);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -647,6 +804,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -667,11 +827,42 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EventID = input.ReadString();
+            break;
+          }
+          case 16: {
+            Sent = input.ReadBool();
+            break;
+          }
+          case 26: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Event : pb::IMessage<Event> {
+  public sealed partial class Event : pb::IMessage<Event>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Event> _parser = new pb::MessageParser<Event>(() => new Event());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -780,7 +971,7 @@ namespace KubeMQ.Grpc {
     /// <summary>Field number for the "Tags" field.</summary>
     public const int TagsFieldNumber = 7;
     private static readonly pbc::MapField<string, string>.Codec _map_tags_codec
-        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForString(18), 58);
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 58);
     private readonly pbc::MapField<string, string> tags_ = new pbc::MapField<string, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, string> Tags {
@@ -833,6 +1024,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EventID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(EventID);
@@ -861,7 +1055,42 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EventID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(EventID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Channel);
+      }
+      if (Metadata.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Metadata);
+      }
+      if (Body.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(Body);
+      }
+      if (Store != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(Store);
+      }
+      tags_.WriteTo(ref output, _map_tags_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -920,6 +1149,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -956,11 +1188,58 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EventID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 26: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 34: {
+            Metadata = input.ReadString();
+            break;
+          }
+          case 42: {
+            Body = input.ReadBytes();
+            break;
+          }
+          case 48: {
+            Store = input.ReadBool();
+            break;
+          }
+          case 58: {
+            tags_.AddEntriesFrom(ref input, _map_tags_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class EventReceive : pb::IMessage<EventReceive> {
+  public sealed partial class EventReceive : pb::IMessage<EventReceive>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<EventReceive> _parser = new pb::MessageParser<EventReceive>(() => new EventReceive());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1069,7 +1348,7 @@ namespace KubeMQ.Grpc {
     /// <summary>Field number for the "Tags" field.</summary>
     public const int TagsFieldNumber = 7;
     private static readonly pbc::MapField<string, string>.Codec _map_tags_codec
-        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForString(18), 58);
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 58);
     private readonly pbc::MapField<string, string> tags_ = new pbc::MapField<string, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, string> Tags {
@@ -1122,6 +1401,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (EventID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(EventID);
@@ -1150,7 +1432,42 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (EventID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(EventID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Channel);
+      }
+      if (Metadata.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Metadata);
+      }
+      if (Body.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteBytes(Body);
+      }
+      if (Timestamp != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(Timestamp);
+      }
+      if (Sequence != 0UL) {
+        output.WriteRawTag(48);
+        output.WriteUInt64(Sequence);
+      }
+      tags_.WriteTo(ref output, _map_tags_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1209,6 +1526,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1245,11 +1565,58 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            EventID = input.ReadString();
+            break;
+          }
+          case 18: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 26: {
+            Metadata = input.ReadString();
+            break;
+          }
+          case 34: {
+            Body = input.ReadBytes();
+            break;
+          }
+          case 40: {
+            Timestamp = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            Sequence = input.ReadUInt64();
+            break;
+          }
+          case 58: {
+            tags_.AddEntriesFrom(ref input, _map_tags_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class Subscribe : pb::IMessage<Subscribe> {
+  public sealed partial class Subscribe : pb::IMessage<Subscribe>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Subscribe> _parser = new pb::MessageParser<Subscribe>(() => new Subscribe());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1290,7 +1657,7 @@ namespace KubeMQ.Grpc {
 
     /// <summary>Field number for the "SubscribeTypeData" field.</summary>
     public const int SubscribeTypeDataFieldNumber = 1;
-    private global::KubeMQ.Grpc.Subscribe.Types.SubscribeType subscribeTypeData_ = 0;
+    private global::KubeMQ.Grpc.Subscribe.Types.SubscribeType subscribeTypeData_ = global::KubeMQ.Grpc.Subscribe.Types.SubscribeType.Undefined;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.Subscribe.Types.SubscribeType SubscribeTypeData {
       get { return subscribeTypeData_; }
@@ -1334,7 +1701,7 @@ namespace KubeMQ.Grpc {
 
     /// <summary>Field number for the "EventsStoreTypeData" field.</summary>
     public const int EventsStoreTypeDataFieldNumber = 5;
-    private global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType eventsStoreTypeData_ = 0;
+    private global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType eventsStoreTypeData_ = global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType.Undefined;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType EventsStoreTypeData {
       get { return eventsStoreTypeData_; }
@@ -1379,11 +1746,11 @@ namespace KubeMQ.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (SubscribeTypeData != 0) hash ^= SubscribeTypeData.GetHashCode();
+      if (SubscribeTypeData != global::KubeMQ.Grpc.Subscribe.Types.SubscribeType.Undefined) hash ^= SubscribeTypeData.GetHashCode();
       if (ClientID.Length != 0) hash ^= ClientID.GetHashCode();
       if (Channel.Length != 0) hash ^= Channel.GetHashCode();
       if (Group.Length != 0) hash ^= Group.GetHashCode();
-      if (EventsStoreTypeData != 0) hash ^= EventsStoreTypeData.GetHashCode();
+      if (EventsStoreTypeData != global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType.Undefined) hash ^= EventsStoreTypeData.GetHashCode();
       if (EventsStoreTypeValue != 0L) hash ^= EventsStoreTypeValue.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1398,7 +1765,10 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (SubscribeTypeData != 0) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (SubscribeTypeData != global::KubeMQ.Grpc.Subscribe.Types.SubscribeType.Undefined) {
         output.WriteRawTag(8);
         output.WriteEnum((int) SubscribeTypeData);
       }
@@ -1414,7 +1784,7 @@ namespace KubeMQ.Grpc {
         output.WriteRawTag(34);
         output.WriteString(Group);
       }
-      if (EventsStoreTypeData != 0) {
+      if (EventsStoreTypeData != global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType.Undefined) {
         output.WriteRawTag(40);
         output.WriteEnum((int) EventsStoreTypeData);
       }
@@ -1425,12 +1795,46 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (SubscribeTypeData != global::KubeMQ.Grpc.Subscribe.Types.SubscribeType.Undefined) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) SubscribeTypeData);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Channel);
+      }
+      if (Group.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Group);
+      }
+      if (EventsStoreTypeData != global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType.Undefined) {
+        output.WriteRawTag(40);
+        output.WriteEnum((int) EventsStoreTypeData);
+      }
+      if (EventsStoreTypeValue != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(EventsStoreTypeValue);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (SubscribeTypeData != 0) {
+      if (SubscribeTypeData != global::KubeMQ.Grpc.Subscribe.Types.SubscribeType.Undefined) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) SubscribeTypeData);
       }
       if (ClientID.Length != 0) {
@@ -1442,7 +1846,7 @@ namespace KubeMQ.Grpc {
       if (Group.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Group);
       }
-      if (EventsStoreTypeData != 0) {
+      if (EventsStoreTypeData != global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType.Undefined) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) EventsStoreTypeData);
       }
       if (EventsStoreTypeValue != 0L) {
@@ -1459,7 +1863,7 @@ namespace KubeMQ.Grpc {
       if (other == null) {
         return;
       }
-      if (other.SubscribeTypeData != 0) {
+      if (other.SubscribeTypeData != global::KubeMQ.Grpc.Subscribe.Types.SubscribeType.Undefined) {
         SubscribeTypeData = other.SubscribeTypeData;
       }
       if (other.ClientID.Length != 0) {
@@ -1471,7 +1875,7 @@ namespace KubeMQ.Grpc {
       if (other.Group.Length != 0) {
         Group = other.Group;
       }
-      if (other.EventsStoreTypeData != 0) {
+      if (other.EventsStoreTypeData != global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType.Undefined) {
         EventsStoreTypeData = other.EventsStoreTypeData;
       }
       if (other.EventsStoreTypeValue != 0L) {
@@ -1482,6 +1886,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1489,7 +1896,7 @@ namespace KubeMQ.Grpc {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            subscribeTypeData_ = (global::KubeMQ.Grpc.Subscribe.Types.SubscribeType) input.ReadEnum();
+            SubscribeTypeData = (global::KubeMQ.Grpc.Subscribe.Types.SubscribeType) input.ReadEnum();
             break;
           }
           case 18: {
@@ -1505,7 +1912,45 @@ namespace KubeMQ.Grpc {
             break;
           }
           case 40: {
-            eventsStoreTypeData_ = (global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType) input.ReadEnum();
+            EventsStoreTypeData = (global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType) input.ReadEnum();
+            break;
+          }
+          case 48: {
+            EventsStoreTypeValue = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            SubscribeTypeData = (global::KubeMQ.Grpc.Subscribe.Types.SubscribeType) input.ReadEnum();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 26: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 34: {
+            Group = input.ReadString();
+            break;
+          }
+          case 40: {
+            EventsStoreTypeData = (global::KubeMQ.Grpc.Subscribe.Types.EventsStoreType) input.ReadEnum();
             break;
           }
           case 48: {
@@ -1515,6 +1960,7 @@ namespace KubeMQ.Grpc {
         }
       }
     }
+    #endif
 
     #region Nested types
     /// <summary>Container for nested types declared in the Subscribe message type.</summary>
@@ -1543,7 +1989,11 @@ namespace KubeMQ.Grpc {
 
   }
 
-  public sealed partial class Request : pb::IMessage<Request> {
+  public sealed partial class Request : pb::IMessage<Request>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Request> _parser = new pb::MessageParser<Request>(() => new Request());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1601,7 +2051,7 @@ namespace KubeMQ.Grpc {
 
     /// <summary>Field number for the "RequestTypeData" field.</summary>
     public const int RequestTypeDataFieldNumber = 2;
-    private global::KubeMQ.Grpc.Request.Types.RequestType requestTypeData_ = 0;
+    private global::KubeMQ.Grpc.Request.Types.RequestType requestTypeData_ = global::KubeMQ.Grpc.Request.Types.RequestType.Unknown;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.Request.Types.RequestType RequestTypeData {
       get { return requestTypeData_; }
@@ -1712,7 +2162,7 @@ namespace KubeMQ.Grpc {
     /// <summary>Field number for the "Tags" field.</summary>
     public const int TagsFieldNumber = 12;
     private static readonly pbc::MapField<string, string>.Codec _map_tags_codec
-        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForString(18), 98);
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 98);
     private readonly pbc::MapField<string, string> tags_ = new pbc::MapField<string, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, string> Tags {
@@ -1751,7 +2201,7 @@ namespace KubeMQ.Grpc {
     public override int GetHashCode() {
       int hash = 1;
       if (RequestID.Length != 0) hash ^= RequestID.GetHashCode();
-      if (RequestTypeData != 0) hash ^= RequestTypeData.GetHashCode();
+      if (RequestTypeData != global::KubeMQ.Grpc.Request.Types.RequestType.Unknown) hash ^= RequestTypeData.GetHashCode();
       if (ClientID.Length != 0) hash ^= ClientID.GetHashCode();
       if (Channel.Length != 0) hash ^= Channel.GetHashCode();
       if (Metadata.Length != 0) hash ^= Metadata.GetHashCode();
@@ -1775,11 +2225,14 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
       }
-      if (RequestTypeData != 0) {
+      if (RequestTypeData != global::KubeMQ.Grpc.Request.Types.RequestType.Unknown) {
         output.WriteRawTag(16);
         output.WriteEnum((int) RequestTypeData);
       }
@@ -1823,7 +2276,62 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (RequestTypeData != global::KubeMQ.Grpc.Request.Types.RequestType.Unknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) RequestTypeData);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ClientID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Channel);
+      }
+      if (Metadata.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Metadata);
+      }
+      if (Body.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteBytes(Body);
+      }
+      if (ReplyChannel.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(ReplyChannel);
+      }
+      if (Timeout != 0) {
+        output.WriteRawTag(64);
+        output.WriteInt32(Timeout);
+      }
+      if (CacheKey.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(CacheKey);
+      }
+      if (CacheTTL != 0) {
+        output.WriteRawTag(80);
+        output.WriteInt32(CacheTTL);
+      }
+      if (Span.Length != 0) {
+        output.WriteRawTag(90);
+        output.WriteBytes(Span);
+      }
+      tags_.WriteTo(ref output, _map_tags_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1831,7 +2339,7 @@ namespace KubeMQ.Grpc {
       if (RequestID.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(RequestID);
       }
-      if (RequestTypeData != 0) {
+      if (RequestTypeData != global::KubeMQ.Grpc.Request.Types.RequestType.Unknown) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) RequestTypeData);
       }
       if (ClientID.Length != 0) {
@@ -1876,7 +2384,7 @@ namespace KubeMQ.Grpc {
       if (other.RequestID.Length != 0) {
         RequestID = other.RequestID;
       }
-      if (other.RequestTypeData != 0) {
+      if (other.RequestTypeData != global::KubeMQ.Grpc.Request.Types.RequestType.Unknown) {
         RequestTypeData = other.RequestTypeData;
       }
       if (other.ClientID.Length != 0) {
@@ -1912,6 +2420,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1923,7 +2434,7 @@ namespace KubeMQ.Grpc {
             break;
           }
           case 16: {
-            requestTypeData_ = (global::KubeMQ.Grpc.Request.Types.RequestType) input.ReadEnum();
+            RequestTypeData = (global::KubeMQ.Grpc.Request.Types.RequestType) input.ReadEnum();
             break;
           }
           case 26: {
@@ -1968,7 +2479,70 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 16: {
+            RequestTypeData = (global::KubeMQ.Grpc.Request.Types.RequestType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 34: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 42: {
+            Metadata = input.ReadString();
+            break;
+          }
+          case 50: {
+            Body = input.ReadBytes();
+            break;
+          }
+          case 58: {
+            ReplyChannel = input.ReadString();
+            break;
+          }
+          case 64: {
+            Timeout = input.ReadInt32();
+            break;
+          }
+          case 74: {
+            CacheKey = input.ReadString();
+            break;
+          }
+          case 80: {
+            CacheTTL = input.ReadInt32();
+            break;
+          }
+          case 90: {
+            Span = input.ReadBytes();
+            break;
+          }
+          case 98: {
+            tags_.AddEntriesFrom(ref input, _map_tags_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
     #region Nested types
     /// <summary>Container for nested types declared in the Request message type.</summary>
@@ -1985,7 +2559,11 @@ namespace KubeMQ.Grpc {
 
   }
 
-  public sealed partial class Response : pb::IMessage<Response> {
+  public sealed partial class Response : pb::IMessage<Response>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Response> _parser = new pb::MessageParser<Response>(() => new Response());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2142,7 +2720,7 @@ namespace KubeMQ.Grpc {
     /// <summary>Field number for the "Tags" field.</summary>
     public const int TagsFieldNumber = 11;
     private static readonly pbc::MapField<string, string>.Codec _map_tags_codec
-        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForString(18), 90);
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 90);
     private readonly pbc::MapField<string, string> tags_ = new pbc::MapField<string, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, string> Tags {
@@ -2203,6 +2781,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ClientID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(ClientID);
@@ -2247,7 +2828,58 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(ClientID);
+      }
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(RequestID);
+      }
+      if (ReplyChannel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(ReplyChannel);
+      }
+      if (Metadata.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Metadata);
+      }
+      if (Body.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(Body);
+      }
+      if (CacheHit != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(CacheHit);
+      }
+      if (Timestamp != 0L) {
+        output.WriteRawTag(56);
+        output.WriteInt64(Timestamp);
+      }
+      if (Executed != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(Executed);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(74);
+        output.WriteString(Error);
+      }
+      if (Span.Length != 0) {
+        output.WriteRawTag(82);
+        output.WriteBytes(Span);
+      }
+      tags_.WriteTo(ref output, _map_tags_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -2330,6 +2962,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2382,11 +3017,74 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 18: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 26: {
+            ReplyChannel = input.ReadString();
+            break;
+          }
+          case 34: {
+            Metadata = input.ReadString();
+            break;
+          }
+          case 42: {
+            Body = input.ReadBytes();
+            break;
+          }
+          case 48: {
+            CacheHit = input.ReadBool();
+            break;
+          }
+          case 56: {
+            Timestamp = input.ReadInt64();
+            break;
+          }
+          case 64: {
+            Executed = input.ReadBool();
+            break;
+          }
+          case 74: {
+            Error = input.ReadString();
+            break;
+          }
+          case 82: {
+            Span = input.ReadBytes();
+            break;
+          }
+          case 90: {
+            tags_.AddEntriesFrom(ref input, _map_tags_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class QueueMessage : pb::IMessage<QueueMessage> {
+  public sealed partial class QueueMessage : pb::IMessage<QueueMessage>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<QueueMessage> _parser = new pb::MessageParser<QueueMessage>(() => new QueueMessage());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2417,8 +3115,8 @@ namespace KubeMQ.Grpc {
       metadata_ = other.metadata_;
       body_ = other.body_;
       tags_ = other.tags_.Clone();
-      Attributes = other.attributes_ != null ? other.Attributes.Clone() : null;
-      Policy = other.policy_ != null ? other.Policy.Clone() : null;
+      attributes_ = other.attributes_ != null ? other.attributes_.Clone() : null;
+      policy_ = other.policy_ != null ? other.policy_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2485,7 +3183,7 @@ namespace KubeMQ.Grpc {
     /// <summary>Field number for the "Tags" field.</summary>
     public const int TagsFieldNumber = 6;
     private static readonly pbc::MapField<string, string>.Codec _map_tags_codec
-        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10), pb::FieldCodec.ForString(18), 50);
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 50);
     private readonly pbc::MapField<string, string> tags_ = new pbc::MapField<string, string>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::MapField<string, string> Tags {
@@ -2562,6 +3260,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(MessageID);
@@ -2594,7 +3295,46 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(MessageID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Channel);
+      }
+      if (Metadata.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Metadata);
+      }
+      if (Body.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteBytes(Body);
+      }
+      tags_.WriteTo(ref output, _map_tags_codec);
+      if (attributes_ != null) {
+        output.WriteRawTag(58);
+        output.WriteMessage(Attributes);
+      }
+      if (policy_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(Policy);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -2650,13 +3390,13 @@ namespace KubeMQ.Grpc {
       tags_.Add(other.tags_);
       if (other.attributes_ != null) {
         if (attributes_ == null) {
-          attributes_ = new global::KubeMQ.Grpc.QueueMessageAttributes();
+          Attributes = new global::KubeMQ.Grpc.QueueMessageAttributes();
         }
         Attributes.MergeFrom(other.Attributes);
       }
       if (other.policy_ != null) {
         if (policy_ == null) {
-          policy_ = new global::KubeMQ.Grpc.QueueMessagePolicy();
+          Policy = new global::KubeMQ.Grpc.QueueMessagePolicy();
         }
         Policy.MergeFrom(other.Policy);
       }
@@ -2665,6 +3405,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2697,25 +3440,82 @@ namespace KubeMQ.Grpc {
           }
           case 58: {
             if (attributes_ == null) {
-              attributes_ = new global::KubeMQ.Grpc.QueueMessageAttributes();
+              Attributes = new global::KubeMQ.Grpc.QueueMessageAttributes();
             }
-            input.ReadMessage(attributes_);
+            input.ReadMessage(Attributes);
             break;
           }
           case 66: {
             if (policy_ == null) {
-              policy_ = new global::KubeMQ.Grpc.QueueMessagePolicy();
+              Policy = new global::KubeMQ.Grpc.QueueMessagePolicy();
             }
-            input.ReadMessage(policy_);
+            input.ReadMessage(Policy);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            MessageID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 26: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 34: {
+            Metadata = input.ReadString();
+            break;
+          }
+          case 42: {
+            Body = input.ReadBytes();
+            break;
+          }
+          case 50: {
+            tags_.AddEntriesFrom(ref input, _map_tags_codec);
+            break;
+          }
+          case 58: {
+            if (attributes_ == null) {
+              Attributes = new global::KubeMQ.Grpc.QueueMessageAttributes();
+            }
+            input.ReadMessage(Attributes);
+            break;
+          }
+          case 66: {
+            if (policy_ == null) {
+              Policy = new global::KubeMQ.Grpc.QueueMessagePolicy();
+            }
+            input.ReadMessage(Policy);
             break;
           }
         }
       }
     }
+    #endif
 
   }
 
-  public sealed partial class QueueMessagesBatchRequest : pb::IMessage<QueueMessagesBatchRequest> {
+  public sealed partial class QueueMessagesBatchRequest : pb::IMessage<QueueMessagesBatchRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<QueueMessagesBatchRequest> _parser = new pb::MessageParser<QueueMessagesBatchRequest>(() => new QueueMessagesBatchRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2807,6 +3607,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (BatchID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(BatchID);
@@ -2815,7 +3618,22 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (BatchID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(BatchID);
+      }
+      messages_.WriteTo(ref output, _repeated_messages_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -2844,6 +3662,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -2860,11 +3681,38 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            BatchID = input.ReadString();
+            break;
+          }
+          case 18: {
+            messages_.AddEntriesFrom(ref input, _repeated_messages_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class QueueMessagesBatchResponse : pb::IMessage<QueueMessagesBatchResponse> {
+  public sealed partial class QueueMessagesBatchResponse : pb::IMessage<QueueMessagesBatchResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<QueueMessagesBatchResponse> _parser = new pb::MessageParser<QueueMessagesBatchResponse>(() => new QueueMessagesBatchResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2970,6 +3818,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (BatchID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(BatchID);
@@ -2982,7 +3833,26 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (BatchID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(BatchID);
+      }
+      results_.WriteTo(ref output, _repeated_results_codec);
+      if (HaveErrors != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(HaveErrors);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -3017,6 +3887,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3037,11 +3910,42 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            BatchID = input.ReadString();
+            break;
+          }
+          case 18: {
+            results_.AddEntriesFrom(ref input, _repeated_results_codec);
+            break;
+          }
+          case 24: {
+            HaveErrors = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class QueueMessageAttributes : pb::IMessage<QueueMessageAttributes> {
+  public sealed partial class QueueMessageAttributes : pb::IMessage<QueueMessageAttributes>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<QueueMessageAttributes> _parser = new pb::MessageParser<QueueMessageAttributes>(() => new QueueMessageAttributes());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3218,6 +4122,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Timestamp != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Timestamp);
@@ -3253,7 +4160,49 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Timestamp != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Timestamp);
+      }
+      if (Sequence != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(Sequence);
+      }
+      if (MD5OfBody.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(MD5OfBody);
+      }
+      if (ReceiveCount != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(ReceiveCount);
+      }
+      if (ReRouted != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(ReRouted);
+      }
+      if (ReRoutedFromQueue.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(ReRoutedFromQueue);
+      }
+      if (ExpirationAt != 0L) {
+        output.WriteRawTag(56);
+        output.WriteInt64(ExpirationAt);
+      }
+      if (DelayedTo != 0L) {
+        output.WriteRawTag(64);
+        output.WriteInt64(DelayedTo);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -3322,6 +4271,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3362,11 +4314,62 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Timestamp = input.ReadInt64();
+            break;
+          }
+          case 16: {
+            Sequence = input.ReadUInt64();
+            break;
+          }
+          case 26: {
+            MD5OfBody = input.ReadString();
+            break;
+          }
+          case 32: {
+            ReceiveCount = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            ReRouted = input.ReadBool();
+            break;
+          }
+          case 50: {
+            ReRoutedFromQueue = input.ReadString();
+            break;
+          }
+          case 56: {
+            ExpirationAt = input.ReadInt64();
+            break;
+          }
+          case 64: {
+            DelayedTo = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class QueueMessagePolicy : pb::IMessage<QueueMessagePolicy> {
+  public sealed partial class QueueMessagePolicy : pb::IMessage<QueueMessagePolicy>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<QueueMessagePolicy> _parser = new pb::MessageParser<QueueMessagePolicy>(() => new QueueMessagePolicy());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3487,6 +4490,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ExpirationSeconds != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(ExpirationSeconds);
@@ -3506,7 +4512,33 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ExpirationSeconds != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ExpirationSeconds);
+      }
+      if (DelaySeconds != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(DelaySeconds);
+      }
+      if (MaxReceiveCount != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(MaxReceiveCount);
+      }
+      if (MaxReceiveQueue.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(MaxReceiveQueue);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -3551,6 +4583,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3575,11 +4610,46 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ExpirationSeconds = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            DelaySeconds = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            MaxReceiveCount = input.ReadInt32();
+            break;
+          }
+          case 34: {
+            MaxReceiveQueue = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class SendQueueMessageResult : pb::IMessage<SendQueueMessageResult> {
+  public sealed partial class SendQueueMessageResult : pb::IMessage<SendQueueMessageResult>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<SendQueueMessageResult> _parser = new pb::MessageParser<SendQueueMessageResult>(() => new SendQueueMessageResult());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3728,6 +4798,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MessageID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(MessageID);
@@ -3755,7 +4828,41 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MessageID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(MessageID);
+      }
+      if (SentAt != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(SentAt);
+      }
+      if (ExpirationAt != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(ExpirationAt);
+      }
+      if (DelayedTo != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(DelayedTo);
+      }
+      if (IsError != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(IsError);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -3812,6 +4919,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -3844,11 +4954,54 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            MessageID = input.ReadString();
+            break;
+          }
+          case 16: {
+            SentAt = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            ExpirationAt = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            DelayedTo = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            IsError = input.ReadBool();
+            break;
+          }
+          case 50: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ReceiveQueueMessagesRequest : pb::IMessage<ReceiveQueueMessagesRequest> {
+  public sealed partial class ReceiveQueueMessagesRequest : pb::IMessage<ReceiveQueueMessagesRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ReceiveQueueMessagesRequest> _parser = new pb::MessageParser<ReceiveQueueMessagesRequest>(() => new ReceiveQueueMessagesRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3997,6 +5150,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
@@ -4024,7 +5180,41 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Channel);
+      }
+      if (MaxNumberOfMessages != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(MaxNumberOfMessages);
+      }
+      if (WaitTimeSeconds != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(WaitTimeSeconds);
+      }
+      if (IsPeak != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(IsPeak);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -4081,6 +5271,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4113,11 +5306,54 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 26: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 32: {
+            MaxNumberOfMessages = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            WaitTimeSeconds = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            IsPeak = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class ReceiveQueueMessagesResponse : pb::IMessage<ReceiveQueueMessagesResponse> {
+  public sealed partial class ReceiveQueueMessagesResponse : pb::IMessage<ReceiveQueueMessagesResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ReceiveQueueMessagesResponse> _parser = new pb::MessageParser<ReceiveQueueMessagesResponse>(() => new ReceiveQueueMessagesResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4279,6 +5515,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
@@ -4307,7 +5546,42 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      messages_.WriteTo(ref output, _repeated_messages_codec);
+      if (MessagesReceived != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(MessagesReceived);
+      }
+      if (MessagesExpired != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(MessagesExpired);
+      }
+      if (IsPeak != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(IsPeak);
+      }
+      if (IsError != false) {
+        output.WriteRawTag(48);
+        output.WriteBool(IsError);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -4366,6 +5640,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4402,11 +5679,58 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            messages_.AddEntriesFrom(ref input, _repeated_messages_codec);
+            break;
+          }
+          case 24: {
+            MessagesReceived = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            MessagesExpired = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            IsPeak = input.ReadBool();
+            break;
+          }
+          case 48: {
+            IsError = input.ReadBool();
+            break;
+          }
+          case 58: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AckAllQueueMessagesRequest : pb::IMessage<AckAllQueueMessagesRequest> {
+  public sealed partial class AckAllQueueMessagesRequest : pb::IMessage<AckAllQueueMessagesRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AckAllQueueMessagesRequest> _parser = new pb::MessageParser<AckAllQueueMessagesRequest>(() => new AckAllQueueMessagesRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4527,6 +5851,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
@@ -4546,7 +5873,33 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(Channel);
+      }
+      if (WaitTimeSeconds != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(WaitTimeSeconds);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -4591,6 +5944,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4615,11 +5971,46 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 26: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 32: {
+            WaitTimeSeconds = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class AckAllQueueMessagesResponse : pb::IMessage<AckAllQueueMessagesResponse> {
+  public sealed partial class AckAllQueueMessagesResponse : pb::IMessage<AckAllQueueMessagesResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<AckAllQueueMessagesResponse> _parser = new pb::MessageParser<AckAllQueueMessagesResponse>(() => new AckAllQueueMessagesResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4740,6 +6131,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
@@ -4759,7 +6153,33 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (AffectedMessages != 0UL) {
+        output.WriteRawTag(16);
+        output.WriteUInt64(AffectedMessages);
+      }
+      if (IsError != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(IsError);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -4804,6 +6224,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -4828,11 +6251,46 @@ namespace KubeMQ.Grpc {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 16: {
+            AffectedMessages = input.ReadUInt64();
+            break;
+          }
+          case 24: {
+            IsError = input.ReadBool();
+            break;
+          }
+          case 34: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-  public sealed partial class StreamQueueMessagesRequest : pb::IMessage<StreamQueueMessagesRequest> {
+  public sealed partial class StreamQueueMessagesRequest : pb::IMessage<StreamQueueMessagesRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<StreamQueueMessagesRequest> _parser = new pb::MessageParser<StreamQueueMessagesRequest>(() => new StreamQueueMessagesRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4864,7 +6322,7 @@ namespace KubeMQ.Grpc {
       visibilitySeconds_ = other.visibilitySeconds_;
       waitTimeSeconds_ = other.waitTimeSeconds_;
       refSequence_ = other.refSequence_;
-      ModifiedMessage = other.modifiedMessage_ != null ? other.ModifiedMessage.Clone() : null;
+      modifiedMessage_ = other.modifiedMessage_ != null ? other.modifiedMessage_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -4897,7 +6355,7 @@ namespace KubeMQ.Grpc {
 
     /// <summary>Field number for the "StreamRequestTypeData" field.</summary>
     public const int StreamRequestTypeDataFieldNumber = 3;
-    private global::KubeMQ.Grpc.StreamRequestType streamRequestTypeData_ = 0;
+    private global::KubeMQ.Grpc.StreamRequestType streamRequestTypeData_ = global::KubeMQ.Grpc.StreamRequestType.Unknown;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.StreamRequestType StreamRequestTypeData {
       get { return streamRequestTypeData_; }
@@ -4990,7 +6448,7 @@ namespace KubeMQ.Grpc {
       int hash = 1;
       if (RequestID.Length != 0) hash ^= RequestID.GetHashCode();
       if (ClientID.Length != 0) hash ^= ClientID.GetHashCode();
-      if (StreamRequestTypeData != 0) hash ^= StreamRequestTypeData.GetHashCode();
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) hash ^= StreamRequestTypeData.GetHashCode();
       if (Channel.Length != 0) hash ^= Channel.GetHashCode();
       if (VisibilitySeconds != 0) hash ^= VisibilitySeconds.GetHashCode();
       if (WaitTimeSeconds != 0) hash ^= WaitTimeSeconds.GetHashCode();
@@ -5009,6 +6467,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
@@ -5017,7 +6478,7 @@ namespace KubeMQ.Grpc {
         output.WriteRawTag(18);
         output.WriteString(ClientID);
       }
-      if (StreamRequestTypeData != 0) {
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
         output.WriteRawTag(24);
         output.WriteEnum((int) StreamRequestTypeData);
       }
@@ -5044,7 +6505,49 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) StreamRequestTypeData);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Channel);
+      }
+      if (VisibilitySeconds != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(VisibilitySeconds);
+      }
+      if (WaitTimeSeconds != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(WaitTimeSeconds);
+      }
+      if (RefSequence != 0UL) {
+        output.WriteRawTag(56);
+        output.WriteUInt64(RefSequence);
+      }
+      if (modifiedMessage_ != null) {
+        output.WriteRawTag(66);
+        output.WriteMessage(ModifiedMessage);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -5055,7 +6558,7 @@ namespace KubeMQ.Grpc {
       if (ClientID.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(ClientID);
       }
-      if (StreamRequestTypeData != 0) {
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) StreamRequestTypeData);
       }
       if (Channel.Length != 0) {
@@ -5090,7 +6593,7 @@ namespace KubeMQ.Grpc {
       if (other.ClientID.Length != 0) {
         ClientID = other.ClientID;
       }
-      if (other.StreamRequestTypeData != 0) {
+      if (other.StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
         StreamRequestTypeData = other.StreamRequestTypeData;
       }
       if (other.Channel.Length != 0) {
@@ -5107,7 +6610,7 @@ namespace KubeMQ.Grpc {
       }
       if (other.modifiedMessage_ != null) {
         if (modifiedMessage_ == null) {
-          modifiedMessage_ = new global::KubeMQ.Grpc.QueueMessage();
+          ModifiedMessage = new global::KubeMQ.Grpc.QueueMessage();
         }
         ModifiedMessage.MergeFrom(other.ModifiedMessage);
       }
@@ -5116,6 +6619,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5131,7 +6637,7 @@ namespace KubeMQ.Grpc {
             break;
           }
           case 24: {
-            streamRequestTypeData_ = (global::KubeMQ.Grpc.StreamRequestType) input.ReadEnum();
+            StreamRequestTypeData = (global::KubeMQ.Grpc.StreamRequestType) input.ReadEnum();
             break;
           }
           case 34: {
@@ -5152,18 +6658,72 @@ namespace KubeMQ.Grpc {
           }
           case 66: {
             if (modifiedMessage_ == null) {
-              modifiedMessage_ = new global::KubeMQ.Grpc.QueueMessage();
+              ModifiedMessage = new global::KubeMQ.Grpc.QueueMessage();
             }
-            input.ReadMessage(modifiedMessage_);
+            input.ReadMessage(ModifiedMessage);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 24: {
+            StreamRequestTypeData = (global::KubeMQ.Grpc.StreamRequestType) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 40: {
+            VisibilitySeconds = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            WaitTimeSeconds = input.ReadInt32();
+            break;
+          }
+          case 56: {
+            RefSequence = input.ReadUInt64();
+            break;
+          }
+          case 66: {
+            if (modifiedMessage_ == null) {
+              ModifiedMessage = new global::KubeMQ.Grpc.QueueMessage();
+            }
+            input.ReadMessage(ModifiedMessage);
             break;
           }
         }
       }
     }
+    #endif
 
   }
 
-  public sealed partial class StreamQueueMessagesResponse : pb::IMessage<StreamQueueMessagesResponse> {
+  public sealed partial class StreamQueueMessagesResponse : pb::IMessage<StreamQueueMessagesResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<StreamQueueMessagesResponse> _parser = new pb::MessageParser<StreamQueueMessagesResponse>(() => new StreamQueueMessagesResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5190,7 +6750,7 @@ namespace KubeMQ.Grpc {
     public StreamQueueMessagesResponse(StreamQueueMessagesResponse other) : this() {
       requestID_ = other.requestID_;
       streamRequestTypeData_ = other.streamRequestTypeData_;
-      Message = other.message_ != null ? other.Message.Clone() : null;
+      message_ = other.message_ != null ? other.message_.Clone() : null;
       isError_ = other.isError_;
       error_ = other.error_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -5214,7 +6774,7 @@ namespace KubeMQ.Grpc {
 
     /// <summary>Field number for the "StreamRequestTypeData" field.</summary>
     public const int StreamRequestTypeDataFieldNumber = 2;
-    private global::KubeMQ.Grpc.StreamRequestType streamRequestTypeData_ = 0;
+    private global::KubeMQ.Grpc.StreamRequestType streamRequestTypeData_ = global::KubeMQ.Grpc.StreamRequestType.Unknown;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::KubeMQ.Grpc.StreamRequestType StreamRequestTypeData {
       get { return streamRequestTypeData_; }
@@ -5281,7 +6841,7 @@ namespace KubeMQ.Grpc {
     public override int GetHashCode() {
       int hash = 1;
       if (RequestID.Length != 0) hash ^= RequestID.GetHashCode();
-      if (StreamRequestTypeData != 0) hash ^= StreamRequestTypeData.GetHashCode();
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) hash ^= StreamRequestTypeData.GetHashCode();
       if (message_ != null) hash ^= Message.GetHashCode();
       if (IsError != false) hash ^= IsError.GetHashCode();
       if (Error.Length != 0) hash ^= Error.GetHashCode();
@@ -5298,11 +6858,14 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (RequestID.Length != 0) {
         output.WriteRawTag(10);
         output.WriteString(RequestID);
       }
-      if (StreamRequestTypeData != 0) {
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
         output.WriteRawTag(16);
         output.WriteEnum((int) StreamRequestTypeData);
       }
@@ -5321,7 +6884,37 @@ namespace KubeMQ.Grpc {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) StreamRequestTypeData);
+      }
+      if (message_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Message);
+      }
+      if (IsError != false) {
+        output.WriteRawTag(32);
+        output.WriteBool(IsError);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -5329,7 +6922,7 @@ namespace KubeMQ.Grpc {
       if (RequestID.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(RequestID);
       }
-      if (StreamRequestTypeData != 0) {
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) StreamRequestTypeData);
       }
       if (message_ != null) {
@@ -5355,12 +6948,12 @@ namespace KubeMQ.Grpc {
       if (other.RequestID.Length != 0) {
         RequestID = other.RequestID;
       }
-      if (other.StreamRequestTypeData != 0) {
+      if (other.StreamRequestTypeData != global::KubeMQ.Grpc.StreamRequestType.Unknown) {
         StreamRequestTypeData = other.StreamRequestTypeData;
       }
       if (other.message_ != null) {
         if (message_ == null) {
-          message_ = new global::KubeMQ.Grpc.QueueMessage();
+          Message = new global::KubeMQ.Grpc.QueueMessage();
         }
         Message.MergeFrom(other.Message);
       }
@@ -5375,6 +6968,9 @@ namespace KubeMQ.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -5386,14 +6982,51 @@ namespace KubeMQ.Grpc {
             break;
           }
           case 16: {
-            streamRequestTypeData_ = (global::KubeMQ.Grpc.StreamRequestType) input.ReadEnum();
+            StreamRequestTypeData = (global::KubeMQ.Grpc.StreamRequestType) input.ReadEnum();
             break;
           }
           case 26: {
             if (message_ == null) {
-              message_ = new global::KubeMQ.Grpc.QueueMessage();
+              Message = new global::KubeMQ.Grpc.QueueMessage();
             }
-            input.ReadMessage(message_);
+            input.ReadMessage(Message);
+            break;
+          }
+          case 32: {
+            IsError = input.ReadBool();
+            break;
+          }
+          case 42: {
+            Error = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 16: {
+            StreamRequestTypeData = (global::KubeMQ.Grpc.StreamRequestType) input.ReadEnum();
+            break;
+          }
+          case 26: {
+            if (message_ == null) {
+              Message = new global::KubeMQ.Grpc.QueueMessage();
+            }
+            input.ReadMessage(Message);
             break;
           }
           case 32: {
@@ -5407,6 +7040,777 @@ namespace KubeMQ.Grpc {
         }
       }
     }
+    #endif
+
+  }
+
+  public sealed partial class PollRequest : pb::IMessage<PollRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PollRequest> _parser = new pb::MessageParser<PollRequest>(() => new PollRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<PollRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KubeMQ.Grpc.KubemqReflection.Descriptor.MessageTypes[20]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PollRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PollRequest(PollRequest other) : this() {
+      requestID_ = other.requestID_;
+      clientID_ = other.clientID_;
+      streamRequestTypeData_ = other.streamRequestTypeData_;
+      channel_ = other.channel_;
+      autoAck_ = other.autoAck_;
+      ackRange_ = other.ackRange_.Clone();
+      refTransactionId_ = other.refTransactionId_;
+      headers_ = other.headers_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PollRequest Clone() {
+      return new PollRequest(this);
+    }
+
+    /// <summary>Field number for the "RequestID" field.</summary>
+    public const int RequestIDFieldNumber = 1;
+    private string requestID_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RequestID {
+      get { return requestID_; }
+      set {
+        requestID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "ClientID" field.</summary>
+    public const int ClientIDFieldNumber = 2;
+    private string clientID_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string ClientID {
+      get { return clientID_; }
+      set {
+        clientID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "StreamRequestTypeData" field.</summary>
+    public const int StreamRequestTypeDataFieldNumber = 3;
+    private global::KubeMQ.Grpc.PollRequestType streamRequestTypeData_ = global::KubeMQ.Grpc.PollRequestType.Unknown;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::KubeMQ.Grpc.PollRequestType StreamRequestTypeData {
+      get { return streamRequestTypeData_; }
+      set {
+        streamRequestTypeData_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Channel" field.</summary>
+    public const int ChannelFieldNumber = 4;
+    private string channel_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Channel {
+      get { return channel_; }
+      set {
+        channel_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "AutoAck" field.</summary>
+    public const int AutoAckFieldNumber = 5;
+    private bool autoAck_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool AutoAck {
+      get { return autoAck_; }
+      set {
+        autoAck_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "AckRange" field.</summary>
+    public const int AckRangeFieldNumber = 6;
+    private static readonly pb::FieldCodec<long> _repeated_ackRange_codec
+        = pb::FieldCodec.ForInt64(50);
+    private readonly pbc::RepeatedField<long> ackRange_ = new pbc::RepeatedField<long>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<long> AckRange {
+      get { return ackRange_; }
+    }
+
+    /// <summary>Field number for the "RefTransactionId" field.</summary>
+    public const int RefTransactionIdFieldNumber = 7;
+    private string refTransactionId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RefTransactionId {
+      get { return refTransactionId_; }
+      set {
+        refTransactionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Headers" field.</summary>
+    public const int HeadersFieldNumber = 8;
+    private static readonly pbc::MapField<string, string>.Codec _map_headers_codec
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 66);
+    private readonly pbc::MapField<string, string> headers_ = new pbc::MapField<string, string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, string> Headers {
+      get { return headers_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as PollRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(PollRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RequestID != other.RequestID) return false;
+      if (ClientID != other.ClientID) return false;
+      if (StreamRequestTypeData != other.StreamRequestTypeData) return false;
+      if (Channel != other.Channel) return false;
+      if (AutoAck != other.AutoAck) return false;
+      if(!ackRange_.Equals(other.ackRange_)) return false;
+      if (RefTransactionId != other.RefTransactionId) return false;
+      if (!Headers.Equals(other.Headers)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RequestID.Length != 0) hash ^= RequestID.GetHashCode();
+      if (ClientID.Length != 0) hash ^= ClientID.GetHashCode();
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) hash ^= StreamRequestTypeData.GetHashCode();
+      if (Channel.Length != 0) hash ^= Channel.GetHashCode();
+      if (AutoAck != false) hash ^= AutoAck.GetHashCode();
+      hash ^= ackRange_.GetHashCode();
+      if (RefTransactionId.Length != 0) hash ^= RefTransactionId.GetHashCode();
+      hash ^= Headers.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) StreamRequestTypeData);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Channel);
+      }
+      if (AutoAck != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(AutoAck);
+      }
+      ackRange_.WriteTo(output, _repeated_ackRange_codec);
+      if (RefTransactionId.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(RefTransactionId);
+      }
+      headers_.WriteTo(output, _map_headers_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (ClientID.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(ClientID);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) StreamRequestTypeData);
+      }
+      if (Channel.Length != 0) {
+        output.WriteRawTag(34);
+        output.WriteString(Channel);
+      }
+      if (AutoAck != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(AutoAck);
+      }
+      ackRange_.WriteTo(ref output, _repeated_ackRange_codec);
+      if (RefTransactionId.Length != 0) {
+        output.WriteRawTag(58);
+        output.WriteString(RefTransactionId);
+      }
+      headers_.WriteTo(ref output, _map_headers_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RequestID.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RequestID);
+      }
+      if (ClientID.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(ClientID);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) StreamRequestTypeData);
+      }
+      if (Channel.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Channel);
+      }
+      if (AutoAck != false) {
+        size += 1 + 1;
+      }
+      size += ackRange_.CalculateSize(_repeated_ackRange_codec);
+      if (RefTransactionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RefTransactionId);
+      }
+      size += headers_.CalculateSize(_map_headers_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(PollRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RequestID.Length != 0) {
+        RequestID = other.RequestID;
+      }
+      if (other.ClientID.Length != 0) {
+        ClientID = other.ClientID;
+      }
+      if (other.StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        StreamRequestTypeData = other.StreamRequestTypeData;
+      }
+      if (other.Channel.Length != 0) {
+        Channel = other.Channel;
+      }
+      if (other.AutoAck != false) {
+        AutoAck = other.AutoAck;
+      }
+      ackRange_.Add(other.ackRange_);
+      if (other.RefTransactionId.Length != 0) {
+        RefTransactionId = other.RefTransactionId;
+      }
+      headers_.Add(other.headers_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 24: {
+            StreamRequestTypeData = (global::KubeMQ.Grpc.PollRequestType) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 40: {
+            AutoAck = input.ReadBool();
+            break;
+          }
+          case 50:
+          case 48: {
+            ackRange_.AddEntriesFrom(input, _repeated_ackRange_codec);
+            break;
+          }
+          case 58: {
+            RefTransactionId = input.ReadString();
+            break;
+          }
+          case 66: {
+            headers_.AddEntriesFrom(input, _map_headers_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            ClientID = input.ReadString();
+            break;
+          }
+          case 24: {
+            StreamRequestTypeData = (global::KubeMQ.Grpc.PollRequestType) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            Channel = input.ReadString();
+            break;
+          }
+          case 40: {
+            AutoAck = input.ReadBool();
+            break;
+          }
+          case 50:
+          case 48: {
+            ackRange_.AddEntriesFrom(ref input, _repeated_ackRange_codec);
+            break;
+          }
+          case 58: {
+            RefTransactionId = input.ReadString();
+            break;
+          }
+          case 66: {
+            headers_.AddEntriesFrom(ref input, _map_headers_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class PollResponse : pb::IMessage<PollResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<PollResponse> _parser = new pb::MessageParser<PollResponse>(() => new PollResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<PollResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KubeMQ.Grpc.KubemqReflection.Descriptor.MessageTypes[21]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PollResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PollResponse(PollResponse other) : this() {
+      transactionId_ = other.transactionId_;
+      refRequestId_ = other.refRequestId_;
+      streamRequestTypeData_ = other.streamRequestTypeData_;
+      messages_ = other.messages_.Clone();
+      isError_ = other.isError_;
+      error_ = other.error_;
+      headers_ = other.headers_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public PollResponse Clone() {
+      return new PollResponse(this);
+    }
+
+    /// <summary>Field number for the "TransactionId" field.</summary>
+    public const int TransactionIdFieldNumber = 1;
+    private string transactionId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string TransactionId {
+      get { return transactionId_; }
+      set {
+        transactionId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "RefRequestId" field.</summary>
+    public const int RefRequestIdFieldNumber = 2;
+    private string refRequestId_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RefRequestId {
+      get { return refRequestId_; }
+      set {
+        refRequestId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "StreamRequestTypeData" field.</summary>
+    public const int StreamRequestTypeDataFieldNumber = 3;
+    private global::KubeMQ.Grpc.PollRequestType streamRequestTypeData_ = global::KubeMQ.Grpc.PollRequestType.Unknown;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::KubeMQ.Grpc.PollRequestType StreamRequestTypeData {
+      get { return streamRequestTypeData_; }
+      set {
+        streamRequestTypeData_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Messages" field.</summary>
+    public const int MessagesFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::KubeMQ.Grpc.QueueMessage> _repeated_messages_codec
+        = pb::FieldCodec.ForMessage(34, global::KubeMQ.Grpc.QueueMessage.Parser);
+    private readonly pbc::RepeatedField<global::KubeMQ.Grpc.QueueMessage> messages_ = new pbc::RepeatedField<global::KubeMQ.Grpc.QueueMessage>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::KubeMQ.Grpc.QueueMessage> Messages {
+      get { return messages_; }
+    }
+
+    /// <summary>Field number for the "IsError" field.</summary>
+    public const int IsErrorFieldNumber = 5;
+    private bool isError_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool IsError {
+      get { return isError_; }
+      set {
+        isError_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Error" field.</summary>
+    public const int ErrorFieldNumber = 6;
+    private string error_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Error {
+      get { return error_; }
+      set {
+        error_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Headers" field.</summary>
+    public const int HeadersFieldNumber = 7;
+    private static readonly pbc::MapField<string, string>.Codec _map_headers_codec
+        = new pbc::MapField<string, string>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForString(18, ""), 58);
+    private readonly pbc::MapField<string, string> headers_ = new pbc::MapField<string, string>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::MapField<string, string> Headers {
+      get { return headers_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as PollResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(PollResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TransactionId != other.TransactionId) return false;
+      if (RefRequestId != other.RefRequestId) return false;
+      if (StreamRequestTypeData != other.StreamRequestTypeData) return false;
+      if(!messages_.Equals(other.messages_)) return false;
+      if (IsError != other.IsError) return false;
+      if (Error != other.Error) return false;
+      if (!Headers.Equals(other.Headers)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TransactionId.Length != 0) hash ^= TransactionId.GetHashCode();
+      if (RefRequestId.Length != 0) hash ^= RefRequestId.GetHashCode();
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) hash ^= StreamRequestTypeData.GetHashCode();
+      hash ^= messages_.GetHashCode();
+      if (IsError != false) hash ^= IsError.GetHashCode();
+      if (Error.Length != 0) hash ^= Error.GetHashCode();
+      hash ^= Headers.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (TransactionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(TransactionId);
+      }
+      if (RefRequestId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(RefRequestId);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) StreamRequestTypeData);
+      }
+      messages_.WriteTo(output, _repeated_messages_codec);
+      if (IsError != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(IsError);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Error);
+      }
+      headers_.WriteTo(output, _map_headers_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (TransactionId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(TransactionId);
+      }
+      if (RefRequestId.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(RefRequestId);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        output.WriteRawTag(24);
+        output.WriteEnum((int) StreamRequestTypeData);
+      }
+      messages_.WriteTo(ref output, _repeated_messages_codec);
+      if (IsError != false) {
+        output.WriteRawTag(40);
+        output.WriteBool(IsError);
+      }
+      if (Error.Length != 0) {
+        output.WriteRawTag(50);
+        output.WriteString(Error);
+      }
+      headers_.WriteTo(ref output, _map_headers_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TransactionId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(TransactionId);
+      }
+      if (RefRequestId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RefRequestId);
+      }
+      if (StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) StreamRequestTypeData);
+      }
+      size += messages_.CalculateSize(_repeated_messages_codec);
+      if (IsError != false) {
+        size += 1 + 1;
+      }
+      if (Error.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Error);
+      }
+      size += headers_.CalculateSize(_map_headers_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(PollResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TransactionId.Length != 0) {
+        TransactionId = other.TransactionId;
+      }
+      if (other.RefRequestId.Length != 0) {
+        RefRequestId = other.RefRequestId;
+      }
+      if (other.StreamRequestTypeData != global::KubeMQ.Grpc.PollRequestType.Unknown) {
+        StreamRequestTypeData = other.StreamRequestTypeData;
+      }
+      messages_.Add(other.messages_);
+      if (other.IsError != false) {
+        IsError = other.IsError;
+      }
+      if (other.Error.Length != 0) {
+        Error = other.Error;
+      }
+      headers_.Add(other.headers_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            TransactionId = input.ReadString();
+            break;
+          }
+          case 18: {
+            RefRequestId = input.ReadString();
+            break;
+          }
+          case 24: {
+            StreamRequestTypeData = (global::KubeMQ.Grpc.PollRequestType) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            messages_.AddEntriesFrom(input, _repeated_messages_codec);
+            break;
+          }
+          case 40: {
+            IsError = input.ReadBool();
+            break;
+          }
+          case 50: {
+            Error = input.ReadString();
+            break;
+          }
+          case 58: {
+            headers_.AddEntriesFrom(input, _map_headers_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            TransactionId = input.ReadString();
+            break;
+          }
+          case 18: {
+            RefRequestId = input.ReadString();
+            break;
+          }
+          case 24: {
+            StreamRequestTypeData = (global::KubeMQ.Grpc.PollRequestType) input.ReadEnum();
+            break;
+          }
+          case 34: {
+            messages_.AddEntriesFrom(ref input, _repeated_messages_codec);
+            break;
+          }
+          case 40: {
+            IsError = input.ReadBool();
+            break;
+          }
+          case 50: {
+            Error = input.ReadString();
+            break;
+          }
+          case 58: {
+            headers_.AddEntriesFrom(ref input, _map_headers_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
