@@ -31,6 +31,8 @@ namespace KubeMQ.Grpc {
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.AckAllQueueMessagesRequest> __Marshaller_AckAllQueueMessagesRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.AckAllQueueMessagesRequest.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.AckAllQueueMessagesResponse> __Marshaller_AckAllQueueMessagesResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.AckAllQueueMessagesResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::KubeMQ.Grpc.PingResult> __Marshaller_PingResult = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PingResult.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::KubeMQ.Grpc.PollRequest> __Marshaller_PollRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PollRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::KubeMQ.Grpc.PollResponse> __Marshaller_PollResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::KubeMQ.Grpc.PollResponse.Parser.ParseFrom);
 
     static readonly grpc::Method<global::KubeMQ.Grpc.Event, global::KubeMQ.Grpc.Result> __Method_SendEvent = new grpc::Method<global::KubeMQ.Grpc.Event, global::KubeMQ.Grpc.Result>(
         grpc::MethodType.Unary,
@@ -116,6 +118,13 @@ namespace KubeMQ.Grpc {
         __Marshaller_Empty,
         __Marshaller_PingResult);
 
+    static readonly grpc::Method<global::KubeMQ.Grpc.PollRequest, global::KubeMQ.Grpc.PollResponse> __Method_Poll = new grpc::Method<global::KubeMQ.Grpc.PollRequest, global::KubeMQ.Grpc.PollResponse>(
+        grpc::MethodType.DuplexStreaming,
+        __ServiceName,
+        "Poll",
+        __Marshaller_PollRequest,
+        __Marshaller_PollResponse);
+
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
     {
@@ -181,6 +190,11 @@ namespace KubeMQ.Grpc {
       }
 
       public virtual global::System.Threading.Tasks.Task<global::KubeMQ.Grpc.PingResult> Ping(global::KubeMQ.Grpc.Empty request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
+      public virtual global::System.Threading.Tasks.Task Poll(grpc::IAsyncStreamReader<global::KubeMQ.Grpc.PollRequest> requestStream, grpc::IServerStreamWriter<global::KubeMQ.Grpc.PollResponse> responseStream, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -370,6 +384,14 @@ namespace KubeMQ.Grpc {
       {
         return CallInvoker.AsyncUnaryCall(__Method_Ping, null, options, request);
       }
+      public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.PollRequest, global::KubeMQ.Grpc.PollResponse> Poll(grpc::Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default(CancellationToken))
+      {
+        return Poll(new grpc::CallOptions(headers, deadline, cancellationToken));
+      }
+      public virtual grpc::AsyncDuplexStreamingCall<global::KubeMQ.Grpc.PollRequest, global::KubeMQ.Grpc.PollResponse> Poll(grpc::CallOptions options)
+      {
+        return CallInvoker.AsyncDuplexStreamingCall(__Method_Poll, null, options);
+      }
       /// <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
       protected override kubemqClient NewInstance(ClientBaseConfiguration configuration)
       {
@@ -393,7 +415,8 @@ namespace KubeMQ.Grpc {
           .AddMethod(__Method_ReceiveQueueMessages, serviceImpl.ReceiveQueueMessages)
           .AddMethod(__Method_StreamQueueMessage, serviceImpl.StreamQueueMessage)
           .AddMethod(__Method_AckAllQueueMessages, serviceImpl.AckAllQueueMessages)
-          .AddMethod(__Method_Ping, serviceImpl.Ping).Build();
+          .AddMethod(__Method_Ping, serviceImpl.Ping)
+          .AddMethod(__Method_Poll, serviceImpl.Poll).Build();
     }
 
   }

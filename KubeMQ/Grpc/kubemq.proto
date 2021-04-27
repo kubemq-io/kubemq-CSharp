@@ -14,6 +14,7 @@ service kubemq {
     rpc StreamQueueMessage(stream StreamQueueMessagesRequest) returns (stream StreamQueueMessagesResponse) {}
     rpc AckAllQueueMessages(AckAllQueueMessagesRequest) returns (AckAllQueueMessagesResponse) {}
     rpc Ping (Empty) returns (PingResult) {}
+    rpc Poll(stream PollRequest) returns (stream PollResponse) {}
 }
 message PingResult {
     string  Host        =1;
@@ -215,4 +216,31 @@ message StreamQueueMessagesResponse {
     QueueMessage Message            =3;
     bool IsError                    =4;
     string Error                    =5;
+}
+enum PollRequestType {
+    PollRequestTypeUnknown      =0;
+    Get                         =1;
+    AckAll                      =2;
+    AckRange                    =3;
+    Close                       =4;
+}
+message PollRequest {
+    string RequestID                =1;
+    string ClientID                 =2;
+    PollRequestType StreamRequestTypeData   =3;
+    string Channel                  =4;
+    bool AutoAck                    =5;
+    repeated int64 AckRange         =6;
+    string RefTransactionId         =7;
+    map<string,string>  Headers     =8;
+}
+
+message PollResponse {
+    string TransactionId            =1;
+    string RefRequestId             =2;
+    PollRequestType StreamRequestTypeData   =3;
+    repeated QueueMessage Messages = 4;
+    bool IsError                    =5;
+    string Error                    =6;
+    map<string,string>  Headers     =7;
 }
