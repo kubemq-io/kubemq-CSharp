@@ -14,6 +14,8 @@ service kubemq {
     rpc StreamQueueMessage(stream StreamQueueMessagesRequest) returns (stream StreamQueueMessagesResponse) {}
     rpc AckAllQueueMessages(AckAllQueueMessagesRequest) returns (AckAllQueueMessagesResponse) {}
     rpc Ping (Empty) returns (PingResult) {}
+    rpc QueuesDownstream(stream QueuesDownstreamRequest) returns (stream QueuesDownstreamResponse) {}
+    rpc QueuesUpstream(stream QueuesUpstreamRequest) returns (stream QueuesUpstreamResponse) {}
 }
 message PingResult {
     string  Host        =1;
@@ -93,7 +95,7 @@ message Request {
     int32   CacheTTL            =10;
     bytes   Span                =11;
     map<string,string>  Tags             =12;
- }
+}
 message Response {
     string  ClientID        =1;
     string  RequestID       =2;
@@ -179,7 +181,7 @@ message AckAllQueueMessagesRequest {
     string RequestID                 =1;
     string  ClientID                 =2;
     string Channel                   =3;
-    int32 WaitTimeSeconds                =4;
+    int32 WaitTimeSeconds         =4;
 }
 message AckAllQueueMessagesResponse {
     string RequestID                =1;
@@ -215,4 +217,58 @@ message StreamQueueMessagesResponse {
     QueueMessage Message            =3;
     bool IsError                    =4;
     string Error                    =5;
+}
+
+
+message QueuesUpstreamRequest {
+    string      RequestID                 =1;
+    repeated    QueueMessage Messages   =2;
+}
+message QueuesUpstreamResponse {
+    string      RefRequestID                    =1;
+    repeated    SendQueueMessageResult Results  =2;
+    bool IsError                    =3;
+    string Error                    =4;
+}
+
+
+enum QueuesDownstreamRequestType {
+    PollRequestTypeUnknown      =0;
+    Get                         =1;
+    AckAll                      =2;
+    AckRange                    =3;
+    NAckAll                     =4;
+    NAckRange                   =5;
+    ReQueueAll                  =6;
+    ReQueueRange                =7;
+    ActiveOffsets               =8;
+    TransactionStatus           =9;
+    CloseByClient               =10;
+    CloseByServer               =11;
+}
+
+message QueuesDownstreamRequest {
+    string RequestID                =1;
+    string ClientID                 =2;
+    QueuesDownstreamRequestType RequestTypeData =3;
+    string Channel                  =4;
+    int32 MaxItems                  =5;
+    int32 WaitTimeout               =6;
+    bool AutoAck                    =7;
+    string ReQueueChannel           =8;
+    repeated int64 SequenceRange    =9;
+    string RefTransactionId         =10;
+    map<string,string>  Metadata     =12;
+}
+
+message QueuesDownstreamResponse {
+    string TransactionId            =1;
+    string RefRequestId             =2;
+    QueuesDownstreamRequestType RequestTypeData   =3;
+    repeated QueueMessage Messages = 4;
+    repeated int64 ActiveOffsets   = 5;
+    bool IsError                    =6;
+    string Error                    =7;
+    bool TransactionComplete        =8;
+    map<string,string>  Metadata     =9;
 }
