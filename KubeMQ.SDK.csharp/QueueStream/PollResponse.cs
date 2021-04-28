@@ -14,7 +14,8 @@ namespace KubeMQ.SDK.csharp.QueueStream
         private string _getRequestError = null;
         private TaskCompletionSource<bool> _waitForResponseTask = new TaskCompletionSource<bool>();
         private DownstreamRequestHandler _requestHandler;
-        
+        private string _error = null;
+        public bool HasMessages => _messages.Count>0;
         public string GetRequestError => _getRequestError;
         public List<Message> Messages => _messages;
         public TaskCompletionSource<bool> WaitForResponseTask => _waitForResponseTask;
@@ -28,18 +29,20 @@ namespace KubeMQ.SDK.csharp.QueueStream
             get => _transactionId;
             set => _transactionId = value;
         }
-        
+
+        public string Error => _error;
+
 
         internal PollResponse(PollRequest request)
         {
             _request = request;
+            _messages = new List<Message>() ;
         }
 
         internal PollResponse SetPollResponse(QueuesDownstreamResponse response, DownstreamRequestHandler requestHandler)
         {
             _requestHandler = requestHandler;
             _transactionId = response.TransactionId;
-            _messages = new List<Message>() ;
             foreach (var message in response.Messages)
             {
               _messages.Add(new Message(message, requestHandler, _transactionId));
@@ -49,7 +52,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
             {
                 _getRequestError = response.Error;
             }
-            _waitForResponseTask.SetResult(true);
+            _waitForResponseTask.TrySetResult(true);
             return this;
         }
 
@@ -105,6 +108,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
 
         public void SendError(string err)
         {
+            _error = err;
             _request.SendOnError(err);
         }
         public void SendComplete()
