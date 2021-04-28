@@ -9,132 +9,98 @@ using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.QueueStream
 {
-    internal delegate void DownstreamResponseHandler(QueuesDownstreamResponse response);
+  
 
-    internal delegate Task DownstreamRequestHandler(QueuesDownstreamRequest request);
-
+    internal delegate void DownstreamRequestHandler(QueuesDownstreamRequest request);
     internal class Downstream
     {
+        BlockingCollection<QueuesDownstreamRequest> _sendQueue = new BlockingCollection<QueuesDownstreamRequest>();
         private ConcurrentDictionary<string, PollResponse> _pendingResponses =
             new ConcurrentDictionary<string, PollResponse>();
 
         private ConcurrentDictionary<string, PollResponse> _activeResponses =
             new ConcurrentDictionary<string, PollResponse>();
 
-        private AsyncDuplexStreamingCall<QueuesDownstreamRequest, QueuesDownstreamResponse> _downstream;    
-        private kubemq.kubemqClient _client;
-        private DownstreamResponseHandler _responseHandler;
-        private TaskCompletionSource<bool> _waitForConnectionTask = new TaskCompletionSource<bool>();
-
-        public TaskCompletionSource<bool> WaitForConnectionTask => _waitForConnectionTask;
-
+        private AsyncDuplexStreamingCall<QueuesDownstreamRequest, QueuesDownstreamResponse> _downstreamConnection;
+        private TaskCompletionSource<bool> _isConnectionDropped;
+      
+        public TaskCompletionSource<bool> IsConnectionDropped => _isConnectionDropped;
         private string _clientId;
-
-        public Downstream(kubemq.kubemqClient client, DownstreamResponseHandler responseHandler, string clientId)
+        
+        public Downstream(AsyncDuplexStreamingCall<QueuesDownstreamRequest, QueuesDownstreamResponse> downstreamConnectionConnection,string clientId)
         {
-            _client = client;
+            _downstreamConnection = downstreamConnectionConnection;
             _clientId = clientId;
-            _responseHandler = responseHandler;
+            _isConnectionDropped = new TaskCompletionSource<bool>();
         }
 
-        private async Task StartResponseStream(IAsyncStreamReader<QueuesDownstreamResponse> responseStream)
+        public async Task StartResponseStream()
         {
-            _waitForConnectionTask.SetResult(true);
-            while (await responseStream.MoveNext())
+            try
             {
-                QueuesDownstreamResponse response =
-                    new QueuesDownstreamResponse(responseStream.Current);
-                Console.WriteLine($"Getting Response: {response}");
-                HandelResponse(response);
+                while (await  _downstreamConnection.ResponseStream.MoveNext())
+                {
+                    
+                    QueuesDownstreamResponse response =
+                        new QueuesDownstreamResponse(_downstreamConnection.ResponseStream.Current);
+                    HandelResponse(response);
+                }
+            }
+            catch (Exception e)
+            {
+               _isConnectionDropped.TrySetResult(true);
             }
         }
 
-        public async Task SendRequest(QueuesDownstreamRequest request)
+        public void SendRequest(QueuesDownstreamRequest request)
         {
-            request.ClientID = _clientId;
-            Console.WriteLine($"Sending Request: {request}");
-            await _downstream.RequestStream.WriteAsync(request);
+            _sendQueue.Add(request);
         }
-
-        public void Connect(CancellationToken cancellationToken = new CancellationToken())
+        public void StartHandelRequests()
         {
-            Task.Factory.StartNew(async () =>
+           
+            Task.Run(async () =>
             {
                 while (true)
                 {
+                    QueuesDownstreamRequest request= _sendQueue.Take();
                     try
                     {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            Console.WriteLine("token cancelled... return ");
-                            return;
-                        }
-
-                        Console.WriteLine("Connecting...");
-                        _downstream = _client.QueuesDownstream(null, null, cancellationToken);
-                        var responseTask = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                await StartResponseStream(_downstream.ResponseStream);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine($"exception on response - {e.Message}");
-                                throw;
-                            }
-                        });
-                        await responseTask;
+                        request.ClientID = _clientId;
+                        await _downstreamConnection.RequestStream.WriteAsync(request);    
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"exception on main loop");
-                    }
-
-                    await Task.Delay(1000);
-                }
+                        _isConnectionDropped.TrySetResult(true);
+                        break;
+                    }    
+                } 
+                
             });
         }
-
-
+        
         private void HandelResponse(QueuesDownstreamResponse response)
         {
             Task.Run(() =>
             {
-                foreach (var  kv  in _activeResponses)
-                {
-                    Console.WriteLine(kv.Key);
-                }
                 if (response.RequestTypeData == QueuesDownstreamRequestType.Get)
                 {
-                    
-                    var pollResponse = MovePendingToActiveResponse(response.TransactionId, response.RefRequestId);
-                    if (pollResponse != null)
+                    PollResponse pendingResponse;
+                    if (_pendingResponses.TryRemove(response.RefRequestId, out pendingResponse))
                     {
-                        pollResponse.SetPollResponse(response, this.SendRequest);
+                        if (response.Messages.Count > 0 && !response.IsError)
+                        {
+                            _activeResponses.TryAdd(response.TransactionId, pendingResponse);
+                        }
+                        else
+                        {
+                            pendingResponse.SendComplete();
+                        }
+                        pendingResponse.SetPollResponse(response, this.SendRequest);
                     }
-                    else
-                    {
-                        return;
-                    }
-                  
-                    if (response.IsError)
-                    {
-                      
-                        _activeResponses.TryRemove(response.TransactionId, out pollResponse);
-                        return;
-                    }
-                    
-                    // if (pollResponse.Messages.Count == 0)
-                    // {
-                    //     _activeResponses.TryRemove(response.TransactionId, out pollResponse);
-                    //     pollResponse.SendComplete();
-                    // }
-                    
                 }
                 else
                 {
-                  
                     if (_activeResponses.TryGetValue(response.TransactionId, out PollResponse activeResponse))
                     {
                         if (response.TransactionComplete)
@@ -149,11 +115,6 @@ namespace KubeMQ.SDK.csharp.QueueStream
                             activeResponse.SendError(response.Error);
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine("transaction not found");
-                      
-                    }
                 } 
             });
         }
@@ -163,7 +124,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
             QueuesDownstreamRequest pbReq = request.ValidateAndComplete(_clientId);
             PollResponse response = new PollResponse(request);
             _pendingResponses.TryAdd(response.RequestId, response);
-            await SendRequest(pbReq);
+            SendRequest(pbReq);
             await response.WaitForResponseTask.Task;
             if (!string.IsNullOrEmpty(response.GetRequestError))
             {
@@ -173,6 +134,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         }
         internal void ClearResponses()
         {
+            
             foreach (var  response  in _activeResponses)
             {
                 response.Value.SendComplete();
@@ -181,6 +143,8 @@ namespace KubeMQ.SDK.csharp.QueueStream
             
             foreach (var  response  in _pendingResponses)
             {
+            
+                response.Value.WaitForResponseTask.TrySetResult(true);
                 response.Value.SendComplete();
             }
             _pendingResponses.Clear();
@@ -195,6 +159,15 @@ namespace KubeMQ.SDK.csharp.QueueStream
             }
 
             return currentResponse;
+        }
+
+        public int ActiveTransactions ()
+        {
+            return _activeResponses.Count;
+        }
+        public int PendingTransactions ()
+        {
+            return _pendingResponses.Count;
         }
     }
 }
