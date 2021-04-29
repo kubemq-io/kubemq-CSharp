@@ -9,19 +9,40 @@ namespace KubeMQ.SDK.csharp.QueueStream
    
     public class QueueStream : GrpcClient
     {
-        private static object syncLock = new object();
+        private static object _downstreamSyncLock = new object();
+        private static object _upstreamSyncLock = new object();
         private string _clientId = Guid.NewGuid().ToString();
-        private kubemq.kubemqClient _client ;
         private Downstream _downstream = null;
+        private Upstream _upstream = null;
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
         private CancellationToken ctx;
         private bool _connected = false;
+        public int WaitingSendRequests
+        {
+            get
+            {
+                Upstream upstream ;
+                lock (_upstreamSyncLock)
+                {
+                    upstream = _upstream;
+                }
+
+                if (upstream != null)
+                {
+                    return upstream.PendingTransactions();
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
         public int ActivePollRequests
         {
             get
             {
                 Downstream downstream;
-                lock (syncLock)
+                lock (_downstreamSyncLock)
                 {
                     downstream = _downstream;
                 }
@@ -41,7 +62,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
             get
             {
                 Downstream downstream;
-                lock (syncLock)
+                lock (_downstreamSyncLock)
                 {
                     downstream = _downstream;
                 }
@@ -87,57 +108,97 @@ namespace KubeMQ.SDK.csharp.QueueStream
            
             Task.Run(async () =>
             {
-                await RunDownstream();
+                await RunStreams();
             });
             Thread.Sleep(1000);
         }
         
-        private async  Task RunDownstream()
+        private async  Task RunStreams()
         {
             while (!ctx.IsCancellationRequested)
             {
-                
-                lock (syncLock)
+
+                lock (_downstreamSyncLock)
                 {
+                    lock (_upstreamSyncLock)
+                    {
+
+
                         try
                         {
                             _connected = false;
                             Ping();
-                            var downstreamConnection = _client.QueuesDownstream(null, null, ctx);
+                            var downstreamConnection = _client.QueuesDownstream(Metadata, null, ctx);
+                            var upstreamConnection = _client.QueuesUpstream(Metadata, null, ctx);
                             _downstream = new Downstream(downstreamConnection, _clientId);
+                            _upstream = new Upstream(upstreamConnection, _clientId);
                             Task.Run(async () =>
                             {
                                 _downstream.StartHandelRequests();
-                                await _downstream.StartResponseStream();
+                                try
+                                {
+                                    await _downstream.StartResponseStream();
+                                }
+                                catch (Exception e)
+                                {
+                                  Console.WriteLine(e);  
+                                }
+                                
+                            });
+                            Task.Run(async () =>
+                            {
+                                _upstream.StartHandelRequests();
+                              
+                                try
+                                {
+                                    await _upstream.StartResponseStream();
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e);  
+                                }
                             });
                             _connected = true;
                         }
-                        catch (Exception e)
+                        catch (Exception )
                         {
                             _connected = false;
-                        } 
+                        }
+                    }
                 }
-
-                if (_connected && _downstream!=null)
+                
+                if (_connected)
                 {
-                    await _downstream.IsConnectionDropped.Task;
-                    lock (syncLock)
+                    if (_downstream != null && _upstream !=null)
                     {
-                        _connected = false;
-                        _downstream.ClearResponses();
-                    }    
+                       
+                        await Task.WhenAny(_downstream.IsConnectionDropped.Task,_upstream.IsConnectionDropped.Task);
+                        
+                        lock (_downstreamSyncLock)
+                        {
+                            _connected = false;
+                            _downstream.ClearResponses();
+                        }
+                        lock (_upstreamSyncLock)
+                        {
+                            _upstream.ClearResponses();
+                        }    
+                    }
                 }
 
                 await Task.Delay(1000);
 
             }
         }
-        
+        /// <summary>
+        /// Poll a list of messages from a queue
+        /// </summary>
+        /// <param name="request">Poll request object</param>
         public async Task<PollResponse> Poll(PollRequest request)
         {
             Downstream downstream;
             bool connected;
-            lock (syncLock)
+            lock (_downstreamSyncLock)
             {
                 downstream = _downstream;
                 connected = _connected;
@@ -149,27 +210,56 @@ namespace KubeMQ.SDK.csharp.QueueStream
             }
             else
             {
-                PollResponse  response= new PollResponse(request);
-                response.SendError("queue client connection is not ready");
-                return response;
+                if (ctx.IsCancellationRequested)
+                {
+                    throw new Exception("queue client closed");
+                }
+                throw new Exception("queue client connection is not ready");
             }
-            
-               
         }
+        /// <summary>
+        /// Send List of Queue Messages
+        /// </summary>
+        /// <param name="request">Send request object</param>
+        public async Task<SendResponse> Send(SendRequest request)
+        {
+            Upstream upstream ;
+            bool connected;
+            lock (_upstream)
+            {
+                upstream = _upstream;
+                connected = _connected;
+            }
+           
+            if (connected && upstream != null)
+            {
+                return await upstream.Send(request, _clientId);
+            }
+            else
+            {
+                if (ctx.IsCancellationRequested)
+                {
+                    throw new Exception("queue client closed");
+                }
+                throw new Exception("queue client connection is not ready");
+            }
+        }
+        /// <summary>
+        /// Close Queue Client - all pending transactions will be cancelled 
+        /// </summary>
         public void Close()
         {
-            Downstream downstream;
-            lock (syncLock)
-            {
-                downstream = _downstream;
-            }
-            downstream.ClearResponses();
+            // Downstream downstream;
+            // lock (_downstreamSyncLock)
+            // {
+            //     downstream = _downstream;
+            // }
+            // downstream.ClearResponses();
             
             _tokenSource.Cancel();
         }
 
-        
-        public PingResult Ping()
+        internal PingResult Ping()
         {
            return  _client.Ping(new Empty());
         }

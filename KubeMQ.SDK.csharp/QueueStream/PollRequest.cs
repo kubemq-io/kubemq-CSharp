@@ -4,29 +4,47 @@ using static System.Guid;
 
 namespace KubeMQ.SDK.csharp.QueueStream
 {
+    /// <summary>
+   /// Delegate for calling request / responses error
+    /// </summary>
     public delegate void OnPollRequestError ( string err);
+    /// <summary>
+   /// Delegate for calling when request completed
+    /// </summary>
     public delegate void OnPollRequestComplete ();
     
+    /// <summary>
+    /// PollRequest
+    /// </summary>
     public class PollRequest
     {
+        /// <summary>
+     /// Poll Request Queue name
+        /// </summary>
         public string Queue
         {
             get => _queue;
             set => _queue = value;
         }
-
+        /// <summary>
+        /// Sets max items to poll in one request within wait timout 
+        /// </summary>
         public int MaxItems
         {
             get => _maxItems;
             set => _maxItems = value;
         }
-
+        /// <summary>
+        /// Sets how long to wait in milliseconds for the request to complete
+        /// </summary>
         public int WaitTimeout
         {
             get => _waitTimeout;
             set => _waitTimeout = value;
         }
-
+        /// <summary>
+        /// Sets automatic ack for receiveing messages
+        /// </summary>
         public bool AutoAck
         {
             get => _autoAck;
@@ -55,8 +73,6 @@ namespace KubeMQ.SDK.csharp.QueueStream
         private OnPollRequestError _onError = null;
         private OnPollRequestComplete _onComplete = null;
 
-        
-
         public PollRequest()
         {
         }
@@ -79,7 +95,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         {
             if (string.IsNullOrEmpty(Queue))
             {
-                throw new ArgumentException("request channel cannot be empty");
+                throw new ArgumentException("request queue cannot be empty");
             }
             if (MaxItems<0)
             {

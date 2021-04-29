@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using static KubeMQ.Grpc.kubemq;
@@ -49,14 +50,15 @@ namespace KubeMQ.SDK.csharp.Basic {
             Channel channel;
             string kubemqAddress = GetKubeMQAddress ();
             string clientCertFile = ConfigurationLoader.GetCertificateFile ();
-
+            List<ChannelOption> options = new List<ChannelOption>();
+            options.Add(new ChannelOption("grpc.max_receive_message_length",1024 *1024 *1024));
             if (!string.IsNullOrWhiteSpace (clientCertFile)) {
                 // Open SSL/TLS connection 
                 var channelCredentials = new SslCredentials (File.ReadAllText (clientCertFile));
-                channel = new Channel (kubemqAddress, channelCredentials);
+                channel = new Channel (kubemqAddress, channelCredentials,options);
             } else {
                 // Open Insecure connection
-                channel = new Channel (kubemqAddress, ChannelCredentials.Insecure);
+                channel = new Channel (kubemqAddress, ChannelCredentials.Insecure,options);
             }
 
             _client = new kubemqClient (channel);
