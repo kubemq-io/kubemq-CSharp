@@ -6,17 +6,27 @@ using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.QueueStream
 {
+    /// <summary>
+    /// PollResponse
+    /// </summary>
     public class PollResponse
     {
         private List<Message> _messages;
         private string _transactionId;
         private PollRequest _request;
-        private string _getRequestError = null;
         private TaskCompletionSource<bool> _waitForResponseTask = new TaskCompletionSource<bool>();
         private DownstreamRequestHandler _requestHandler;
         private string _error = null;
+        
+        /// <summary>
+        /// Indicate if the response has received messages
+        /// </summary>
+        
         public bool HasMessages => _messages.Count>0;
-        public string GetRequestError => _getRequestError;
+        /// <summary>
+        /// Received messages list
+        /// </summary>
+
         public List<Message> Messages => _messages;
         public TaskCompletionSource<bool> WaitForResponseTask => _waitForResponseTask;
 
@@ -29,7 +39,9 @@ namespace KubeMQ.SDK.csharp.QueueStream
             get => _transactionId;
             set => _transactionId = value;
         }
-
+        /// <summary>
+        /// Error message received for this poll request
+        /// </summary>
         public string Error => _error;
 
 
@@ -50,7 +62,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
 
             if (response.IsError)
             {
-                _getRequestError = response.Error;
+                _error = response.Error;
             }
             _waitForResponseTask.TrySetResult(true);
             return this;
@@ -68,6 +80,9 @@ namespace KubeMQ.SDK.csharp.QueueStream
                 throw new Exception("this operation cannot submitted on empty response messages");
             }
         }
+        /// <summary>
+        /// Ack all messages in this response (accept all)
+        /// </summary>
         public void AckAll()
         {
             CheckValidRequest();
@@ -79,6 +94,9 @@ namespace KubeMQ.SDK.csharp.QueueStream
             };
             _requestHandler(ackRequest);
         }
+        /// <summary>
+        /// NAck all messages in this response (reject all)
+        /// </summary>
         public void NAckAll()
         {
             CheckValidRequest();
@@ -90,6 +108,10 @@ namespace KubeMQ.SDK.csharp.QueueStream
             };
             _requestHandler(nackRequest);
         }
+        /// <summary>
+        /// ReQueueAll all messages in this response to a new queue
+        /// </summary>
+        /// <param name="queue">requeue  queue name</param> 
         public void ReQueueAll(string queue)
         {
             if (string.IsNullOrEmpty(queue))
@@ -106,12 +128,12 @@ namespace KubeMQ.SDK.csharp.QueueStream
             _requestHandler(requeueRequest);
         }
 
-        public void SendError(string err)
+        internal void SendError(string err)
         {
             _error = err;
             _request.SendOnError(err);
         }
-        public void SendComplete()
+        internal void SendComplete()
         {
             _request.SendOnComplete();
         }
