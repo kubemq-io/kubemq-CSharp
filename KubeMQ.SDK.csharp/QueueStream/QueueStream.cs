@@ -244,18 +244,36 @@ namespace KubeMQ.SDK.csharp.QueueStream
                 throw new Exception("queue client connection is not ready");
             }
         }
+        
+        /// <summary>
+    /// Get Queue information
+        /// </summary>
+        public QueuesInfo QueuesInfo(string filter)
+        {
+                QueuesInfoRequest req = new QueuesInfoRequest();
+                QueuesInfoResponse resp = _client.QueuesInfo(new QueuesInfoRequest()
+                {
+                    RequestID = Guid.NewGuid().ToString(),
+                    QueueName = filter,
+                });
+                return new QueuesInfo(resp);
+        }
+
         /// <summary>
         /// Close Queue Client - all pending transactions will be cancelled 
         /// </summary>
+        public bool EmptyRequestsQueue()
+        {
+            return _downstream.EmptyRequestsQueue();
+        }
         public void Close()
         {
-            // Downstream downstream;
-            // lock (_downstreamSyncLock)
-            // {
-            //     downstream = _downstream;
-            // }
-            // downstream.ClearResponses();
-            
+            do
+            {
+                Thread.Sleep(1);
+            }
+            while(!_downstream.EmptyRequestsQueue());
+            Thread.Sleep(100);
             _tokenSource.Cancel();
         }
 

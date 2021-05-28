@@ -23,7 +23,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
             _downstreamConnection;
 
         public TaskCompletionSource<bool> IsConnectionDropped { get; }
-
+       
         private readonly string _clientId;
 
         public Downstream(
@@ -63,12 +63,17 @@ namespace KubeMQ.SDK.csharp.QueueStream
             _sendQueue.Add(request);
         }
 
+        public bool EmptyRequestsQueue()
+        {
+            return _sendQueue.Count == 0;
+        }
         public void StartHandelRequests()
         {
             Task.Run(async () =>
             {
                 while (true)
                 {
+                  
                     var request = _sendQueue.Take();
                     try
                     {

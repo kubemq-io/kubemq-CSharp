@@ -16,6 +16,7 @@ service kubemq {
     rpc Ping (Empty) returns (PingResult) {}
     rpc QueuesDownstream(stream QueuesDownstreamRequest) returns (stream QueuesDownstreamResponse) {}
     rpc QueuesUpstream(stream QueuesUpstreamRequest) returns (stream QueuesUpstreamResponse) {}
+    rpc QueuesInfo(QueuesInfoRequest) returns (QueuesInfoResponse) {}
 }
 message PingResult {
     string  Host        =1;
@@ -271,4 +272,32 @@ message QueuesDownstreamResponse {
     string Error                    =7;
     bool TransactionComplete        =8;
     map<string,string>  Metadata     =9;
+}
+
+
+message QueueInfo {
+    string Name         =1;
+    int64 Messages      =2;
+    int64 Bytes         =3;
+    int64 FirstSequence =4;
+    int64 LastSequence  =5;
+    int64 Sent          =6;
+    int64 Delivered     =7;
+    int64 Waiting       =8;
+    int64 Subscribers   =9;
+}
+message QueuesInfo {
+    int32 TotalQueue     =1;
+    int64 Sent          =2;
+    int64 Delivered     =3;
+    int64 Waiting       =4;
+    repeated QueueInfo Queues =5;
+}
+message QueuesInfoRequest {
+    string RequestID  =1;
+    string QueueName  =2;
+}
+message QueuesInfoResponse {
+    string RefRequestID  =1;
+    QueuesInfo Info   =2;
 }
