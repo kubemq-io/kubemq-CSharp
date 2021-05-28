@@ -127,40 +127,51 @@ namespace KubeMQ.Grpc {
             "ASgIEg0KBUVycm9yGAcgASgJEhsKE1RyYW5zYWN0aW9uQ29tcGxldGUYCCAB",
             "KAgSQAoITWV0YWRhdGEYCSADKAsyLi5rdWJlbXEuUXVldWVzRG93bnN0cmVh",
             "bVJlc3BvbnNlLk1ldGFkYXRhRW50cnkaLwoNTWV0YWRhdGFFbnRyeRILCgNr",
-            "ZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBKqoBChFTdHJlYW1SZXF1ZXN0",
-            "VHlwZRIcChhTdHJlYW1SZXF1ZXN0VHlwZVVua25vd24QABISCg5SZWNlaXZl",
-            "TWVzc2FnZRABEg4KCkFja01lc3NhZ2UQAhIRCg1SZWplY3RNZXNzYWdlEAMS",
-            "FAoQTW9kaWZ5VmlzaWJpbGl0eRAEEhEKDVJlc2VuZE1lc3NhZ2UQBRIXChNT",
-            "ZW5kTW9kaWZpZWRNZXNzYWdlEAYq6gEKG1F1ZXVlc0Rvd25zdHJlYW1SZXF1",
-            "ZXN0VHlwZRIaChZQb2xsUmVxdWVzdFR5cGVVbmtub3duEAASBwoDR2V0EAES",
-            "CgoGQWNrQWxsEAISDAoIQWNrUmFuZ2UQAxILCgdOQWNrQWxsEAQSDQoJTkFj",
-            "a1JhbmdlEAUSDgoKUmVRdWV1ZUFsbBAGEhAKDFJlUXVldWVSYW5nZRAHEhEK",
-            "DUFjdGl2ZU9mZnNldHMQCBIVChFUcmFuc2FjdGlvblN0YXR1cxAJEhEKDUNs",
-            "b3NlQnlDbGllbnQQChIRCg1DbG9zZUJ5U2VydmVyEAsykwgKBmt1YmVtcRIs",
-            "CglTZW5kRXZlbnQSDS5rdWJlbXEuRXZlbnQaDi5rdWJlbXEuUmVzdWx0IgAS",
-            "NwoQU2VuZEV2ZW50c1N0cmVhbRINLmt1YmVtcS5FdmVudBoOLmt1YmVtcS5S",
-            "ZXN1bHQiACgBMAESQAoRU3Vic2NyaWJlVG9FdmVudHMSES5rdWJlbXEuU3Vi",
-            "c2NyaWJlGhQua3ViZW1xLkV2ZW50UmVjZWl2ZSIAMAESPQoTU3Vic2NyaWJl",
-            "VG9SZXF1ZXN0cxIRLmt1YmVtcS5TdWJzY3JpYmUaDy5rdWJlbXEuUmVxdWVz",
-            "dCIAMAESMgoLU2VuZFJlcXVlc3QSDy5rdWJlbXEuUmVxdWVzdBoQLmt1YmVt",
-            "cS5SZXNwb25zZSIAEjEKDFNlbmRSZXNwb25zZRIQLmt1YmVtcS5SZXNwb25z",
-            "ZRoNLmt1YmVtcS5FbXB0eSIAEkoKEFNlbmRRdWV1ZU1lc3NhZ2USFC5rdWJl",
-            "bXEuUXVldWVNZXNzYWdlGh4ua3ViZW1xLlNlbmRRdWV1ZU1lc3NhZ2VSZXN1",
-            "bHQiABJhChZTZW5kUXVldWVNZXNzYWdlc0JhdGNoEiEua3ViZW1xLlF1ZXVl",
-            "TWVzc2FnZXNCYXRjaFJlcXVlc3QaIi5rdWJlbXEuUXVldWVNZXNzYWdlc0Jh",
-            "dGNoUmVzcG9uc2UiABJjChRSZWNlaXZlUXVldWVNZXNzYWdlcxIjLmt1YmVt",
-            "cS5SZWNlaXZlUXVldWVNZXNzYWdlc1JlcXVlc3QaJC5rdWJlbXEuUmVjZWl2",
-            "ZVF1ZXVlTWVzc2FnZXNSZXNwb25zZSIAEmMKElN0cmVhbVF1ZXVlTWVzc2Fn",
-            "ZRIiLmt1YmVtcS5TdHJlYW1RdWV1ZU1lc3NhZ2VzUmVxdWVzdBojLmt1YmVt",
-            "cS5TdHJlYW1RdWV1ZU1lc3NhZ2VzUmVzcG9uc2UiACgBMAESYAoTQWNrQWxs",
-            "UXVldWVNZXNzYWdlcxIiLmt1YmVtcS5BY2tBbGxRdWV1ZU1lc3NhZ2VzUmVx",
-            "dWVzdBojLmt1YmVtcS5BY2tBbGxRdWV1ZU1lc3NhZ2VzUmVzcG9uc2UiABIr",
-            "CgRQaW5nEg0ua3ViZW1xLkVtcHR5GhIua3ViZW1xLlBpbmdSZXN1bHQiABJb",
-            "ChBRdWV1ZXNEb3duc3RyZWFtEh8ua3ViZW1xLlF1ZXVlc0Rvd25zdHJlYW1S",
-            "ZXF1ZXN0GiAua3ViZW1xLlF1ZXVlc0Rvd25zdHJlYW1SZXNwb25zZSIAKAEw",
-            "ARJVCg5RdWV1ZXNVcHN0cmVhbRIdLmt1YmVtcS5RdWV1ZXNVcHN0cmVhbVJl",
-            "cXVlc3QaHi5rdWJlbXEuUXVldWVzVXBzdHJlYW1SZXNwb25zZSIAKAEwAUIO",
-            "qgILS3ViZU1RLkdycGNiBnByb3RvMw=="));
+            "ZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIq4BCglRdWV1ZUluZm8SDAoE",
+            "TmFtZRgBIAEoCRIQCghNZXNzYWdlcxgCIAEoAxINCgVCeXRlcxgDIAEoAxIV",
+            "Cg1GaXJzdFNlcXVlbmNlGAQgASgDEhQKDExhc3RTZXF1ZW5jZRgFIAEoAxIM",
+            "CgRTZW50GAYgASgDEhEKCURlbGl2ZXJlZBgHIAEoAxIPCgdXYWl0aW5nGAgg",
+            "ASgDEhMKC1N1YnNjcmliZXJzGAkgASgDInUKClF1ZXVlc0luZm8SEgoKVG90",
+            "YWxRdWV1ZRgBIAEoBRIMCgRTZW50GAIgASgDEhEKCURlbGl2ZXJlZBgDIAEo",
+            "AxIPCgdXYWl0aW5nGAQgASgDEiEKBlF1ZXVlcxgFIAMoCzIRLmt1YmVtcS5R",
+            "dWV1ZUluZm8iOQoRUXVldWVzSW5mb1JlcXVlc3QSEQoJUmVxdWVzdElEGAEg",
+            "ASgJEhEKCVF1ZXVlTmFtZRgCIAEoCSJMChJRdWV1ZXNJbmZvUmVzcG9uc2US",
+            "FAoMUmVmUmVxdWVzdElEGAEgASgJEiAKBEluZm8YAiABKAsyEi5rdWJlbXEu",
+            "UXVldWVzSW5mbyqqAQoRU3RyZWFtUmVxdWVzdFR5cGUSHAoYU3RyZWFtUmVx",
+            "dWVzdFR5cGVVbmtub3duEAASEgoOUmVjZWl2ZU1lc3NhZ2UQARIOCgpBY2tN",
+            "ZXNzYWdlEAISEQoNUmVqZWN0TWVzc2FnZRADEhQKEE1vZGlmeVZpc2liaWxp",
+            "dHkQBBIRCg1SZXNlbmRNZXNzYWdlEAUSFwoTU2VuZE1vZGlmaWVkTWVzc2Fn",
+            "ZRAGKuoBChtRdWV1ZXNEb3duc3RyZWFtUmVxdWVzdFR5cGUSGgoWUG9sbFJl",
+            "cXVlc3RUeXBlVW5rbm93bhAAEgcKA0dldBABEgoKBkFja0FsbBACEgwKCEFj",
+            "a1JhbmdlEAMSCwoHTkFja0FsbBAEEg0KCU5BY2tSYW5nZRAFEg4KClJlUXVl",
+            "dWVBbGwQBhIQCgxSZVF1ZXVlUmFuZ2UQBxIRCg1BY3RpdmVPZmZzZXRzEAgS",
+            "FQoRVHJhbnNhY3Rpb25TdGF0dXMQCRIRCg1DbG9zZUJ5Q2xpZW50EAoSEQoN",
+            "Q2xvc2VCeVNlcnZlchALMtoICgZrdWJlbXESLAoJU2VuZEV2ZW50Eg0ua3Vi",
+            "ZW1xLkV2ZW50Gg4ua3ViZW1xLlJlc3VsdCIAEjcKEFNlbmRFdmVudHNTdHJl",
+            "YW0SDS5rdWJlbXEuRXZlbnQaDi5rdWJlbXEuUmVzdWx0IgAoATABEkAKEVN1",
+            "YnNjcmliZVRvRXZlbnRzEhEua3ViZW1xLlN1YnNjcmliZRoULmt1YmVtcS5F",
+            "dmVudFJlY2VpdmUiADABEj0KE1N1YnNjcmliZVRvUmVxdWVzdHMSES5rdWJl",
+            "bXEuU3Vic2NyaWJlGg8ua3ViZW1xLlJlcXVlc3QiADABEjIKC1NlbmRSZXF1",
+            "ZXN0Eg8ua3ViZW1xLlJlcXVlc3QaEC5rdWJlbXEuUmVzcG9uc2UiABIxCgxT",
+            "ZW5kUmVzcG9uc2USEC5rdWJlbXEuUmVzcG9uc2UaDS5rdWJlbXEuRW1wdHki",
+            "ABJKChBTZW5kUXVldWVNZXNzYWdlEhQua3ViZW1xLlF1ZXVlTWVzc2FnZRoe",
+            "Lmt1YmVtcS5TZW5kUXVldWVNZXNzYWdlUmVzdWx0IgASYQoWU2VuZFF1ZXVl",
+            "TWVzc2FnZXNCYXRjaBIhLmt1YmVtcS5RdWV1ZU1lc3NhZ2VzQmF0Y2hSZXF1",
+            "ZXN0GiIua3ViZW1xLlF1ZXVlTWVzc2FnZXNCYXRjaFJlc3BvbnNlIgASYwoU",
+            "UmVjZWl2ZVF1ZXVlTWVzc2FnZXMSIy5rdWJlbXEuUmVjZWl2ZVF1ZXVlTWVz",
+            "c2FnZXNSZXF1ZXN0GiQua3ViZW1xLlJlY2VpdmVRdWV1ZU1lc3NhZ2VzUmVz",
+            "cG9uc2UiABJjChJTdHJlYW1RdWV1ZU1lc3NhZ2USIi5rdWJlbXEuU3RyZWFt",
+            "UXVldWVNZXNzYWdlc1JlcXVlc3QaIy5rdWJlbXEuU3RyZWFtUXVldWVNZXNz",
+            "YWdlc1Jlc3BvbnNlIgAoATABEmAKE0Fja0FsbFF1ZXVlTWVzc2FnZXMSIi5r",
+            "dWJlbXEuQWNrQWxsUXVldWVNZXNzYWdlc1JlcXVlc3QaIy5rdWJlbXEuQWNr",
+            "QWxsUXVldWVNZXNzYWdlc1Jlc3BvbnNlIgASKwoEUGluZxINLmt1YmVtcS5F",
+            "bXB0eRoSLmt1YmVtcS5QaW5nUmVzdWx0IgASWwoQUXVldWVzRG93bnN0cmVh",
+            "bRIfLmt1YmVtcS5RdWV1ZXNEb3duc3RyZWFtUmVxdWVzdBogLmt1YmVtcS5R",
+            "dWV1ZXNEb3duc3RyZWFtUmVzcG9uc2UiACgBMAESVQoOUXVldWVzVXBzdHJl",
+            "YW0SHS5rdWJlbXEuUXVldWVzVXBzdHJlYW1SZXF1ZXN0Gh4ua3ViZW1xLlF1",
+            "ZXVlc1Vwc3RyZWFtUmVzcG9uc2UiACgBMAESRQoKUXVldWVzSW5mbxIZLmt1",
+            "YmVtcS5RdWV1ZXNJbmZvUmVxdWVzdBoaLmt1YmVtcS5RdWV1ZXNJbmZvUmVz",
+            "cG9uc2UiAEIOqgILS3ViZU1RLkdycGNiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KubeMQ.Grpc.StreamRequestType), typeof(global::KubeMQ.Grpc.QueuesDownstreamRequestType), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -187,7 +198,11 @@ namespace KubeMQ.Grpc {
             new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesUpstreamRequest), global::KubeMQ.Grpc.QueuesUpstreamRequest.Parser, new[]{ "RequestID", "Messages" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesUpstreamResponse), global::KubeMQ.Grpc.QueuesUpstreamResponse.Parser, new[]{ "RefRequestID", "Results", "IsError", "Error" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesDownstreamRequest), global::KubeMQ.Grpc.QueuesDownstreamRequest.Parser, new[]{ "RequestID", "ClientID", "RequestTypeData", "Channel", "MaxItems", "WaitTimeout", "AutoAck", "ReQueueChannel", "SequenceRange", "RefTransactionId", "Metadata" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesDownstreamResponse), global::KubeMQ.Grpc.QueuesDownstreamResponse.Parser, new[]{ "TransactionId", "RefRequestId", "RequestTypeData", "Messages", "ActiveOffsets", "IsError", "Error", "TransactionComplete", "Metadata" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesDownstreamResponse), global::KubeMQ.Grpc.QueuesDownstreamResponse.Parser, new[]{ "TransactionId", "RefRequestId", "RequestTypeData", "Messages", "ActiveOffsets", "IsError", "Error", "TransactionComplete", "Metadata" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueueInfo), global::KubeMQ.Grpc.QueueInfo.Parser, new[]{ "Name", "Messages", "Bytes", "FirstSequence", "LastSequence", "Sent", "Delivered", "Waiting", "Subscribers" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesInfo), global::KubeMQ.Grpc.QueuesInfo.Parser, new[]{ "TotalQueue", "Sent", "Delivered", "Waiting", "Queues" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesInfoRequest), global::KubeMQ.Grpc.QueuesInfoRequest.Parser, new[]{ "RequestID", "QueueName" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KubeMQ.Grpc.QueuesInfoResponse), global::KubeMQ.Grpc.QueuesInfoResponse.Parser, new[]{ "RefRequestID", "Info" }, null, null, null, null)
           }));
     }
     #endregion
@@ -8466,6 +8481,1196 @@ namespace KubeMQ.Grpc {
           }
           case 74: {
             metadata_.AddEntriesFrom(ref input, _map_metadata_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class QueueInfo : pb::IMessage<QueueInfo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<QueueInfo> _parser = new pb::MessageParser<QueueInfo>(() => new QueueInfo());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<QueueInfo> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KubeMQ.Grpc.KubemqReflection.Descriptor.MessageTypes[24]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueueInfo() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueueInfo(QueueInfo other) : this() {
+      name_ = other.name_;
+      messages_ = other.messages_;
+      bytes_ = other.bytes_;
+      firstSequence_ = other.firstSequence_;
+      lastSequence_ = other.lastSequence_;
+      sent_ = other.sent_;
+      delivered_ = other.delivered_;
+      waiting_ = other.waiting_;
+      subscribers_ = other.subscribers_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueueInfo Clone() {
+      return new QueueInfo(this);
+    }
+
+    /// <summary>Field number for the "Name" field.</summary>
+    public const int NameFieldNumber = 1;
+    private string name_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Name {
+      get { return name_; }
+      set {
+        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Messages" field.</summary>
+    public const int MessagesFieldNumber = 2;
+    private long messages_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Messages {
+      get { return messages_; }
+      set {
+        messages_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Bytes" field.</summary>
+    public const int BytesFieldNumber = 3;
+    private long bytes_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Bytes {
+      get { return bytes_; }
+      set {
+        bytes_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "FirstSequence" field.</summary>
+    public const int FirstSequenceFieldNumber = 4;
+    private long firstSequence_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long FirstSequence {
+      get { return firstSequence_; }
+      set {
+        firstSequence_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "LastSequence" field.</summary>
+    public const int LastSequenceFieldNumber = 5;
+    private long lastSequence_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long LastSequence {
+      get { return lastSequence_; }
+      set {
+        lastSequence_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Sent" field.</summary>
+    public const int SentFieldNumber = 6;
+    private long sent_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Sent {
+      get { return sent_; }
+      set {
+        sent_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Delivered" field.</summary>
+    public const int DeliveredFieldNumber = 7;
+    private long delivered_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Delivered {
+      get { return delivered_; }
+      set {
+        delivered_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Waiting" field.</summary>
+    public const int WaitingFieldNumber = 8;
+    private long waiting_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Waiting {
+      get { return waiting_; }
+      set {
+        waiting_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Subscribers" field.</summary>
+    public const int SubscribersFieldNumber = 9;
+    private long subscribers_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Subscribers {
+      get { return subscribers_; }
+      set {
+        subscribers_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as QueueInfo);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(QueueInfo other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Name != other.Name) return false;
+      if (Messages != other.Messages) return false;
+      if (Bytes != other.Bytes) return false;
+      if (FirstSequence != other.FirstSequence) return false;
+      if (LastSequence != other.LastSequence) return false;
+      if (Sent != other.Sent) return false;
+      if (Delivered != other.Delivered) return false;
+      if (Waiting != other.Waiting) return false;
+      if (Subscribers != other.Subscribers) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Name.Length != 0) hash ^= Name.GetHashCode();
+      if (Messages != 0L) hash ^= Messages.GetHashCode();
+      if (Bytes != 0L) hash ^= Bytes.GetHashCode();
+      if (FirstSequence != 0L) hash ^= FirstSequence.GetHashCode();
+      if (LastSequence != 0L) hash ^= LastSequence.GetHashCode();
+      if (Sent != 0L) hash ^= Sent.GetHashCode();
+      if (Delivered != 0L) hash ^= Delivered.GetHashCode();
+      if (Waiting != 0L) hash ^= Waiting.GetHashCode();
+      if (Subscribers != 0L) hash ^= Subscribers.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (Messages != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Messages);
+      }
+      if (Bytes != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Bytes);
+      }
+      if (FirstSequence != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(FirstSequence);
+      }
+      if (LastSequence != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(LastSequence);
+      }
+      if (Sent != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(Sent);
+      }
+      if (Delivered != 0L) {
+        output.WriteRawTag(56);
+        output.WriteInt64(Delivered);
+      }
+      if (Waiting != 0L) {
+        output.WriteRawTag(64);
+        output.WriteInt64(Waiting);
+      }
+      if (Subscribers != 0L) {
+        output.WriteRawTag(72);
+        output.WriteInt64(Subscribers);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Name.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Name);
+      }
+      if (Messages != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Messages);
+      }
+      if (Bytes != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Bytes);
+      }
+      if (FirstSequence != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(FirstSequence);
+      }
+      if (LastSequence != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(LastSequence);
+      }
+      if (Sent != 0L) {
+        output.WriteRawTag(48);
+        output.WriteInt64(Sent);
+      }
+      if (Delivered != 0L) {
+        output.WriteRawTag(56);
+        output.WriteInt64(Delivered);
+      }
+      if (Waiting != 0L) {
+        output.WriteRawTag(64);
+        output.WriteInt64(Waiting);
+      }
+      if (Subscribers != 0L) {
+        output.WriteRawTag(72);
+        output.WriteInt64(Subscribers);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Name.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
+      }
+      if (Messages != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Messages);
+      }
+      if (Bytes != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Bytes);
+      }
+      if (FirstSequence != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(FirstSequence);
+      }
+      if (LastSequence != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(LastSequence);
+      }
+      if (Sent != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Sent);
+      }
+      if (Delivered != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Delivered);
+      }
+      if (Waiting != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Waiting);
+      }
+      if (Subscribers != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Subscribers);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(QueueInfo other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Name.Length != 0) {
+        Name = other.Name;
+      }
+      if (other.Messages != 0L) {
+        Messages = other.Messages;
+      }
+      if (other.Bytes != 0L) {
+        Bytes = other.Bytes;
+      }
+      if (other.FirstSequence != 0L) {
+        FirstSequence = other.FirstSequence;
+      }
+      if (other.LastSequence != 0L) {
+        LastSequence = other.LastSequence;
+      }
+      if (other.Sent != 0L) {
+        Sent = other.Sent;
+      }
+      if (other.Delivered != 0L) {
+        Delivered = other.Delivered;
+      }
+      if (other.Waiting != 0L) {
+        Waiting = other.Waiting;
+      }
+      if (other.Subscribers != 0L) {
+        Subscribers = other.Subscribers;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 16: {
+            Messages = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            Bytes = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            FirstSequence = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            LastSequence = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            Sent = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            Delivered = input.ReadInt64();
+            break;
+          }
+          case 64: {
+            Waiting = input.ReadInt64();
+            break;
+          }
+          case 72: {
+            Subscribers = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Name = input.ReadString();
+            break;
+          }
+          case 16: {
+            Messages = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            Bytes = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            FirstSequence = input.ReadInt64();
+            break;
+          }
+          case 40: {
+            LastSequence = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            Sent = input.ReadInt64();
+            break;
+          }
+          case 56: {
+            Delivered = input.ReadInt64();
+            break;
+          }
+          case 64: {
+            Waiting = input.ReadInt64();
+            break;
+          }
+          case 72: {
+            Subscribers = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class QueuesInfo : pb::IMessage<QueuesInfo>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<QueuesInfo> _parser = new pb::MessageParser<QueuesInfo>(() => new QueuesInfo());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<QueuesInfo> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KubeMQ.Grpc.KubemqReflection.Descriptor.MessageTypes[25]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfo() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfo(QueuesInfo other) : this() {
+      totalQueue_ = other.totalQueue_;
+      sent_ = other.sent_;
+      delivered_ = other.delivered_;
+      waiting_ = other.waiting_;
+      queues_ = other.queues_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfo Clone() {
+      return new QueuesInfo(this);
+    }
+
+    /// <summary>Field number for the "TotalQueue" field.</summary>
+    public const int TotalQueueFieldNumber = 1;
+    private int totalQueue_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int TotalQueue {
+      get { return totalQueue_; }
+      set {
+        totalQueue_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Sent" field.</summary>
+    public const int SentFieldNumber = 2;
+    private long sent_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Sent {
+      get { return sent_; }
+      set {
+        sent_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Delivered" field.</summary>
+    public const int DeliveredFieldNumber = 3;
+    private long delivered_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Delivered {
+      get { return delivered_; }
+      set {
+        delivered_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Waiting" field.</summary>
+    public const int WaitingFieldNumber = 4;
+    private long waiting_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public long Waiting {
+      get { return waiting_; }
+      set {
+        waiting_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "Queues" field.</summary>
+    public const int QueuesFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::KubeMQ.Grpc.QueueInfo> _repeated_queues_codec
+        = pb::FieldCodec.ForMessage(42, global::KubeMQ.Grpc.QueueInfo.Parser);
+    private readonly pbc::RepeatedField<global::KubeMQ.Grpc.QueueInfo> queues_ = new pbc::RepeatedField<global::KubeMQ.Grpc.QueueInfo>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::KubeMQ.Grpc.QueueInfo> Queues {
+      get { return queues_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as QueuesInfo);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(QueuesInfo other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (TotalQueue != other.TotalQueue) return false;
+      if (Sent != other.Sent) return false;
+      if (Delivered != other.Delivered) return false;
+      if (Waiting != other.Waiting) return false;
+      if(!queues_.Equals(other.queues_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (TotalQueue != 0) hash ^= TotalQueue.GetHashCode();
+      if (Sent != 0L) hash ^= Sent.GetHashCode();
+      if (Delivered != 0L) hash ^= Delivered.GetHashCode();
+      if (Waiting != 0L) hash ^= Waiting.GetHashCode();
+      hash ^= queues_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (TotalQueue != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(TotalQueue);
+      }
+      if (Sent != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Sent);
+      }
+      if (Delivered != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Delivered);
+      }
+      if (Waiting != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(Waiting);
+      }
+      queues_.WriteTo(output, _repeated_queues_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (TotalQueue != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(TotalQueue);
+      }
+      if (Sent != 0L) {
+        output.WriteRawTag(16);
+        output.WriteInt64(Sent);
+      }
+      if (Delivered != 0L) {
+        output.WriteRawTag(24);
+        output.WriteInt64(Delivered);
+      }
+      if (Waiting != 0L) {
+        output.WriteRawTag(32);
+        output.WriteInt64(Waiting);
+      }
+      queues_.WriteTo(ref output, _repeated_queues_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (TotalQueue != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(TotalQueue);
+      }
+      if (Sent != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Sent);
+      }
+      if (Delivered != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Delivered);
+      }
+      if (Waiting != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Waiting);
+      }
+      size += queues_.CalculateSize(_repeated_queues_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(QueuesInfo other) {
+      if (other == null) {
+        return;
+      }
+      if (other.TotalQueue != 0) {
+        TotalQueue = other.TotalQueue;
+      }
+      if (other.Sent != 0L) {
+        Sent = other.Sent;
+      }
+      if (other.Delivered != 0L) {
+        Delivered = other.Delivered;
+      }
+      if (other.Waiting != 0L) {
+        Waiting = other.Waiting;
+      }
+      queues_.Add(other.queues_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            TotalQueue = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            Sent = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            Delivered = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            Waiting = input.ReadInt64();
+            break;
+          }
+          case 42: {
+            queues_.AddEntriesFrom(input, _repeated_queues_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            TotalQueue = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            Sent = input.ReadInt64();
+            break;
+          }
+          case 24: {
+            Delivered = input.ReadInt64();
+            break;
+          }
+          case 32: {
+            Waiting = input.ReadInt64();
+            break;
+          }
+          case 42: {
+            queues_.AddEntriesFrom(ref input, _repeated_queues_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class QueuesInfoRequest : pb::IMessage<QueuesInfoRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<QueuesInfoRequest> _parser = new pb::MessageParser<QueuesInfoRequest>(() => new QueuesInfoRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<QueuesInfoRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KubeMQ.Grpc.KubemqReflection.Descriptor.MessageTypes[26]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfoRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfoRequest(QueuesInfoRequest other) : this() {
+      requestID_ = other.requestID_;
+      queueName_ = other.queueName_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfoRequest Clone() {
+      return new QueuesInfoRequest(this);
+    }
+
+    /// <summary>Field number for the "RequestID" field.</summary>
+    public const int RequestIDFieldNumber = 1;
+    private string requestID_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RequestID {
+      get { return requestID_; }
+      set {
+        requestID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "QueueName" field.</summary>
+    public const int QueueNameFieldNumber = 2;
+    private string queueName_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string QueueName {
+      get { return queueName_; }
+      set {
+        queueName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as QueuesInfoRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(QueuesInfoRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RequestID != other.RequestID) return false;
+      if (QueueName != other.QueueName) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RequestID.Length != 0) hash ^= RequestID.GetHashCode();
+      if (QueueName.Length != 0) hash ^= QueueName.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (QueueName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(QueueName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RequestID);
+      }
+      if (QueueName.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(QueueName);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RequestID.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RequestID);
+      }
+      if (QueueName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(QueueName);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(QueuesInfoRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RequestID.Length != 0) {
+        RequestID = other.RequestID;
+      }
+      if (other.QueueName.Length != 0) {
+        QueueName = other.QueueName;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            QueueName = input.ReadString();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            QueueName = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  public sealed partial class QueuesInfoResponse : pb::IMessage<QueuesInfoResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<QueuesInfoResponse> _parser = new pb::MessageParser<QueuesInfoResponse>(() => new QueuesInfoResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<QueuesInfoResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KubeMQ.Grpc.KubemqReflection.Descriptor.MessageTypes[27]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfoResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfoResponse(QueuesInfoResponse other) : this() {
+      refRequestID_ = other.refRequestID_;
+      info_ = other.info_ != null ? other.info_.Clone() : null;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueuesInfoResponse Clone() {
+      return new QueuesInfoResponse(this);
+    }
+
+    /// <summary>Field number for the "RefRequestID" field.</summary>
+    public const int RefRequestIDFieldNumber = 1;
+    private string refRequestID_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string RefRequestID {
+      get { return refRequestID_; }
+      set {
+        refRequestID_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "Info" field.</summary>
+    public const int InfoFieldNumber = 2;
+    private global::KubeMQ.Grpc.QueuesInfo info_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::KubeMQ.Grpc.QueuesInfo Info {
+      get { return info_; }
+      set {
+        info_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as QueuesInfoResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(QueuesInfoResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RefRequestID != other.RefRequestID) return false;
+      if (!object.Equals(Info, other.Info)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RefRequestID.Length != 0) hash ^= RefRequestID.GetHashCode();
+      if (info_ != null) hash ^= Info.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RefRequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RefRequestID);
+      }
+      if (info_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Info);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RefRequestID.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(RefRequestID);
+      }
+      if (info_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Info);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (RefRequestID.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(RefRequestID);
+      }
+      if (info_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Info);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(QueuesInfoResponse other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RefRequestID.Length != 0) {
+        RefRequestID = other.RefRequestID;
+      }
+      if (other.info_ != null) {
+        if (info_ == null) {
+          Info = new global::KubeMQ.Grpc.QueuesInfo();
+        }
+        Info.MergeFrom(other.Info);
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            RefRequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (info_ == null) {
+              Info = new global::KubeMQ.Grpc.QueuesInfo();
+            }
+            input.ReadMessage(Info);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            RefRequestID = input.ReadString();
+            break;
+          }
+          case 18: {
+            if (info_ == null) {
+              Info = new global::KubeMQ.Grpc.QueuesInfo();
+            }
+            input.ReadMessage(Info);
             break;
           }
         }
