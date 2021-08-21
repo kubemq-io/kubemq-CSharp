@@ -10,9 +10,8 @@ The SDK implements all communication patterns available through the KubeMQ serve
 - Queue
 
 ## Installation:
-'''
-  Install-Package KubeMQ.SDK.csharp -Version 1.3.0
-'''
+Install via Nuget 
+
 ### Framework Support
 
 - .NET Framework 4.6.1
