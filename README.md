@@ -8,10 +8,11 @@ Please visit [KubeMQ Community](https://github.com/kubemq-io/kubemq-community) f
 
 Install using Nuget 
 
+Kubemq : https://docs.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio
+
 ## Cookbook
 Please visit [CSharp SDK Cookbook](https://github.com/kubemq-io/csharp-sdk-cookbook)
 
-Kubemq : https://docs.microsoft.com/en-us/nuget/quickstart/install-and-use-a-package-in-visual-studio
 ## General SDK description
 The SDK implements all communication patterns available through the KubeMQ server:
 - Events
