@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29102.190
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KubeMQ.SDK.csharp", "KubeMQ.SDK.csharp\KubeMQ.SDK.csharp.csproj", "{30088889-86B9-42C6-9C24-7CB9182D21B5}"
 EndProject
@@ -24,6 +24,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FD9C9B74-69E9-4E8F-875C-02F9A15D7568}"
 	ProjectSection(SolutionItems) = preProject
 		KubeMQ.SDK.csharp\bin\Release\KubeMQ.SDK.csharp.1.0.8.nupkg = KubeMQ.SDK.csharp\bin\Release\KubeMQ.SDK.csharp.1.0.8.nupkg
+		KubeMQ.snk = KubeMQ.snk
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Queue", "Examples\Queue\Queue.csproj", "{0F2A32CE-25AC-4691-8720-DB055CCA7B12}"
@@ -54,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SiteDocUseCases", "SiteDocU
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5802EAA7-DA20-4075-85F9-64CD8F96EF8D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KubeMQ", "KubeMQ\KubeMQ.csproj", "{2F5B39D9-522E-4D45-A922-A8B14A9AF236}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KubeMQ", "KubeMQ\KubeMQ.csproj", "{2F5B39D9-522E-4D45-A922-A8B14A9AF236}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "single", "Tests\pubsub\events\single\single.csproj", "{AEE4B22B-3E5B-4356-9BA1-058913051EB0}"
 EndProject
