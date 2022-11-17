@@ -18,7 +18,9 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         private AsyncDuplexStreamingCall<StreamQueueMessagesRequest, StreamQueueMessagesResponse> _stream;
 
         private bool _transactionState = false;
+
         private CancellationTokenSource _cts;
+        
         /// <summary>
         /// Status of current message handled, when false there is no active message to resend, call Receive first
         /// </summary>
@@ -27,12 +29,11 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             get { return CheckCallIsInTransaction(); }
         }
 
-        internal Transaction(Queue queue )
+        internal Transaction(Queue queue)
         {
-            this._queue = queue;
-            _kubemqAddress = queue.ServerAddress;  
-            this._metadata =   queue.Metadata;
-            
+            _queue = queue;
+            _kubemqAddress = queue.ServerAddress;
+            _metadata = queue.Metadata;
         }
 
         /// <summary>
@@ -41,52 +42,75 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// <param name="visibilitySeconds">message access lock by receiver.</param>
         /// <param name="waitTimeSeconds">Wait time of request., default is from queue</param>
         /// <returns></returns>
-        public TransactionMessagesResponse Receive(int visibilitySeconds = 1, int? waitTimeSeconds=null)
+        public TransactionMessagesResponse Receive(int visibilitySeconds = 1, int? waitTimeSeconds = null)
         {
-            if( !OpenStream())
+            return ReceiveAsync(visibilitySeconds, waitTimeSeconds, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Receive queue messages request , waiting for response or timeout.
+        /// </summary>
+        /// <param name="visibilitySeconds">message access lock by receiver.</param>
+        /// <param name="waitTimeSeconds">Wait time of request., default is from queue</param>
+        /// <returns></returns>
+        public async Task<TransactionMessagesResponse> ReceiveAsync(int visibilitySeconds = 1, int? waitTimeSeconds = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (!OpenStream())
             {
                 return new TransactionMessagesResponse("active queue message wait for ack/reject");
             }
 
-              Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+            var request = new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
-                Channel = _queue.QueueName,     
+                Channel = _queue.QueueName,
                 RequestID = Tools.IDGenerator.Getid(),
                 StreamRequestTypeData = StreamRequestType.ReceiveMessage,
                 VisibilitySeconds = visibilitySeconds,
-                WaitTimeSeconds = waitTimeSeconds??_queue.WaitTimeSecondsQueueMessages,
+                WaitTimeSeconds = waitTimeSeconds ?? _queue.WaitTimeSecondsQueueMessages,
                 ModifiedMessage = new QueueMessage(),
                 RefSequence = 0
-            });
+            };
+
             try
             {
-                streamQueueMessagesResponse.Wait();
+                var streamQueueMessagesResponse = await StreamQueueMessage(request, cancellationToken);
+                return new TransactionMessagesResponse(streamQueueMessagesResponse);
+            }
+            catch (RpcException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-              
-                if (ex.InnerException.GetType() == typeof(RpcException))
-                {
-                    throw ex.InnerException;
-                }
                 return new TransactionMessagesResponse(ex.Message);
             }
-
-            return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
         }
+
         /// <summary>
         /// Will mark Message dequeued on queue.
         /// </summary>
         /// <param name="msgSequence">Received message sequence Attributes.Sequence</param>
         /// <returns></returns>
         public TransactionMessagesResponse AckMessage(ulong msgSequence)
-        {        
-            if(!CheckCallIsInTransaction())
+        {
+            return AckMessageAsync(msgSequence, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+
+        /// <summary>
+        /// Will mark Message dequeued on queue.
+        /// </summary>
+        /// <param name="msgSequence">Received message sequence Attributes.Sequence</param>
+        /// <returns></returns>
+        public async Task<TransactionMessagesResponse> AckMessageAsync(ulong msgSequence, CancellationToken cancellationToken)
+        {
+            if (!CheckCallIsInTransaction())
             {
                 return new TransactionMessagesResponse("no active message to ack, call Receive first");
             }
-            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+
+            var request = new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
@@ -96,24 +120,23 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 WaitTimeSeconds = 0,
                 ModifiedMessage = null,
                 RefSequence = msgSequence
-            });
+            };
+
             try
             {
-                streamQueueMessagesResponse.Wait();
-                return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
+                var streamQueueMessagesResponse = await StreamQueueMessage(request, cancellationToken);
+                return new TransactionMessagesResponse(streamQueueMessagesResponse);
+            }
+            catch (RpcException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                
-                if (ex.InnerException.GetType() == typeof(RpcException))
-                {
-                    throw ex.InnerException;
-                }
                 return new TransactionMessagesResponse(ex.Message);
             }
-            //stream = null;
-           
         }
+
         /// <summary>
         /// Will return message to queue.
         /// </summary>
@@ -121,11 +144,22 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// <returns></returns>
         public TransactionMessagesResponse RejectMessage(ulong msgSequence)
         {
+            return RejectMessageAsync(msgSequence, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Will return message to queue.
+        /// </summary>
+        /// <param name="msgSequence">Received message sequence Attributes.Sequence</param>
+        /// <returns></returns>
+        public async Task<TransactionMessagesResponse> RejectMessageAsync(ulong msgSequence, CancellationToken cancellationToken)
+        {
             if (!CheckCallIsInTransaction())
             {
                 return new TransactionMessagesResponse("no active message to reject, call Receive first");
             }
-            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+
+            var request = new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
@@ -135,23 +169,24 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 WaitTimeSeconds = 0,
                 ModifiedMessage = null,
                 RefSequence = msgSequence
-            });
+            };
+
             try
             {
-                streamQueueMessagesResponse.Wait();
-                return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
+                var streamQueueMessagesResponse = await StreamQueueMessage(request, cancellationToken);
+                return new TransactionMessagesResponse(streamQueueMessagesResponse);
+            }
+            catch (RpcException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                if (ex.InnerException.GetType() == typeof(RpcException))
-                {
-                    throw ex.InnerException;
-                }
                 return new TransactionMessagesResponse(ex.Message);
-               
-            }           
-           
+            }
         }
+
+
         /// <summary>
         /// Extend the visibility time for the current receive message
         /// </summary>        
@@ -159,12 +194,22 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// <returns></returns>
         public TransactionMessagesResponse ExtendVisibility(int visibilityinSeconds)
         {
+            return ExtendVisibilityAsync(visibilityinSeconds, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Extend the visibility time for the current receive message
+        /// </summary>        
+        /// <param name="visibilityinSeconds">new viability time</param>
+        /// <returns></returns>
+        public async Task<TransactionMessagesResponse> ExtendVisibilityAsync(int visibilityinSeconds, CancellationToken cancellationToken)
+        {
             if (!CheckCallIsInTransaction())
             {
                 return new TransactionMessagesResponse("no active message to extend visibility, call Next first");
             }
-            
-            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+
+            var request = new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = _queue.QueueName,
@@ -174,22 +219,24 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 WaitTimeSeconds = 0,
                 ModifiedMessage = null,
                 RefSequence = 0
-            });
+            };
+
             try
             {
-                streamQueueMessagesResponse.Wait();
-                return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
+                var streamQueueMessagesResponse = await StreamQueueMessage(request, cancellationToken);
+                return new TransactionMessagesResponse(streamQueueMessagesResponse);
+            }
+            catch (RpcException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                if (ex.InnerException.GetType() == typeof(RpcException))
-                {
-                    throw ex.InnerException;
-                }
                 return new TransactionMessagesResponse(ex.Message);
             }
-            
+
         }
+
         /// <summary>
         /// Resend the current received message to a new channel and ack the current message
         /// </summary>
@@ -197,11 +244,22 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
         /// <returns></returns>
         public TransactionMessagesResponse Resend(string queueName)
         {
+            return ResendAsync(queueName, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Resend the current received message to a new channel and ack the current message
+        /// </summary>
+        /// <param name="queueName">Resend queue name</param>
+        /// <returns></returns>
+        public async Task<TransactionMessagesResponse> ResendAsync(string queueName, CancellationToken cancellationToken)
+        {
             if (!CheckCallIsInTransaction())
             {
                 return new TransactionMessagesResponse("no active message to resend, call Receive first");
-            }         
-            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+            }
+
+            var request = new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = queueName,
@@ -209,43 +267,54 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 StreamRequestTypeData = StreamRequestType.ResendMessage,
                 VisibilitySeconds = 0,
                 WaitTimeSeconds = 0,
-                ModifiedMessage =null,
+                ModifiedMessage = null,
                 RefSequence = 0
-            });
+            };
+
             try
             {
-                streamQueueMessagesResponse.Wait();
-                return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
+
+                var streamQueueMessagesResponse = await StreamQueueMessage(request, cancellationToken);
+                return new TransactionMessagesResponse(streamQueueMessagesResponse);
+            }
+            catch (RpcException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                if (ex.InnerException.GetType() == typeof(RpcException))
-                {
-                    throw ex.InnerException;
-                }
                 return new TransactionMessagesResponse(ex.Message);
             }
-     
-           
         }
+
         /// <summary>
         /// Resend the new message to a new channel.
         /// </summary>
-        /// <param name="msg">New Message</param>
+        /// <param name="message">New Message</param>
         /// <returns></returns>
-        public TransactionMessagesResponse Modify(Message msg)
+        public TransactionMessagesResponse Modify(Message message)
+        {
+            return ModifyAsync(message, CancellationToken.None).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Resend the new message to a new channel.
+        /// </summary>
+        /// <param name="message">New Message</param>
+        /// <returns></returns>
+        public async Task<TransactionMessagesResponse> ModifyAsync(Message message, CancellationToken cancellationToken)
         {
             if (!CheckCallIsInTransaction())
             {
                 return new TransactionMessagesResponse("no active message to resend, call Receive first");
             }
 
-            msg.ClientID = _queue.ClientID;
-            msg.MessageID = Tools.IDGenerator.Getid();
-            msg.Queue = msg.Queue ?? _queue.QueueName;
-            msg.Metadata = msg.Metadata ?? "";       
+            message.ClientID = _queue.ClientID;
+            message.MessageID = Tools.IDGenerator.Getid();
+            message.Queue = message.Queue ?? _queue.QueueName;
+            message.Metadata = message.Metadata ?? "";
 
-            Task<StreamQueueMessagesResponse> streamQueueMessagesResponse = StreamQueueMessage(new StreamQueueMessagesRequest
+            var request = new StreamQueueMessagesRequest
             {
                 ClientID = _queue.ClientID,
                 Channel = "",
@@ -253,51 +322,48 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
                 StreamRequestTypeData = StreamRequestType.SendModifiedMessage,
                 VisibilitySeconds = 0,
                 WaitTimeSeconds = 0,
-                ModifiedMessage = Tools.Converter.ConvertQueueMessage(msg),
+                ModifiedMessage = Tools.Converter.ConvertQueueMessage(message),
                 RefSequence = 0
-            });
+            };
+
             try
             {
-                streamQueueMessagesResponse.Wait();
-                return new TransactionMessagesResponse(streamQueueMessagesResponse.Result);
+                var streamQueueMessagesResponse = await StreamQueueMessage(request, cancellationToken);
+                return new TransactionMessagesResponse(streamQueueMessagesResponse);
+            }
+            catch (RpcException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                if (ex.InnerException.GetType() == typeof(RpcException))
-                {
-                    throw ex.InnerException;
-                }
-                return new TransactionMessagesResponse(ex.Message, msg);
+                return new TransactionMessagesResponse(ex.Message);
             }
-            
+
         }
+
         /// <summary>
         /// End the current stream of queue messages
         /// </summary>
         public void Close()
         {
-            if (_cts != null)
-            {
-                _cts.Cancel();
-            }
-
+            _cts?.Cancel();
             _transactionState = false;
         }
 
         private bool OpenStream()
-        { 
-            if (!CheckCallIsInTransaction())
+        {
+            if (CheckCallIsInTransaction())
             {
-                _cts = new CancellationTokenSource();
-                _stream = GetKubeMQClient().StreamQueueMessage(Metadata,null, _cts.Token);
-                _transactionState = true;
-                return true;
+                return false;
             }
             else
             {
-                return false;
-            }         
-          
+                _cts = new CancellationTokenSource();
+                _stream = GetKubeMQClient().StreamQueueMessage(Metadata, null, _cts.Token);
+                _transactionState = true;
+                return true;
+            }
         }
 
         private bool CheckCallIsInTransaction()
@@ -306,56 +372,35 @@ namespace KubeMQ.SDK.csharp.Queue.Stream
             {
                 return false;
             }
+
             try
             {
-                if (_stream == null)
-                {
-                    return false;
-                }
-
-                if (_stream.GetStatus().StatusCode == StatusCode.OK)
-                {
-                    return false;
-                }
+                _stream?.GetStatus();
                 return false;
             }
             catch (Exception ex)
             {
                 if (ex.Message == "Status can only be accessed once the call has finished.")
-                {
                     return true;
-                }
                 else
-                    throw ex;
-               
+                    throw;
             }
         }
 
-        private async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr)
+        private async Task<StreamQueueMessagesResponse> StreamQueueMessage(StreamQueueMessagesRequest sr, CancellationToken cancellationToken)
         {
-            if (_stream == null )
+            if (_stream == null)
             {
                 throw new RpcException(new Status(StatusCode.NotFound, "stream is null"), "Transaction stream is not opened, please Receive new Message");
             }
 
             // implement bi-di streams 'SendEventStream (stream Event) returns (stream Result)'
-            try
-            {
-                // Send Event via GRPC RequestStream
-                await _stream.RequestStream.WriteAsync(sr);
-                await _stream.ResponseStream.MoveNext(CancellationToken.None);
-            
-                return _stream.ResponseStream.Current;
-                
-            }
-            catch (RpcException ex)
-            {               
-                throw new RpcException(ex.Status);
-            }
-            catch (Exception ex)
-            {               
-                throw new Exception(ex.Message);
-            }
+
+            // Send Event via GRPC RequestStream
+            await _stream.RequestStream.WriteAsync(sr);
+            await _stream.ResponseStream.MoveNext(cancellationToken);
+
+            return _stream.ResponseStream.Current;
         }
 
     }
