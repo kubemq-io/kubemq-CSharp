@@ -12,10 +12,12 @@
     <FileVersion>1.5.2.0</FileVersion>
     <Version>1.0.8</Version>
     <RepositoryUrl>https://github.com/kubemq-io/CSharp_SDK</RepositoryUrl>
-    <Copyright>Copyright 2021</Copyright>
+    <Copyright>Copyright 2022</Copyright>
     <PackageProjectUrl>http://kubemq.io/</PackageProjectUrl>
     <PackageTags>Messaging Kubernetes</PackageTags>
-    <PackageVersion>1.5.2</PackageVersion>
+    <PackageVersion>1.6.0-b1</PackageVersion>
+    <Title>KubeMQ C# SDK</Title>
+    <PackageIcon>Icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
@@ -35,16 +37,19 @@
   <ItemGroup>
     <Content Include="Icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.15.8" />
+    <PackageReference Include="Google.Protobuf" Version="3.21.12" />
     <PackageReference Include="Grpc.Core" Version="2.37.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.50.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.11.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
