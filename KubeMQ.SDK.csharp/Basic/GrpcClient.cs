@@ -6,6 +6,7 @@ using static KubeMQ.Grpc.kubemq;
 using System.IO;
 
 namespace KubeMQ.SDK.csharp.Basic {
+    [Obsolete("This class is obsolete. use Kubemq.Sdk.csharp.Client instead")]
     public class GrpcClient {
         protected string _kubemqAddress;
         protected Metadata _metadata = null;
