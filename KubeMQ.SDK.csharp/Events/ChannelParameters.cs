@@ -4,6 +4,7 @@ namespace KubeMQ.SDK.csharp.Events {
     /// <summary>
     /// Configuration parameters for channel.
     /// </summary>
+    
     public class ChannelParameters {
         #region Properties
         /// <summary>

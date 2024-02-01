@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Google.Protobuf;
 using pb=KubeMQ.Grpc ;
 
-namespace KubeMQ.SDK.csharp.Unified.PubSub.Events
+namespace KubeMQ.SDK.csharp.PubSub.Events
 {
     /// <summary>
     /// Represents an event message to be sent or received.
