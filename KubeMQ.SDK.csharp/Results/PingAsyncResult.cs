@@ -1,6 +1,6 @@
-﻿using KubeMQ.SDK.csharp.Unified.Grpc;
+﻿using KubeMQ.SDK.csharp.Grpc;
 
-namespace KubeMQ.SDK.csharp.Unified.Results
+namespace KubeMQ.SDK.csharp.Results
 {
     /// <summary>
     /// Represents the result of a ping operation.

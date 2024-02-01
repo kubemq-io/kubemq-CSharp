@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KubeMQ.SDK.csharp.Unified.Config
+namespace KubeMQ.SDK.csharp.Config
 {
     public class KeepAliveConfig
     {

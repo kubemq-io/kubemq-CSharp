@@ -1,4 +1,4 @@
-﻿namespace KubeMQ.SDK.csharp.Unified.Grpc
+﻿namespace KubeMQ.SDK.csharp.Transport
 {
     public class ServerInfo
     {

@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using KubeMQ.SDK.csharp.Unified.Config;
+using KubeMQ.SDK.csharp.Config;
 
-namespace KubeMQ.SDK.csharp.Unified.Grpc
+namespace KubeMQ.SDK.csharp.Transport
 {
     public class CustomInterceptor : Interceptor
     {
