@@ -1,6 +1,7 @@
 ﻿using KubeMQ.SDK.csharp.Unified;
 using KubeMQ.SDK.csharp.Unified.Config;
 using KubeMQ.SDK.csharp.Unified.Grpc;
+using KubeMQ.SDK.csharp.Unified.Results;
 
 namespace BasicClient
 {
@@ -10,21 +11,17 @@ namespace BasicClient
         {
             
             Connection conn = new Connection().
-                SetAddress("localhost:50001").
+                SetAddress("localhost:50000").
                 SetClientId("some-client-id");
             Client client = new Client();
-            try
+            ConnectAsyncResult result = await client.ConnectAsync(conn, CancellationToken.None);
+            if (!result.IsSuccess)
             {
-                await client.ConnectAsync(conn, CancellationToken.None);
-                Console.WriteLine("Connected");
-                await client.CloseAsync();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            
-            
+                Console.WriteLine($"Could not connect to KubeMQ Server, error:{result.ErrorMessage}");
+                return;
+            }    
+            Console.WriteLine("Connected");
+            await client.CloseAsync();
         }
     }
 }
