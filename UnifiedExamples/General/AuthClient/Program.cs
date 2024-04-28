@@ -1,7 +1,7 @@
 ﻿using KubeMQ.SDK.csharp.Unified.PubSub.Events;
 using KubeMQ.SDK.csharp.Unified;
 using KubeMQ.SDK.csharp.Unified.Config;
-using KubeMQ.SDK.csharp.Unified.Results;
+
 
 namespace AuthClient
 {
@@ -14,14 +14,18 @@ namespace AuthClient
                 SetClientId("some-client-id").
                 SetAuthToken("your-auth-token");
             Client client = new Client();
-            ConnectAsyncResult result = await client.ConnectAsync(conn, CancellationToken.None);
-            if (!result.IsSuccess)
+            try
             {
-                Console.WriteLine($"Could not connect to KubeMQ Server, error:{result.ErrorMessage}");
-                return;
-            }    
-            Console.WriteLine("Connected");
-            await client.CloseAsync();
+                await client.ConnectAsync(conn, CancellationToken.None);
+                Event msg = new Event().SetChannel("e1").
+                    SetBody("hello kubemq - sending an event message"u8.ToArray());
+                await client.SendEventAsync(msg);
+                await client.CloseAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
             
         }
     }
