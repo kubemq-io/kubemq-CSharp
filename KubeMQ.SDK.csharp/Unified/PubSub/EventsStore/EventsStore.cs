@@ -7,7 +7,7 @@ using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Subscription;
 using pb= KubeMQ.Grpc;
 using static KubeMQ.Grpc.kubemq;
-namespace KubeMQ.SDK.csharp.PubSub.EventsStore
+namespace KubeMQ.SDK.csharp.Unified.PubSub.EventsStore
 {
     /// <summary>
     /// Represents a client for sending and subscribing to events in the Events Store.

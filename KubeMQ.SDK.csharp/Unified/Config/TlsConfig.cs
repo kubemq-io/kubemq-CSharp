@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace KubeMQ.SDK.csharp.Config
+namespace KubeMQ.SDK.csharp.Unified.Config
 {
     public class TlsConfig
     {
