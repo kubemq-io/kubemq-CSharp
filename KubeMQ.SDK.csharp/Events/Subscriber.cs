@@ -79,25 +79,17 @@ namespace KubeMQ.SDK.csharp.Events {
         /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
         public void SubscribeToEvents(SubscribeRequest subscribeRequest, HandleEventDelegate handler, HandleEventErrorDelegate errorDelegate, CancellationToken cancellationToken = default(CancellationToken)) {
             ValidateSubscribeRequest(subscribeRequest); // throws ArgumentException
-            try {
-                this.Ping();
-            } catch (Exception pingEx) {
-                logger.LogWarning(pingEx, "An exception occurred while sending ping to kubemq");
-                throw pingEx;
-            }
-            var grpcListnerTask = Task.Run((Func < Task > )(async() => {
+            var grpcListenerTask = Task.Run((Func < Task > )(async() => {
                 while (true) {
                     try {
                         await SubscribeToEvents(subscribeRequest, cancellationToken);
                     } catch (RpcException rpcx) {
                         if (rpcx.StatusCode == StatusCode.Cancelled) {
                             logger.LogWarning(rpcx, $"Cancellation was called ");
-
                             errorDelegate(rpcx);
                             break;
                         } else {
                             logger.LogWarning(rpcx, $"An RPC exception occurred while listening for events");
-
                             errorDelegate(rpcx);
                         }
                     } catch (Exception ex) {
@@ -107,16 +99,13 @@ namespace KubeMQ.SDK.csharp.Events {
                     }
                     await Task.Delay(1000);
                 }
-            }));
+            }), cancellationToken);
 
             // send events to end-user
             Task evenSenderTask = Task.Run((Func < Task > )(async() => {
                 while (true) {
                     // await for event from queue
-                    InnerRecivedEvent innerEvent = await _RecivedEvents.ReceiveAsync();
-
-                    LogIncomingEvent(innerEvent);
-
+                    InnerRecivedEvent innerEvent = await _RecivedEvents.ReceiveAsync(cancellationToken);
                     // Convert KubeMQ.Grpc.Event to outer Event
                     EventReceive evnt = new EventReceive(innerEvent);
 
@@ -142,7 +131,6 @@ namespace KubeMQ.SDK.csharp.Events {
 
                     // add event to queue
                     _RecivedEvents.Post(eventReceive);
-                    LogIncomingEvent(eventReceive);
                 }
             }
         }
@@ -161,14 +149,14 @@ namespace KubeMQ.SDK.csharp.Events {
             if (string.IsNullOrWhiteSpace(subscribeRequest.Channel)) {
                 throw new ArgumentException("Parameter is mandatory", "Channel");
             }
+            if (string.IsNullOrEmpty(subscribeRequest.ClientID)) {
+                throw new ArgumentException("Parameter is mandatory", "ClientID");
+            }
             if (!subscribeRequest.IsValideType("Events")) // SubscribeType
             {
                 throw new ArgumentException("Invalid Subscribe Type for this Class.", "SubscribeType");
             }
             if (subscribeRequest.SubscribeType == SubscribeType.EventsStore) {
-                if (string.IsNullOrWhiteSpace(subscribeRequest.ClientID)) {
-                    throw new ArgumentException("Parameter is mandatory for this type.", "ClientID");
-                }
                 if (subscribeRequest.EventsStoreType == EventsStoreType.Undefined) {
                     throw new ArgumentException("Parameter is mandatory for this type.", "EventsStoreType");
                 }
