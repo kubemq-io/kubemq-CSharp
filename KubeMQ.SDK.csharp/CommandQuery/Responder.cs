@@ -19,6 +19,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
     /// </summary>
     public class Responder : GrpcClient {
         private static ILogger logger;
+        private string clientId;
         private readonly BufferBlock<InnerRequest> _RecivedRequests = new BufferBlock<InnerRequest> ();
         //private readonly BufferBlock<InnerResponse> _ResponsesToSend = new BufferBlock<InnerResponse>();
 
@@ -31,29 +32,6 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
 
         #region C'tor
         /// <summary>
-        /// Initialize a new Responder to subscribe to Response
-        /// Logger will write to default output with suffix KubeMQSDK
-        /// KubeMQAddress will be parsed from Config or environment parameter
-        /// </summary>
-        public Responder(): this(null, null, null) {}
-
-        /// <summary>    
-        /// Initialize a new Responder to subscribe to Response    
-        /// KubeMQAddress will be parsed from Config or environment parameter
-        /// </summary>
-        /// <param name="plogger">Microsoft.Extensions.Logging Ilogger</param>
-        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
-        public Responder(ILogger plogger, string authToken = null): this(null, plogger, authToken) {}
-
-        /// <summary>
-        /// Initialize a new Responder to subscribe to Response  
-        /// Logger will write to default output with suffix KubeMQSDK
-        /// </summary>
-        /// <param name="KubeMQAddress">KubeMQ server address</param>
-        /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
-        public Responder(string KubeMQAddress, string authToken = null): this(KubeMQAddress, null, authToken) {}
-
-        /// <summary>
         /// Represents a delegate that receive Exception and return to user.
         /// </summary>
         /// <param name="eventReceive">Represents an Exception that occurred during CommandQuery receiving </param>
@@ -63,11 +41,12 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
         /// Initialize a new Responder to subscribe to Response  
         /// </summary>
         /// <param name="KubeMQAddress">KubeMQ server address</param>
+        /// <param name="clientId">Represents the responder ID that a responder will subscribe and send responses.</param>
         /// <param name="plogger">Microsoft.Extensions.Logging Ilogger</param>
         /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
-        public Responder(string KubeMQAddress, ILogger plogger, string authToken) {
+        public Responder(string KubeMQAddress, string clientId="", ILogger plogger=null, string authToken=null) {
             _kubemqAddress = KubeMQAddress;
-
+            this.clientId = clientId;
             logger = Logger.InitLogger(plogger, "Responder");
             this.addAuthToken(authToken);
         }
@@ -83,14 +62,6 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
         /// <returns>A task that represents the Subscribe Request. Possible Exception: fail on ping to kubemq.</returns>
         public void SubscribeToRequests(SubscribeRequest subscribeRequest, RespondDelegate handler, HandleCommandQueryErrorDelegate errorDelegate, CancellationToken cancellationToken = default(CancellationToken)) {
             ValidateSubscribeRequest(subscribeRequest); // throws ArgumentException
-
-            try {
-                this.Ping();
-            } catch (Exception pingEx) {
-                logger.LogWarning(pingEx, "n exception occurred while sending ping to kubemq");
-                throw pingEx;
-            }
-
             Task grpcListnerTask = Task.Run((Func < Task > )(async() => {
                 while (true) {
                     try {
@@ -126,12 +97,10 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
                     try {
                         // Activate end-user request handler and receive the response
                         Response response = handler(request);
-
+                        
+                        response.ClientID= this.clientId;
                         // Convert
                         InnerResponse innerResponse = response.Convert();
-
-                        LogResponse(innerResponse);
-
                         // Send Response via GRPC
                         GetKubeMQClient().SendResponse(innerResponse, Metadata);
                     } catch (Exception ex) {
@@ -156,8 +125,6 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
                 while (await call.ResponseStream.MoveNext()) {
                     // Received requests form GRPC stream.
                     InnerRequest request = call.ResponseStream.Current;
-
-                    LogRequest(request);
 
                     // Add (Post) request to queue
                     _RecivedRequests.Post(request);
@@ -186,13 +153,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
             }
         }
 
-        private void LogRequest(InnerRequest request) {
-            logger.LogTrace($"Responder InnerRequest. ID:'{request.RequestID}', Channel:'{request.Channel}', ReplyChannel:'{request.ReplyChannel}'");
-        }
-
-        private void LogResponse(InnerResponse response) {
-            logger.LogTrace($"Responder InnerResponse. ID:'{response.RequestID}', ReplyChannel:'{response.ReplyChannel}'");
-        }
+ 
     }
 
 }
