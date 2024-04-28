@@ -7,6 +7,7 @@ using InnerEvent = KubeMQ.Grpc.Event;
 
 namespace KubeMQ.SDK.csharp.Events.LowLevel
 {
+    [Obsolete("This class is obsolete. Use KubeMQ.SDK.csharp.PubSub.Event instead.")]
     public class Event
     {
         #region Properties
