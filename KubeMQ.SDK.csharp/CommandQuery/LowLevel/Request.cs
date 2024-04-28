@@ -1,5 +1,4 @@
-﻿using System;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 using KubeMQ.SDK.csharp.Tools;
 using System.Collections.Generic;
 using System.Threading;
@@ -97,6 +96,20 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         }
         #endregion
 
+        internal Request(InnerRequest innerRequest)
+        {
+            RequestID = string.IsNullOrEmpty(innerRequest.RequestID) ? GetNextId().ToString() : innerRequest.RequestID;
+            RequestType = (RequestType)innerRequest.RequestTypeData;
+            ClientID = innerRequest.ClientID ?? string.Empty;
+            Channel = innerRequest.Channel;
+            Metadata = innerRequest.Metadata ?? string.Empty;
+            Body = innerRequest.Body.ToByteArray();
+            ReplyChannel = innerRequest.ReplyChannel;
+            Timeout = innerRequest.Timeout;
+            CacheKey = innerRequest.CacheKey ?? string.Empty;
+            CacheTTL = innerRequest.CacheTTL;
+        }
+
         /// <summary>
         /// Convert a Request to an InnerRequest
         /// </summary>
@@ -105,9 +118,9 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
         {
             return new InnerRequest()
             {
-                RequestID = string.IsNullOrEmpty(this.RequestID) ? Guid.NewGuid().ToString() : this.RequestID,
+                RequestID = string.IsNullOrEmpty(this.RequestID) ? GetNextId().ToString() : this.RequestID,
                 RequestTypeData = (InnerRequest.Types.RequestType)this.RequestType,
-                ClientID = string.IsNullOrEmpty(this.ClientID) ? Guid.NewGuid().ToString() : this.ClientID,
+                ClientID = this.ClientID ?? string.Empty,
                 Channel = this.Channel,
                 //ReplyChannel - Set only by KubeMQ server
                 Metadata = this.Metadata ?? string.Empty,
@@ -119,6 +132,23 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
             };
         }
 
-       
+        /// <summary>
+        /// Get an unique thread safety ID between 1 to 65535
+        /// </summary>
+        /// <returns></returns>
+        private int GetNextId()
+        {
+            //return Interlocked.Increment(ref _id);
+
+            int temp, temp2;
+
+            do
+            {
+                temp = _id;
+                temp2 = temp == ushort.MaxValue ? 1 : temp + 1;
+            }
+            while (Interlocked.CompareExchange(ref _id, temp2, temp) != temp);
+            return _id;
+        }
     }
 }
