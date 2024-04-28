@@ -9,9 +9,9 @@ using Grpc.Core;
 using System.Net.Http;
 using System.Net.Security;
 using Grpc.Core.Interceptors;
-using KubeMQ.SDK.csharp.Unified.Config;
+using KubeMQ.SDK.csharp.Config;
 using static KubeMQ.Grpc.kubemq;
-namespace KubeMQ.SDK.csharp.Unified.Grpc
+namespace KubeMQ.SDK.csharp.Transport
 {
     public class Transport
     {

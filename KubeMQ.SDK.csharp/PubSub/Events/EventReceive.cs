@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using pb=KubeMQ.Grpc ;
-namespace KubeMQ.SDK.csharp.Unified.PubSub.Events
+namespace KubeMQ.SDK.csharp.PubSub.Events
 {
     /// <summary>
     /// Represents an event received from KubeMQ.
