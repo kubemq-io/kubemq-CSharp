@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using KubeMQ.SDK.csharp.Config;
-using KubeMQ.SDK.csharp.Transport;
-using KubeMQ.SDK.csharp.PubSub.Events;
-using KubeMQ.SDK.csharp.PubSub.EventsStore;
-using KubeMQ.SDK.csharp.Results;
+using KubeMQ.SDK.csharp.Unified.Config;
+using KubeMQ.SDK.csharp.Unified.Grpc;
+using KubeMQ.SDK.csharp.Unified.PubSub.Events;
+using KubeMQ.SDK.csharp.Unified.PubSub.EventsStore;
+using KubeMQ.SDK.csharp.Unified.Results;
 
-namespace KubeMQ.SDK.csharp
+namespace KubeMQ.SDK.csharp.Unified
 {
     public class Client
     {
         private bool _isConnected = false;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private Connection _cfg;
-        private Transport.Transport _transport;
+        private Transport _transport;
         private EventsClient _eventsClient;
         private EventsStoreClient _eventsStoreClient;
 
