@@ -1,4 +1,4 @@
-﻿namespace KubeMQ.SDK.csharp.Results
+﻿namespace KubeMQ.SDK.csharp.Unified.Results
 {
     /// <summary>
     /// Represents the result of closing a connection asynchronously.
