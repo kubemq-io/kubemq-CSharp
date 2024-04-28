@@ -8,45 +8,24 @@ namespace KubeMQ.SDK.csharp.Events
     /// <summary>
     /// Represents a Sender with a set of predefined parameters.
     /// </summary>
-    public class Channel
+    public class Sender
     {
         private readonly LowLevel.Sender  _sender;
-
-        private string ChannelName { get; set; }
-        private string ClientID { get; set; }
-        private bool Store { get; set; }
+        private string _clientId { get; set; }
        // private bool ReturnResult { get; set; }
 
         /// <summary>
         ///  Initializes a new instance of the KubeMQ.SDK.csharp.Events.Channel class using "Manual" Parameters. 
         /// </summary>
-        /// <param name="channelName">Represents The channel name to send to using the KubeMQ.</param>
-        /// <param name="clientID">Represents the sender ID that the messages will be send under.</param>
-        /// <param name="store">If true will save data to kubemq storage.</param>
         /// <param name="KubeMQAddress">The address the of the KubeMQ including the GRPC Port ,Example: "LocalHost:50000".</param>
+        /// <param name="channel">Represents The channel name to send to using the KubeMQ.</param>
         /// <param name="logger">Optional Microsoft.Extensions.Logging.ILogger, Logger will write to default output with suffix KubeMQSDK.</param>
         /// <param name="authToken">Set KubeMQ JWT Auth token to be used for KubeMQ connection.</param>
-        public Channel(string channelName, string clientID, bool store, string KubeMQAddress, ILogger logger=null, string authToken = null)
+        public Sender(string KubeMQAddress, string clientId="", ILogger logger=null, string authToken = null)
         {
-            ChannelName = channelName;
-            ClientID = clientID;
-            Store = store;
-
-            if (!IsValid(out Exception ex))
-            {
-                throw ex;
-            }
-
+            _clientId = clientId;
             _sender = new LowLevel.Sender(KubeMQAddress, logger, authToken);
         }
-
-        /// <summary>
-        /// Initializes a new instance of the KubeMQ.SDK.csharp.Events.Channel class using "ChannelParameters" class.
-        /// </summary>
-        /// <param name="parameters"></param>
-        public Channel(ChannelParameters parameters) : this(parameters.ChannelName, parameters.ClientID,
-            parameters.Store, parameters.KubeMQAddress, parameters.Logger, parameters.AuthToken)
-        { }
 
         /// <summary>
         /// Sending a new Event using the KubeMQ.
@@ -92,25 +71,15 @@ namespace KubeMQ.SDK.csharp.Events
 
         }
 
-        private bool IsValid(out Exception ex)
-        {
-            if (string.IsNullOrWhiteSpace(ChannelName))
-            {
-                ex = new ArgumentException("Parameter is mandatory", "ChannelName");
-                return false;
-            }
-            ex = null;
-            return true;
-        }
+        
 
         private LowLevel.Event CreateLowLevelEvent(Event notification)
         {
             return new LowLevel.Event()
             {
-                Channel = ChannelName,
-                ClientID = ClientID,
-                Store = Store,
-
+                Channel = notification.Channel,
+                ClientID = _clientId,
+                Store = notification.Store,
                 EventID = notification.EventID,
                 Body = notification.Body,
                 Metadata = notification.Metadata,
