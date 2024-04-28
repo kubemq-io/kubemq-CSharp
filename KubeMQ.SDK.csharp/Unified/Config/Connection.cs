@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KubeMQ.SDK.csharp.Config
+namespace KubeMQ.SDK.csharp.Unified.Config
 {
     public class Connection
     {
