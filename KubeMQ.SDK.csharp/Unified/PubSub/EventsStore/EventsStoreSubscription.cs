@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KubeMQ.SDK.csharp.PubSub.EventsStore
+namespace KubeMQ.SDK.csharp.Unified.PubSub.EventsStore
 {
     /// <summary>
     /// Enum representing the different types of starting points for subscribing to events in the EventsStore.
