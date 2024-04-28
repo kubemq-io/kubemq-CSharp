@@ -32,10 +32,6 @@ namespace KubeMQ.SDK.csharp.QueueStream
                 {
                     throw new ArgumentException("request queue cannot be empty");
                 }
-                if ((msg.Body == null || msg.Body.Length == 0) && (string.IsNullOrEmpty(msg.Metadata)))
-                {
-                    throw new ArgumentException("either body or metadata must be set");
-                }
                 pbReq.Messages.Add(msg.ToQueueMessage(clientId));
             }
             return pbReq;
