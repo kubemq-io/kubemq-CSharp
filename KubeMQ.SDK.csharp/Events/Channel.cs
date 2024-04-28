@@ -32,7 +32,7 @@ namespace KubeMQ.SDK.csharp.Events
             ClientID = clientID;
             Store = store;
 
-            if (!IsValid(out Exception ex))
+            if (!IsValide(out Exception ex))
             {
                 throw ex;
             }
@@ -55,10 +55,6 @@ namespace KubeMQ.SDK.csharp.Events
         /// <returns>KubeMQ.SDK.csharp.Events.Result which show the status of the Event sent.</returns>
         public Result SendEvent(Event notification)
         {
-            if ((notification.Body == null || notification.Body.Length == 0) && (string.IsNullOrEmpty(notification.Metadata)))
-            {
-                throw new ArgumentException("either body or metadata must be set");
-            }
             return _sender.SendEvent(CreateLowLevelEvent(notification));
         }
 
@@ -92,13 +88,14 @@ namespace KubeMQ.SDK.csharp.Events
 
         }
 
-        private bool IsValid(out Exception ex)
+        private bool IsValide(out Exception ex)
         {
             if (string.IsNullOrWhiteSpace(ChannelName))
             {
                 ex = new ArgumentException("Parameter is mandatory", "ChannelName");
                 return false;
             }
+
             ex = null;
             return true;
         }
