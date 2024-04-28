@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using KubeMQ.SDK.csharp.Tools;
 using InnerEvent = KubeMQ.Grpc.Event;
@@ -69,6 +68,18 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
             Tags = tags;
         }
 
+        internal Event(InnerEvent innerEvent)
+        {
+            Channel = innerEvent.Channel;
+            Metadata = innerEvent.Metadata;
+            Body = innerEvent.Body.ToByteArray();
+
+            EventID = string.IsNullOrEmpty(innerEvent.EventID) ? GetNextId().ToString() : innerEvent.EventID;
+            ClientID = innerEvent.ClientID;
+            Store = innerEvent.Store;
+        }
+
+
         internal InnerEvent ToInnerEvent()
         {
             return new InnerEvent()
@@ -76,12 +87,31 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
                 Channel = this.Channel,
                 Metadata = this.Metadata ?? string.Empty,
                 Body = Converter.ToByteString(this.Body),
-                EventID = string.IsNullOrEmpty(this.EventID) ? Guid.NewGuid().ToString() : EventID,
-                ClientID = string.IsNullOrEmpty(this.ClientID) ? Guid.NewGuid().ToString() : ClientID,
+
+                EventID = string.IsNullOrEmpty(this.EventID) ? GetNextId().ToString() : EventID,
+                ClientID = this.ClientID,
                 Store = this.Store,
                 Tags = { Converter.CreateTags(this.Tags) }
             };
         }
 
+        /// <summary>
+        /// Get an unique thread safety ID between 1 to 65535
+        /// </summary>
+        /// <returns></returns>
+        private int GetNextId()
+        {
+            //return Interlocked.Increment(ref _id);
+
+            int temp, temp2;
+
+            do
+            {
+                temp = _id;
+                temp2 = temp == ushort.MaxValue ? 1 : temp + 1;
+            }
+            while (Interlocked.CompareExchange(ref _id, temp2, temp) != temp);
+            return _id;
+        }
     }
 }
