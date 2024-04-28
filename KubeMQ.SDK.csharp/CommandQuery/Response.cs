@@ -66,11 +66,11 @@ namespace KubeMQ.SDK.csharp.CommandQuery
 
         internal Response(InnerResponse inner)
         {
-            ClientID = inner.ClientID;
+            ClientID = inner.ClientID ?? string.Empty;
             RequestID = inner.RequestID;
             ReplyChannel = inner.ReplyChannel;
             Metadata = inner.Metadata ?? string.Empty;
-            Body = inner.Body==null ? null : inner.Body.ToByteArray();
+            Body = inner.Body.ToByteArray();
             CacheHit = inner.CacheHit;
             Timestamp = Tools.Converter.FromUnixTime(inner.Timestamp);
             Executed = inner.Executed;
@@ -83,15 +83,15 @@ namespace KubeMQ.SDK.csharp.CommandQuery
         {
             return new InnerResponse()
             {
-                ClientID = string.IsNullOrEmpty(this.ClientID) ? Guid.NewGuid().ToString() : this.ClientID,
+                ClientID = this.ClientID ?? string.Empty,
                 RequestID = this.RequestID,
                 ReplyChannel = this.ReplyChannel,
                 Metadata = this.Metadata ?? string.Empty,
-                Body = this.Body == null ? ByteString.Empty : ByteString.CopyFrom(this.Body),
+                Body = ByteString.CopyFrom(this.Body),
                 CacheHit = this.CacheHit,
                 Timestamp = Tools.Converter.ToUnixTime(this.Timestamp),
                 Executed = this.Executed,
-                Error = string.IsNullOrEmpty(this.Error) ? string.Empty : this.Error
+                Error = this.Error
             };
         }
     }
