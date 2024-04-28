@@ -10,9 +10,11 @@ using KubeMQGrpc = KubeMQ.Grpc;
 using KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Events.LowLevel {
+ 
     /// <summary>
     /// Represents the instance that is responsible to send events to the kubemq.
     /// </summary>
+    [Obsolete("This class is obsolete. use Kubemq.Sdk.csharp.Client instead")]
     public class Sender : GrpcClient {
         private static ILogger logger;
 

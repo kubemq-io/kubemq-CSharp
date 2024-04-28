@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KubeMQ.SDK.csharp.Unified.PubSub.Events
+namespace KubeMQ.SDK.csharp.PubSub.Events
 {
     /// <summary>
     /// Represents an event subscription configuration.

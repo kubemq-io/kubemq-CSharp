@@ -1,4 +1,4 @@
-﻿namespace KubeMQ.SDK.csharp.Unified.Results
+﻿namespace KubeMQ.SDK.csharp.Results
 {
     /// <summary>
     /// Represents the base class for all result classes in the KubeMQ Unified SDK.
