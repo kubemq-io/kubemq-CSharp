@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.Extensions.Logging;
 using KubeMQGrpc = KubeMQ.Grpc;
 using InnerRecivedEvent = KubeMQ.Grpc.EventReceive;
@@ -16,7 +15,8 @@ namespace KubeMQ.SDK.csharp.Events {
     public class Subscriber : GrpcClient {
         private static ILogger logger;
 
-        private readonly BufferBlock<InnerRecivedEvent> _RecivedEvents = new BufferBlock<InnerRecivedEvent> ();
+        private readonly Queue<InnerRecivedEvent> _receivedEvents = new Queue<InnerRecivedEvent>();
+        private readonly object _lockObject = new object();
 
         /// <summary>
         /// Represents a delegate that receive KubeMQ.SDK.csharp.PubSub.EventReceive.
@@ -104,8 +104,16 @@ namespace KubeMQ.SDK.csharp.Events {
             // send events to end-user
             Task evenSenderTask = Task.Run((Func < Task > )(async() => {
                 while (true) {
-                    // await for event from queue
-                    InnerRecivedEvent innerEvent = await _RecivedEvents.ReceiveAsync(cancellationToken);
+                    InnerRecivedEvent innerEvent;
+                    lock (_lockObject)
+                    {
+                        while (_receivedEvents.Count == 0)
+                        {
+                            Monitor.Wait(_lockObject);
+                        }
+                        innerEvent = _receivedEvents.Dequeue();
+                    }
+
                     // Convert KubeMQ.Grpc.Event to outer Event
                     EventReceive evnt = new EventReceive(innerEvent);
 
@@ -130,7 +138,11 @@ namespace KubeMQ.SDK.csharp.Events {
                     InnerRecivedEvent eventReceive = call.ResponseStream.Current;
 
                     // add event to queue
-                    _RecivedEvents.Post(eventReceive);
+                    lock (_lockObject)
+                    {
+                        _receivedEvents.Enqueue(eventReceive);
+                        Monitor.PulseAll(_lockObject);
+                    }
                 }
             }
         }
