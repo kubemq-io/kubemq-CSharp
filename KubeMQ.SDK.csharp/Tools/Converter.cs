@@ -4,10 +4,8 @@ using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Queue;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using KubeMQ.SDK.csharp.Queue.KubemqQueueErrors;
+using System.Text;
+using System.Text.Json;
 
 namespace KubeMQ.SDK.csharp.Tools
 {
@@ -42,25 +40,25 @@ namespace KubeMQ.SDK.csharp.Tools
         {
             return ByteString.CopyFrom(byteArray);
         }
-
-
-        /// <summary>
-        /// Convert from byte array to object in  BinaryFormatter
-        /// </summary>
-        /// <param name="data">Byte Array</param>
-        /// <returns>object</returns>
-        public static object FromByteArray(byte[] data)
-        {
-            if (data == null || data.Length == 0)
-                return null;
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream(data))
-            {
-                object obj = bf.Deserialize(ms);
-                return obj;
-            }
-        }
-
+        //
+        //
+        // /// <summary>
+        // /// Convert from byte array to object in  BinaryFormatter
+        // /// </summary>
+        // /// <param name="data">Byte Array</param>
+        // /// <returns>object</returns>
+        // public static object FromByteArray(byte[] data)
+        // {
+        //     if (data == null || data.Length == 0)
+        //         return null;
+        //     BinaryFormatter bf = new BinaryFormatter();
+        //     using (MemoryStream ms = new MemoryStream(data))
+        //     {
+        //         object obj = bf.Deserialize(ms);
+        //         return obj;
+        //     }
+        // }
+        //
 
         /// <summary>
         /// Convert from object to byte array in selected  IFormatter
@@ -68,50 +66,50 @@ namespace KubeMQ.SDK.csharp.Tools
         /// <param name="data">Byte Array</param>
         /// <param name="formatter">IFormatter type</param>
         /// <returns>byte array</returns>
-        public static object FromByteArray(byte[] data, IFormatter formatter)
-        {
-            if (data == null || data.Length == 0)
-                return null;
-            using (MemoryStream ms = new MemoryStream(data))
-            {
-                object obj = formatter.Deserialize(ms);
-                return obj;
-            }
-        }
+        // public static object FromByteArray(byte[] data, IFormatter formatter)
+        // {
+        //     if (data == null || data.Length == 0)
+        //         return null;
+        //     using (MemoryStream ms = new MemoryStream(data))
+        //     {
+        //         object obj = formatter.Deserialize(ms);
+        //         return obj;
+        //     }
+        // }
 
-        /// <summary>
-        /// Convert from object to byte array in  BinaryFormatter
-        /// </summary>
-        /// <param name="obj">Object to format </param>
-        /// <returns>ByteArray</returns>
-        public static byte[] ToByteArray(object obj)
-        {
-            if (obj == null)
-                return null;
-            BinaryFormatter bf = new BinaryFormatter();
-            using (MemoryStream ms = new MemoryStream())
-            {
-                bf.Serialize(ms, obj);
-                return ms.ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Convert from object to byte array in selected  IFormatter
-        /// </summary>
-        /// <param name="obj">Object to return as bytearray </param>
-        /// <param name="formatter">IFormatter type</param>
-        /// <returns>ByteArray</returns>
-        public static byte[] ToByteArray(object obj, IFormatter formatter)
-        {
-            if (obj == null)
-                return null;
-            using (MemoryStream ms = new MemoryStream())
-            {
-                formatter.Serialize(ms, obj);
-                return ms.ToArray();
-            }
-        }
+        // /// <summary>
+        // /// Convert from object to byte array in  BinaryFormatter
+        // /// </summary>
+        // /// <param name="obj">Object to format </param>
+        // /// <returns>ByteArray</returns>
+        // public static byte[] ToByteArray(object obj)
+        // {
+        //     if (obj == null)
+        //         return null;
+        //     BinaryFormatter bf = new BinaryFormatter();
+        //     using (MemoryStream ms = new MemoryStream())
+        //     {
+        //         bf.Serialize(ms, obj);
+        //         return ms.ToArray();
+        //     }
+        // }
+        //
+        // /// <summary>
+        // /// Convert from object to byte array in selected  IFormatter
+        // /// </summary>
+        // /// <param name="obj">Object to return as bytearray </param>
+        // /// <param name="formatter">IFormatter type</param>
+        // /// <returns>ByteArray</returns>
+        // public static byte[] ToByteArray(object obj, IFormatter formatter)
+        // {
+        //     if (obj == null)
+        //         return null;
+        //     using (MemoryStream ms = new MemoryStream())
+        //     {
+        //         formatter.Serialize(ms, obj);
+        //         return ms.ToArray();
+        //     }
+        // }
 
         public static DateTime FromUnixTime(long UnixTime)
         {
@@ -197,5 +195,29 @@ namespace KubeMQ.SDK.csharp.Tools
 
         #endregion
 
+    }
+    public static class JsonConverter
+    {
+        // Converts an object to a byte array using JSON serialization
+        public static byte[] ToByteArray<T>(T obj)
+        {
+            if (obj == null)
+                return null;
+        
+            // Serialize the object to a JSON string, then get the bytes
+            string jsonString = JsonSerializer.Serialize(obj);
+            return Encoding.UTF8.GetBytes(jsonString);
+        }
+
+        // Converts a byte array back to an object of type T using JSON deserialization
+        public static T FromByteArray<T>(byte[] data)
+        {
+            if (data == null || data.Length == 0)
+                return default(T);
+        
+            // Deserialize the JSON bytes back to an object of type T
+            string jsonString = Encoding.UTF8.GetString(data);
+            return JsonSerializer.Deserialize<T>(jsonString);
+        }
     }
 }

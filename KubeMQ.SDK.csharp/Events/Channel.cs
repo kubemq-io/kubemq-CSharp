@@ -8,7 +8,6 @@ namespace KubeMQ.SDK.csharp.Events
     /// <summary>
     /// Represents a Sender with a set of predefined parameters.
     /// </summary>
-    [Obsolete("This class is obsolete. use Kubemq.Sdk.csharp.Client instead")]
     public class Channel
     {
         private readonly LowLevel.Sender  _sender;
