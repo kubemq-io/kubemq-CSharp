@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
+using KubeMQ.SDK.csharp.Common;
 using KubeMQ.SDK.csharp.Queue.Stream;
+using KubeMQ.SDK.csharp.Results;
 using KubeMQ.SDK.csharp.Tools;
 using Microsoft.Extensions.Logging;
+using static KubeMQ.SDK.csharp.Common.Common;
 using KubeMQGrpc = KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.Queue {
@@ -280,6 +284,35 @@ namespace KubeMQ.SDK.csharp.Queue {
             return new AckAllMessagesResponse (rec);
         }
 
+
+        /// <summary>
+        /// Creates a channel with the given name.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to create.</param>
+        /// <returns>A task representing the asynchronous channel creation operation.</returns>
+        public async Task<CommonAsyncResult> CreateChannel (string channelName) {
+            return await CreateDeleteChannel (GetKubeMQClient (), ClientID, channelName, "queues", true);
+        }
+
+        /// <summary>
+        /// Deletes a channel.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to delete.</param>
+        /// <returns>A task that represents the asynchronous delete operation. The task result is of type CommonAsyncResult.</returns>
+        public async Task<CommonAsyncResult> DeleteChannel (string channelName) {
+            return await CreateDeleteChannel (GetKubeMQClient (), ClientID, channelName, "queues", false);
+        }
+
+        /// <summary>
+        /// Lists all the channels within the KubeMQ server that match the search criteria.
+        /// </summary>
+        /// <param name="search">The search criteria to filter the channels. If left empty, all channels will be returned.</param>
+        /// <returns>A task result containing a ListQueuesAsyncResult object with the channels that match the search criteria.</returns>
+        public async Task<ListQueuesAsyncResult> ListChannels (string search = "") {
+            return await ListQueuesChannels(GetKubeMQClient(), ClientID, search, "queues");
+        }
+        
+        
         #region "Transactional"
         /// <summary>
         /// Advance manipulation of messages using stream
