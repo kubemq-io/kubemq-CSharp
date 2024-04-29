@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net461;net8.0;net7.0;net6.0;net5.0</TargetFrameworks>
     <Authors>KubeMQ</Authors>
     <Company>KubeMQ</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -15,7 +15,7 @@
     <Copyright>Copyright 2024</Copyright>
     <PackageProjectUrl>http://kubemq.io/</PackageProjectUrl>
     <PackageTags>Messaging Kubernetes</PackageTags>
-    <PackageVersion>1.7.1</PackageVersion>
+    <PackageVersion>1.7.2</PackageVersion>
     <Title>KubeMQ C# SDK</Title>
     <PackageIcon>Icon.png</PackageIcon>
     <SignAssembly>true</SignAssembly>
@@ -45,9 +45,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.21.12" />
+    <PackageReference Include="Google.Protobuf" Version="3.26.1" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.60.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.62.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.2" />
