@@ -18,13 +18,19 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// Represents an instance of the Kubemq client for sending and receiving events.
         /// </summary>
         private kubemqClient _kubemqClient;
-
+        private Connection _cfg;
         private bool _isConnected ;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private Transport.Transport _transport;
-        private string _clientId;
 
-        public async Task<ConnectAsyncResult> ConnectAsync(Connection cfg, CancellationToken cancellationToken)
+
+        /// <summary>
+        /// Connects the client to the KubeMQ server using the specified connection configuration.
+        /// </summary>
+        /// <param name="cfg">The connection configuration.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The result of the connect operation.</returns>
+        public async Task<ConnectAsyncResult> Connect(Connection cfg, CancellationToken cancellationToken)
         {
             await _lock.WaitAsync(cancellationToken);
             try
@@ -42,11 +48,11 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
                 try
                 {
                     cfg.Validate();
+                    _cfg = cfg;
                     _transport = new Transport.Transport(cfg);
                     await _transport.InitializeAsync(cancellationToken);
                     _isConnected = _transport.IsConnected();
                     _kubemqClient = _transport.KubeMqClient();
-                    _clientId = cfg.ClientId;
                 }
                 catch (Exception ex)
                 {
@@ -64,8 +70,13 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
             }
         }
 
-        
-        public async Task<PingAsyncResult> PingAsync(CancellationToken cancellationToken)
+
+        /// <summary>
+        /// Sends a ping request to the server to check the connectivity.
+        /// </summary>
+        /// <param name="cancellationToken">A CancellationToken to cancel the request.</param>
+        /// <returns>A PingAsyncResult containing the result of the operation.</returns>
+        public async Task<PingAsyncResult> Ping(CancellationToken cancellationToken)
         {
             try
             {
@@ -87,9 +98,9 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// <param name="eventToSend">The event message to send.</param>
         /// <param name="cancellationToken">The cancellation token to cancel operation.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task SendAsync(Event eventToSend, CancellationToken cancellationToken)
+        private async Task SendAsync(Event eventToSend, CancellationToken cancellationToken)
         {
-            var grpcEvent = eventToSend.Validate().ToKubemqEvent(_clientId);
+            var grpcEvent = eventToSend.Validate().ToKubemqEvent(_cfg.ClientId);
             var result = await _kubemqClient.SendEventAsync(grpcEvent, cancellationToken: cancellationToken);
 
             if (!result.Sent)
@@ -106,7 +117,7 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the operation.</returns>
         public async Task<CommonAsyncResult> Create(string channelName)
         {
-            return await CreateDeleteChannel(_kubemqClient,_clientId, channelName, "events", true);
+            return await CreateDeleteChannel(_kubemqClient,_cfg.ClientId, channelName, "events", true);
         }
 
 
@@ -117,7 +128,7 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the delete operation.</returns>
         public async Task<CommonAsyncResult> Delete(string channelName)
         {
-            return await CreateDeleteChannel(_kubemqClient, _clientId, channelName, "events", false);
+            return await CreateDeleteChannel(_kubemqClient, _cfg.ClientId, channelName, "events", false);
         }
 
         /// <summary>
@@ -131,22 +142,17 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// </remarks>
         public async Task<ListPubSubAsyncResult> List (string search = "") {
             
-            return await ListPubSubChannels(_kubemqClient, _clientId, search, "events");
+            return await ListPubSubChannels(_kubemqClient, _cfg.ClientId, search, "events");
         }
 
-        /// <summary>
-        /// Subscribes to events based on the provided <see cref="EventsSubscription"/>.
-        /// </summary>
-        /// <param name="subscription">The <see cref="EventsSubscription"/> object containing the channel and group to subscribe to.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task SubscribeAsync(EventsSubscription subscription, CancellationToken cancellationToken)
+
+        private async Task SubscribeAsync(EventsSubscription subscription, CancellationToken cancellationToken)
         {
             subscription.Validate();
             var pbRequest = new pb.Subscribe()
             {
                 SubscribeTypeData = pb.Subscribe.Types.SubscribeType.Events,
-                ClientID = _clientId,
+                ClientID = _cfg.ClientId,
                 Channel = subscription.Channel,
                 Group = subscription.Group
             };
@@ -158,5 +164,106 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
                 subscription.RaiseOnReceiveEvent(receivedEvent);
             }
         }
+
+        /// <summary>
+        /// Subscribes to events based on the provided subscription information.
+        /// </summary>
+        /// <param name="subscription">The subscription information specifying the channel and group to subscribe to.</param>
+        /// <param name="cancellationToken">The cancellation token to stop the subscription.</param>
+        /// <returns>The result of the subscription.</returns>
+        public SubscribeToEventsResult Subscribe(EventsSubscription subscription, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!_isConnected )
+                {
+                    return new SubscribeToEventsResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                }
+                Task.Run(async () =>
+                {
+                    while (!cancellationToken.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            await SubscribeAsync(subscription, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            subscription.RaiseOnError(ex);
+                            if (_cfg.DisableAutoReconnect)
+                            {
+                                break;
+                            }
+
+                            await Task.Delay(_cfg.GetReconnectIntervalDuration(), cancellationToken);
+                        }
+                    }
+
+                }, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                return new SubscribeToEventsResult() { IsSuccess = false, ErrorMessage = e.Message };
+            }
+
+            return new SubscribeToEventsResult() { IsSuccess = true };
+        }
+
+        /// <summary>
+        /// Sends an event asynchronously.
+        /// </summary>
+        /// <param name="eventToSend">The event message to be sent.</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="SendEventAsyncResult"/> object indicating whether the operation was successful or not.</returns>
+        public async Task<SendEventAsyncResult> Send(Event eventToSend,CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (!_isConnected)
+                {
+                    return new SendEventAsyncResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                }
+                await SendAsync(eventToSend, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                return new SendEventAsyncResult() { IsSuccess = false, ErrorMessage = e.Message };
+            }
+            return new SendEventAsyncResult() { IsSuccess = true };
+        }
+
+        /// <summary>
+        /// Closes the connection to the KubeMQ server.
+        /// </summary>
+        /// <returns>A <see cref="CloseAsyncResult"/> representing the result of closing the connection.</returns>
+        public async Task<CloseAsyncResult> Close()
+        {
+            try
+            {
+                await _lock.WaitAsync();
+                if (!_isConnected)
+                {
+                    return new CloseAsyncResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                }
+
+                if (_transport != null)
+                {
+                    await _transport.CloseAsync();
+                    _transport = null;
+                }
+                _isConnected = false;
+            }
+            catch (Exception e)
+            {
+                return new CloseAsyncResult() { IsSuccess = false, ErrorMessage = e.Message };
+            }
+            finally
+            {
+                _lock.Release();
+            }
+
+            return new CloseAsyncResult() { IsSuccess = true };
+        }
     }
+    
 }
