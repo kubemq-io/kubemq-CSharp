@@ -12,7 +12,7 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
     /// </summary>
     public class Request
     {
-        private static int _id = 0;
+        
 
         #region Properties
 
