@@ -3,7 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Basic;
-
+using KubeMQ.SDK.csharp.Common;
+using KubeMQ.SDK.csharp.Results;
+using static KubeMQ.SDK.csharp.Common.Common;
 namespace KubeMQ.SDK.csharp.QueueStream
 {
    
@@ -258,7 +260,32 @@ namespace KubeMQ.SDK.csharp.QueueStream
                 });
                 return new QueuesInfo(resp);
         }
+        /// <summary>
+        /// Creates a channel with the given name.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to create.</param>
+        /// <returns>A task representing the asynchronous channel creation operation.</returns>
+        public async Task<CommonAsyncResult> CreateChannel (string channelName) {
+            return await CreateDeleteChannel (GetKubeMQClient (), _clientId, channelName, "queues", true);
+        }
 
+        /// <summary>
+        /// Deletes a channel.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to delete.</param>
+        /// <returns>A task that represents the asynchronous delete operation. The task result is of type CommonAsyncResult.</returns>
+        public async Task<CommonAsyncResult> DeleteChannel (string channelName) {
+            return await CreateDeleteChannel (GetKubeMQClient (), _clientId, channelName, "queues", false);
+        }
+
+        /// <summary>
+        /// Lists all the channels within the KubeMQ server that match the search criteria.
+        /// </summary>
+        /// <param name="search">The search criteria to filter the channels. If left empty, all channels will be returned.</param>
+        /// <returns>A task result containing a ListQueuesAsyncResult object with the channels that match the search criteria.</returns>
+        public async Task<ListQueuesAsyncResult> ListChannels (string search = "") {
+            return await ListQueuesChannels(GetKubeMQClient(), _clientId, search, "queues");
+        }
         /// <summary>
         /// Close Queue Client - all pending transactions will be cancelled 
         /// </summary>
