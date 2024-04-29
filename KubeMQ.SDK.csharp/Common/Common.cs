@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Google.Protobuf.Collections;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Results;
 using static KubeMQ.Grpc.kubemq;
@@ -13,6 +14,7 @@ namespace KubeMQ.SDK.csharp.Common
     public static async Task<CommonAsyncResult> CreateDeleteChannel(kubemqClient client, string clientId,
         string channelName, string channelType, bool isCreate)
     {
+        Console.WriteLine($"Creating/Deleting channel {channelName} of type {channelType} for client {clientId}");
         var request = CreateRequest(clientId, channelType, channelName);
         request.Metadata = isCreate ? "create-channel" : "delete-channel";
         return await ExecuteRequest(client, request);
@@ -20,12 +22,18 @@ namespace KubeMQ.SDK.csharp.Common
 
     private static Request CreateRequest(string clientId, string channelType, string channelName)
     {
+        MapField<string, string> tags = new MapField<string, string>
+        {
+            { "channel_type", channelType },
+            { "channel", channelName },
+            { "client_id", clientId }
+        };
         return new Request
         {
             RequestID = Guid.NewGuid().ToString(),
             RequestTypeData = Request.Types.RequestType.Query,
             Channel = RequestChannel,
-            Tags = { { "channel_type", channelType }, { "channel", channelName }, { "client_id", clientId } }
+            Tags = { tags }
         };
     }
 
