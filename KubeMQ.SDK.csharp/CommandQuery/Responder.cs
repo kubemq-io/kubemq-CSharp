@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using KubeMQ.SDK.csharp.Basic;
 using Microsoft.Extensions.Logging;
 using KubeMQGrpc = KubeMQ.Grpc;
@@ -20,8 +19,8 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
     public class Responder : GrpcClient {
         private static ILogger logger;
         private string clientId;
-        private readonly BufferBlock<InnerRequest> _RecivedRequests = new BufferBlock<InnerRequest> ();
-        //private readonly BufferBlock<InnerResponse> _ResponsesToSend = new BufferBlock<InnerResponse>();
+        private readonly Queue<InnerRequest> _receivedRequests = new Queue<InnerRequest>();
+        private readonly object _lockObject = new object();
 
         /// <summary>
         /// Represents a delegate that receive KubeMQ.SDK.csharp.RequestReply.RequestReceive.
@@ -88,8 +87,15 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
             // send requests to end-user and send his response via GRPC
             Task handelAndRespondTask = Task.Run((Func < Task > )(async() => {
                 while (true) {
-                    // await for Request from queue
-                    InnerRequest innerRequest = await _RecivedRequests.ReceiveAsync();
+                    InnerRequest innerRequest;
+                    lock (_lockObject)
+                    {
+                        while (_receivedRequests.Count == 0)
+                        {
+                            Monitor.Wait(_lockObject);
+                        }
+                        innerRequest = _receivedRequests.Dequeue();
+                    }
 
                     // Convert KubeMQ.Grpc.Request to RequestReceive
                     RequestReceive request = new RequestReceive(innerRequest);
@@ -126,8 +132,12 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
                     // Received requests form GRPC stream.
                     InnerRequest request = call.ResponseStream.Current;
 
-                    // Add (Post) request to queue
-                    _RecivedRequests.Post(request);
+                    // Add request to queue
+                    lock (_lockObject)
+                    {
+                        _receivedRequests.Enqueue(request);
+                        Monitor.PulseAll(_lockObject);
+                    }
                 }
             }
         }
@@ -152,8 +162,5 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
                 throw new ArgumentException("Invalid Subscribe Type for this Class.", "SubscribeType");
             }
         }
-
- 
     }
-
 }
