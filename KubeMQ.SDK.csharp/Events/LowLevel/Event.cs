@@ -10,7 +10,7 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel
     public class Event
     {
         #region Properties
-        private static int _id = 0;
+        
         /// <summary>
         /// Represents The channel name to send to using the KubeMQ .
         /// </summary>
