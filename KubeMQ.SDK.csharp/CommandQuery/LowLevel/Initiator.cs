@@ -157,6 +157,10 @@ namespace KubeMQ.SDK.csharp.CommandQuery.LowLevel
             }
         }
 
+        public kubemq.kubemqClient Client()
+        {
+            return GetKubeMQClient();
+        }
         /// <summary>
         /// Ping check Kubemq response using "low level" Initiator.
         /// </summary>
