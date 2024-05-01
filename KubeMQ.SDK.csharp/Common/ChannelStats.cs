@@ -20,7 +20,7 @@ namespace KubeMQ.SDK.csharp.Common
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public int LastActivity { get; set; }
+        public Int64 LastActivity { get; set; }
         public bool IsActive { get; set; }
         public QueuesStats Incoming { get; set; }
         public QueuesStats Outgoing { get; set; }
@@ -46,7 +46,7 @@ namespace KubeMQ.SDK.csharp.Common
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public int LastActivity { get; set; }
+        public Int64 LastActivity { get; set; }
         public bool IsActive { get; set; }
         public PubSubStats Incoming { get; set; }
         public PubSubStats Outgoing { get; set; }
@@ -73,7 +73,7 @@ namespace KubeMQ.SDK.csharp.Common
     {
         public string Name { get; set; }
         public string Type { get; set; }
-        public int LastActivity { get; set; }
+        public Int64 LastActivity { get; set; }
         public bool IsActive { get; set; }
         public CQStats Incoming { get; set; }
         public CQStats Outgoing { get; set; }
