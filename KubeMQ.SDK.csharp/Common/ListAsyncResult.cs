@@ -1,3 +1,4 @@
+using System;
 using KubeMQ.SDK.csharp.Results;
 using KubeMQ.SDK.csharp.Tools;
 
@@ -8,22 +9,22 @@ namespace KubeMQ.SDK.csharp.Common
     /// </summary>
     public class ListCqAsyncResult : BaseResult
     {
-        public CQStats[] Channels { get;  }
+        public CQChannel[] Channels { get;  }
         public ListCqAsyncResult(byte[] data, bool isSuccess, string errorMessage)
         {
             IsSuccess = isSuccess;
             ErrorMessage = errorMessage;
-            Channels = JsonConverter.FromByteArray<CQStats[]>(data);
+            Channels = JsonConverter.FromByteArray<CQChannel[]>(data);
         }
     }
     public class ListPubSubAsyncResult : BaseResult
     {
-        public PubSubStats[] Channels { get;  }
+        public PubSubChannel[] Channels { get;  }
         public ListPubSubAsyncResult(byte[] data, bool isSuccess, string errorMessage)
         {
             IsSuccess = isSuccess;
             ErrorMessage = errorMessage;
-            Channels = JsonConverter.FromByteArray<PubSubStats[]>(data);
+            Channels = JsonConverter.FromByteArray<PubSubChannel[]>(data);
         }
     }
     
