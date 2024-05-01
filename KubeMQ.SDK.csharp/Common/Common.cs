@@ -14,7 +14,6 @@ namespace KubeMQ.SDK.csharp.Common
     public static async Task<CommonAsyncResult> CreateDeleteChannel(kubemqClient client, string clientId,
         string channelName, string channelType, bool isCreate)
     {
-        Console.WriteLine($"Creating/Deleting channel {channelName} of type {channelType} for client {clientId}");
         var request = CreateRequest(clientId, channelType, channelName);
         request.Metadata = isCreate ? "create-channel" : "delete-channel";
         return await ExecuteRequest(client, request);
@@ -22,18 +21,16 @@ namespace KubeMQ.SDK.csharp.Common
 
     private static Request CreateRequest(string clientId, string channelType, string channelName)
     {
-        MapField<string, string> tags = new MapField<string, string>
-        {
-            { "channel_type", channelType },
-            { "channel", channelName },
-            { "client_id", clientId }
-        };
         return new Request
         {
             RequestID = Guid.NewGuid().ToString(),
+            ClientID = clientId,
             RequestTypeData = Request.Types.RequestType.Query,
             Channel = RequestChannel,
-            Tags = { tags }
+            Timeout = 10000,
+            Tags =  { { "channel_type", channelType },
+            { "channel", channelName },
+            { "client_id", clientId }} ,
         };
     }
 
@@ -75,6 +72,8 @@ namespace KubeMQ.SDK.csharp.Common
             RequestID = Guid.NewGuid().ToString(),
             RequestTypeData = Request.Types.RequestType.Query,
             Channel = RequestChannel,
+            ClientID = clientId,
+            Timeout = 10000,
             Metadata = ("list-channels"),
             Tags = { { "channel_type", channelType }, { "search", search }, { "client_id", clientId } }
         };
