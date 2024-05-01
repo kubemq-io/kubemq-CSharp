@@ -5,7 +5,7 @@ using KubeMQ.SDK.csharp.Queue;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace KubeMQ.SDK.csharp.Tools
 {
@@ -222,7 +222,7 @@ namespace KubeMQ.SDK.csharp.Tools
                 return null;
         
             // Serialize the object to a JSON string, then get the bytes
-            string jsonString = JsonSerializer.Serialize(obj);
+            string jsonString = JsonConvert.SerializeObject(obj);
             return Encoding.UTF8.GetBytes(jsonString);
         }
 
@@ -234,7 +234,7 @@ namespace KubeMQ.SDK.csharp.Tools
         
             // Deserialize the JSON bytes back to an object of type T
             string jsonString = Encoding.UTF8.GetString(data);
-            return JsonSerializer.Deserialize<T>(jsonString);
+            return JsonConvert.DeserializeObject<T>(jsonString);
         }
     }
 }
