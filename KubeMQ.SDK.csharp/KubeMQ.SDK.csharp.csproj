@@ -65,4 +65,8 @@
     <Folder Include="Grpc\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\KubeMQ\KubeMQ.csproj" />
+  </ItemGroup>
+
 </Project>

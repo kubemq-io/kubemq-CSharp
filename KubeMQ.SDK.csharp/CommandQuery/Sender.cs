@@ -6,6 +6,7 @@ using KubeMQ.SDK.csharp.Common;
 using KubeMQ.SDK.csharp.Results;
 using Microsoft.Extensions.Logging;
 using static KubeMQ.SDK.csharp.Common.Common;
+using PingResult = KubeMQ.Grpc.PingResult;
 
 namespace KubeMQ.SDK.csharp.CommandQuery {
     /// <summary>
