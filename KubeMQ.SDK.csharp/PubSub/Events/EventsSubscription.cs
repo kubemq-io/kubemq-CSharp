@@ -1,4 +1,5 @@
 using System;
+using pb= KubeMQ.Grpc;
 
 namespace KubeMQ.SDK.csharp.PubSub.Events
 {
@@ -45,6 +46,14 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// </remarks>
         public EventsSubscription()
         {
+        }
+        
+        public EventsSubscription(string channel, string group, ReceiveEventHandler onReceiveEvent, ErrorHandler onError)
+        {
+            Channel = channel;
+            Group = group;
+            OnReceiveEvent = onReceiveEvent;
+            OnError = onError;
         }
 
         /// <summary>
@@ -128,6 +137,18 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
             {
                 throw new InvalidOperationException("Event subscription must have an OnReceiveEvent callback function.");
             }
+        }
+
+        internal pb.Subscribe Encode( string clientId = "")
+        {
+            var pbRequest = new pb.Subscribe()
+            {
+                SubscribeTypeData = pb.Subscribe.Types.SubscribeType.Events,
+                ClientID = clientId,
+                Channel = Channel,
+                Group = Group
+            };
+            return pbRequest;
         }
     }
 }

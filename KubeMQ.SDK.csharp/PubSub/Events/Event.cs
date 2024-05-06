@@ -114,7 +114,7 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// </summary>
         /// <param name="clientId">The client ID.</param>
         /// <returns>The Kubemq Event object.</returns>
-        internal pb.Event ToKubemqEvent(string clientId)
+        internal pb.Event Encode(string clientId)
         {
             if (string.IsNullOrEmpty(Id))
             {
@@ -122,13 +122,15 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
             }
 
             Tags.Add("x-kubemq-client-id", clientId);
-            pb.Event pbEvent = new pb.Event();
-            pbEvent.EventID = Id;
-            pbEvent.ClientID = clientId;
-            pbEvent.Channel = Channel;
-            pbEvent.Metadata = Metadata ?? "";
-            pbEvent.Body = ByteString.CopyFrom(Body);
-            pbEvent.Store = false;
+            pb.Event pbEvent = new pb.Event
+            {
+                EventID = Id,
+                ClientID = clientId,
+                Channel = Channel,
+                Metadata = Metadata ?? "",
+                Body = ByteString.CopyFrom(Body),
+                Store = false
+            };
             foreach (var entry in Tags)
             {
                 pbEvent.Tags.Add(entry.Key, entry.Value);

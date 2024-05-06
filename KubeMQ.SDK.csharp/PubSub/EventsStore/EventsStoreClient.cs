@@ -30,7 +30,7 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// <returns>
         /// An instance of ConnectAsyncResult indicating whether the connection was successful or not.
         /// </returns>
-        public async Task<ConnectAsyncResult> Connect(Connection cfg, CancellationToken cancellationToken)
+        public async Task<ConnectResult> Connect(Connection cfg, CancellationToken cancellationToken)
         {
             await _lock.WaitAsync(cancellationToken);
             try
@@ -59,10 +59,10 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
                     _transport = null;
                     _kubemqClient = null;
                     _isConnected = false;
-                    return new ConnectAsyncResult() { IsSuccess = false, ErrorMessage = ex.Message };
+                    return new ConnectResult() { IsSuccess = false, ErrorMessage = ex.Message };
                 }
 
-                return new ConnectAsyncResult() { IsSuccess = true };
+                return new ConnectResult() { IsSuccess = true };
             }
             finally
             {
@@ -188,21 +188,21 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// <param name="eventStoreToSend">The event to send to the Events Store.</param>
         /// <param name="cancellationToken">A cancellation token to cancel the send operation (optional).</param>
         /// <returns>A SendEventStoreAsyncResult object indicating the result of the send operation.</returns>
-        public async Task<SendEventStoreAsyncResult> Send(EventStore eventStoreToSend,CancellationToken cancellationToken)
+        public async Task<SendEventStoreResult> Send(EventStore eventStoreToSend,CancellationToken cancellationToken)
         {
             try
             {
                 if (!_isConnected)
                 {
-                    return new SendEventStoreAsyncResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new SendEventStoreResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
                 }
                 await SendAsync(eventStoreToSend, cancellationToken);
             }
             catch (Exception e)
             {
-                return new SendEventStoreAsyncResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new SendEventStoreResult() { IsSuccess = false, ErrorMessage = e.Message };
             }
-            return new SendEventStoreAsyncResult() { IsSuccess = true };
+            return new SendEventStoreResult() { IsSuccess = true };
         }
         
         /// <summary>
@@ -242,15 +242,15 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// <summary>
         /// Closes the connection to the KubeMQ server.
         /// </summary>
-        /// <returns>A <see cref="CloseAsyncResult"/> representing the result of closing the connection.</returns>
-        public async Task<CloseAsyncResult> Close()
+        /// <returns>A <see cref="CloseResult"/> representing the result of closing the connection.</returns>
+        public async Task<CloseResult> Close()
         {
             try
             {
                 await _lock.WaitAsync();
                 if (!_isConnected)
                 {
-                    return new CloseAsyncResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new CloseResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
                 }
 
                 if (_transport != null)
@@ -262,14 +262,14 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
             }
             catch (Exception e)
             {
-                return new CloseAsyncResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new CloseResult() { IsSuccess = false, ErrorMessage = e.Message };
             }
             finally
             {
                 _lock.Release();
             }
 
-            return new CloseAsyncResult() { IsSuccess = true };
+            return new CloseResult() { IsSuccess = true };
         }
     }
 }

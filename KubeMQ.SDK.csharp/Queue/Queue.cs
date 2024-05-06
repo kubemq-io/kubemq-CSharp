@@ -330,8 +330,8 @@ namespace KubeMQ.SDK.csharp.Queue {
         /// Ping KubeMQ address to check Grpc connection
         /// </summary>
         /// <returns></returns>
-        public PingResult Ping () {
-            PingResult rec = GetKubeMQClient ().Ping (new Empty ());
+        public KubeMQGrpc.PingResult Ping () {
+            KubeMQGrpc.PingResult rec = GetKubeMQClient ().Ping (new Empty ());
             _logger.LogDebug ($"Queue KubeMQ address:{_kubemqAddress} ping result:{rec}");
             return rec;
         }

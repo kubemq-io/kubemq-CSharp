@@ -127,7 +127,7 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         /// </summary>
         /// <param name="eventReceive">The event to convert.</param>
         /// <returns>The converted EventReceived object.</returns>
-        internal static EventReceived FromEvent(pb.EventReceive eventReceive)
+        internal static EventReceived Decode(pb.EventReceive eventReceive)
         {
             string fromClientId = "";
             if (eventReceive.Tags != null && eventReceive.Tags.TryGetValue("x-kubemq-client-id", out var tag))
