@@ -13,162 +13,113 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
     /// <summary>
     /// Represents a client for sending and subscribing to events in the Events Store.
     /// </summary>
-    public class EventsStoreClient
+    public class EventsStoreClient : BaseClient
     {
-        private kubemqClient _kubemqClient;
-        private Connection _cfg;
-        private bool _isConnected ;
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-        private Transport.Transport _transport;
-
 
         /// <summary>
-        /// Establishes a connection to the Events Store Client.
+        /// Creates a new channel for events.
         /// </summary>
-        /// <param name="cfg">The connection configuration.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>
-        /// An instance of ConnectAsyncResult indicating whether the connection was successful or not.
-        /// </returns>
-        public async Task<ConnectResult> Connect(Connection cfg, CancellationToken cancellationToken)
+        /// <param name="channelName">The name of the channel to create.</param>
+        /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the operation.</returns>
+        public async Task<CommonAsyncResult> Create(string channelName)
         {
-            await _lock.WaitAsync(cancellationToken);
+            return await CreateDeleteChannel(Cfg.ClientId, channelName, "events_store", true);
+        }
+
+        /// <summary>
+        /// Deletes a channel.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to delete.</param>
+        /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the delete operation.</returns>
+        public async Task<CommonAsyncResult> Delete(string channelName)
+        {
+            return await CreateDeleteChannel(Cfg.ClientId, channelName, "events_store", false);
+        }
+
+        /// <summary>
+        /// Retrieves the list of PubSub channels filtered by the given search string.
+        /// </summary>
+        /// <param name="search">The search string used to filter the PubSub channels. (optional)</param>
+        /// <returns>The result of the list operation, containing the PubSub channels.</returns>
+        /// <remarks>
+        /// The list operation retrieves the PubSub channels available on the Kubemq server.
+        /// The search string parameter can be used to filter the channels by name.
+        /// </remarks>
+        public async Task<ListPubSubAsyncResult> List (string search = "") {
+            
+            return await ListPubSubChannels(Cfg.ClientId, search, "events_store");
+        }
+
+        /// <summary>
+        /// Sends an event store asynchronously.
+        /// </summary>
+        /// <param name="eventToSend">The event message to be sent.</param>
+        /// <returns>A <see cref="SendEventResult"/> object indicating whether the operation was successful or not.</returns>
+        public async Task<SendEventResult> Send(EventStore eventToSend)
+        {
             try
             {
-                if (_isConnected)
+                if (!IsConnected)
                 {
-                    throw new Exception("Client already connected");
+                    return new SendEventResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
                 }
+                eventToSend.Validate();
+                var grpcEvent = eventToSend.Validate().Encode(Cfg.ClientId);
+                var result = await KubemqClient.SendEventAsync(grpcEvent);
 
-                if (cfg == null)
+                if (!result.Sent)
                 {
-                    throw new ArgumentNullException(nameof(cfg));
+                    return new SendEventResult()
+                    {
+                        ErrorMessage = result.Error,
+                        IsSuccess = false
+                    };
                 }
-
-                try
-                {
-                    cfg.Validate();
-                    _cfg = cfg;
-                    _transport = new Transport.Transport(cfg);
-                    await _transport.InitializeAsync(cancellationToken);
-                    _isConnected = _transport.IsConnected();
-                    _kubemqClient = _transport.KubeMqClient();
-                }
-                catch (Exception ex)
-                {
-                    _transport = null;
-                    _kubemqClient = null;
-                    _isConnected = false;
-                    return new ConnectResult() { IsSuccess = false, ErrorMessage = ex.Message };
-                }
-
-                return new ConnectResult() { IsSuccess = true };
             }
-            finally
+            catch (Exception e)
             {
-                _lock.Release();
+                return new SendEventResult() { IsSuccess = false, ErrorMessage = e.Message };
             }
+            return new SendEventResult() { IsSuccess = true };
         }
-
-        /// <summary>
-        /// Sends an event store message to the Kubemq server asynchronously.
-        /// </summary>
-        /// <param name="eventToSend">The event message to send.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains no value.</returns>
-        private async Task SendAsync(EventStore eventToSend, CancellationToken cancellationToken)
-        {
-            var grpcEvent = eventToSend.Validate().ToKubemqEvent(_cfg.ClientId);
-            var result = await _kubemqClient.SendEventAsync(grpcEvent, cancellationToken: cancellationToken);
-
-            if (!result.Sent)
-            {
-                throw new InvalidOperationException(result.Error);
-            }
-        }
-
-        private async Task SubscribeAsync(EventsStoreSubscription subscription, CancellationToken cancellationToken)
-        {
-            subscription.Validate();
-            var pbRequest = new pb.Subscribe()
-            {
-                SubscribeTypeData = pb.Subscribe.Types.SubscribeType.EventsStore,
-                ClientID = _cfg.ClientId,
-                Channel = subscription.Channel,
-                Group = subscription.Group,
-            };
-
-            switch (subscription.StartAt)
-            {
-                case StartAtType.StartAtTypeUndefined:
-                    throw new ArgumentOutOfRangeException(nameof(subscription.StartAt), subscription.StartAt, null);
-                case StartAtType.StartAtTypeFromNew:
-                    pbRequest.EventsStoreTypeData = pb.Subscribe.Types.EventsStoreType.StartNewOnly;
-                break;
-                case StartAtType.StartAtTypeFromFirst:
-                    pbRequest.EventsStoreTypeData = pb.Subscribe.Types.EventsStoreType.StartFromFirst;
-                break;
-                case StartAtType.StartAtTypeFromLast:
-                    pbRequest.EventsStoreTypeData = pb.Subscribe.Types.EventsStoreType.StartFromLast;
-                break;
-                case StartAtType.StartAtTypeFromSequence:
-                    pbRequest.EventsStoreTypeData = pb.Subscribe.Types.EventsStoreType.StartAtSequence;
-                    pbRequest.EventsStoreTypeValue = subscription.StartAtSequenceValue;
-                break;
-                case StartAtType.StartAtTypeFromTime:
-                    pbRequest.EventsStoreTypeData = pb.Subscribe.Types.EventsStoreType.StartAtTime;
-                    pbRequest.EventsStoreTypeValue = (long)(subscription.StartAtTimeValue - new DateTime(1970, 1, 1)).TotalMilliseconds;
-                break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(subscription.StartAt), subscription.StartAt, null);
-            }
-
-            using var stream = _kubemqClient.SubscribeToEvents(pbRequest, null, null, cancellationToken);
-            while (await stream.ResponseStream.MoveNext(cancellationToken))
-            {
-                var receivedEvent = EventStoreReceived.FromEvent(stream.ResponseStream.Current);
-                subscription.RaiseOnReceiveEvent(receivedEvent);
-            }
-        }
-
 
         /// <summary>
         /// Subscribes to events in the Events Store.
         /// </summary>
-        /// <param name="subscription">
-        /// An instance of <see cref="EventsStoreSubscription"/> containing the information needed for the subscription.
-        /// </param>
-        /// <param name="cancellationToken">
-        /// A cancellation token that can be used to cancel the subscription.
-        /// </param>
-        /// <returns>
-        /// An instance of <see cref="SubscribeToEventsStoreResult"/> representing the result of the subscription operation.
-        /// </returns>
-        public SubscribeToEventsStoreResult Subscribe(EventsStoreSubscription subscription, CancellationToken cancellationToken)
+        /// <param name="subscription">The subscription details.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The result of subscribing to events.</returns>
+        public SubscribeToEventsResult Subscribe(EventsStoreSubscription subscription, CancellationToken cancellationToken)
         {
             try
             {
-                if (!_isConnected )
+                if (!IsConnected )
                 {
-                    return new SubscribeToEventsStoreResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new SubscribeToEventsResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
                 }
+                subscription.Validate();
                 Task.Run(async () =>
                 {
                     while (!cancellationToken.IsCancellationRequested)
                     {
                         try
                         {
-                            await SubscribeAsync(subscription, cancellationToken);
+                            using var stream = KubemqClient.SubscribeToEvents(subscription.Encode(Cfg.ClientId), null, null, cancellationToken);
+                            while (await stream.ResponseStream.MoveNext(cancellationToken))
+                            {
+                                var receivedEvent = new EventStoreReceived().Decode(stream.ResponseStream.Current);
+                                subscription.RaiseOnReceiveEvent(receivedEvent);
+                            }
                         }
                         catch (Exception ex)
                         {
                             subscription.RaiseOnError(ex);
-                            if (_cfg.DisableAutoReconnect)
+                            if (Cfg.DisableAutoReconnect)
                             {
                                 break;
                             }
 
-                            await Task.Delay(_cfg.GetReconnectIntervalDuration(), cancellationToken);
+                            await Task.Delay(Cfg.GetReconnectIntervalDuration(), cancellationToken);
                         }
                     }
 
@@ -176,100 +127,11 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
             }
             catch (Exception e)
             {
-                return new SubscribeToEventsStoreResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new SubscribeToEventsResult() { IsSuccess = false, ErrorMessage = e.Message };
             }
 
-            return new SubscribeToEventsStoreResult() { IsSuccess = true };
+            return new SubscribeToEventsResult() { IsSuccess = true };
         }
-
-        /// <summary>
-        /// Sends an event to the Events Store.
-        /// </summary>
-        /// <param name="eventStoreToSend">The event to send to the Events Store.</param>
-        /// <param name="cancellationToken">A cancellation token to cancel the send operation (optional).</param>
-        /// <returns>A SendEventStoreAsyncResult object indicating the result of the send operation.</returns>
-        public async Task<SendEventStoreResult> Send(EventStore eventStoreToSend,CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (!_isConnected)
-                {
-                    return new SendEventStoreResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
-                }
-                await SendAsync(eventStoreToSend, cancellationToken);
-            }
-            catch (Exception e)
-            {
-                return new SendEventStoreResult() { IsSuccess = false, ErrorMessage = e.Message };
-            }
-            return new SendEventStoreResult() { IsSuccess = true };
-        }
-        
-        /// <summary>
-        /// Creates a new events store channel.
-        /// </summary>
-        /// <param name="channelName">The name of the channel to create.</param>
-        /// <returns>
-        /// An instance of CommonAsyncResult indicating the result of the operation.
-        /// </returns>
-        public async Task<CommonAsyncResult> Create(string channelName)
-        {
-            return await CreateDeleteChannel(_kubemqClient,_cfg.ClientId, channelName, "events_store", true);
-        }
-
-        /// <summary>
-        /// Deletes a channel from the Events Store.
-        /// </summary>
-        /// <param name="channelName">The name of the channel to delete.</param>
-        /// <returns>A CommonAsyncResult indicating the result of the operation.</returns>
-        public async Task<CommonAsyncResult> Delete(string channelName)
-        {
-            return await CreateDeleteChannel(_kubemqClient, _cfg.ClientId, channelName, "events_store", false);
-        }
-
-        /// <summary>
-        /// A method that lists the channels in the Events Store.
-        /// </summary>
-        /// <param name="search">The search string to filter the channel names.</param>
-        /// <returns>
-        /// An instance of ListPubSubAsyncResult with the list of PubSubChannels.
-        /// </returns>
-        public async Task<ListPubSubAsyncResult> List (string search = "") {
-            
-            return await ListPubSubChannels(_kubemqClient, _cfg.ClientId, search, "events_store");
-        }
-        
-        /// <summary>
-        /// Closes the connection to the KubeMQ server.
-        /// </summary>
-        /// <returns>A <see cref="CloseResult"/> representing the result of closing the connection.</returns>
-        public async Task<CloseResult> Close()
-        {
-            try
-            {
-                await _lock.WaitAsync();
-                if (!_isConnected)
-                {
-                    return new CloseResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
-                }
-
-                if (_transport != null)
-                {
-                    await _transport.CloseAsync();
-                    _transport = null;
-                }
-                _isConnected = false;
-            }
-            catch (Exception e)
-            {
-                return new CloseResult() { IsSuccess = false, ErrorMessage = e.Message };
-            }
-            finally
-            {
-                _lock.Release();
-            }
-
-            return new CloseResult() { IsSuccess = true };
-        }
+     
     }
 }

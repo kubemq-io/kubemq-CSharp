@@ -1,5 +1,5 @@
 using System;
-
+using pb= KubeMQ.Grpc;
 namespace KubeMQ.SDK.csharp.PubSub.EventsStore
 {
     /// <summary>
@@ -103,7 +103,15 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         public EventsStoreSubscription()
         {
         }
-
+         
+        public EventsStoreSubscription(string channel, string group, StartAtType startAt, DateTime startAtTimeValue, long startAtSequenceValue)
+        {
+            Channel = channel;
+            Group = group;
+            StartAt = startAt;
+            StartAtTimeValue = startAtTimeValue;
+            StartAtSequenceValue = startAtSequenceValue;
+        }
         /// <summary>
         /// Sets the channel for the EventStoreSubscription.
         /// </summary>
@@ -204,30 +212,65 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// Validates the event subscription.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when the event subscription is not valid.</exception>
-        public void Validate()
+        internal void Validate()
         {
             if (string.IsNullOrEmpty(Channel))
             {
-                throw new InvalidOperationException("Event subscription must have a channel.");
+                throw new InvalidOperationException("Event Store subscription must have a channel.");
             }
             if (OnReceiveEvent == null)
             {
-                throw new InvalidOperationException("Event subscription must have an OnReceiveEvent callback function.");
+                throw new InvalidOperationException("Event Store subscription must have an OnReceiveEvent callback function.");
             }
             if (StartAt == StartAtType.StartAtTypeUndefined)
             {
-                throw new InvalidOperationException("Event subscription must have a StartAt type.");
+                throw new InvalidOperationException("Event Store subscription must have a StartAt type.");
             }
             
             if (StartAt == StartAtType.StartAtTypeFromSequence && StartAtSequenceValue == 0)
             {
-                throw new InvalidOperationException("Event subscription type of StartAtTypeFromSequence must have a sequence value.");
+                throw new InvalidOperationException("Event Store subscription type of StartAtTypeFromSequence must have a sequence value.");
             }
             
             if (StartAt == StartAtType.StartAtTypeFromTime && StartAtTimeValue == DateTime.MinValue)
             {
-                throw new InvalidOperationException("Event subscription type of StartAtTypeFromTime must have a time value.");
+                throw new InvalidOperationException("Event Store subscription type of StartAtTypeFromTime must have a time value.");
             }
+        }
+        
+        internal pb.Subscribe Encode( string clientId = "")
+        {
+            Validate();
+            var startAtType = pb.Subscribe.Types.EventsStoreType.Undefined;
+            switch (StartAt)
+            {
+                case StartAtType.StartAtTypeFromNew:
+                    startAtType = pb.Subscribe.Types.EventsStoreType.StartNewOnly;
+                    break;
+                case StartAtType.StartAtTypeFromFirst:
+                    startAtType = pb.Subscribe.Types.EventsStoreType.StartFromFirst;
+                    break;
+                case StartAtType.StartAtTypeFromLast:
+                    startAtType = pb.Subscribe.Types.EventsStoreType.StartFromLast;
+                    break;
+                case StartAtType.StartAtTypeFromSequence:
+                    startAtType = pb.Subscribe.Types.EventsStoreType.StartAtSequence;
+                    break;
+                case StartAtType.StartAtTypeFromTime:
+                    startAtType = pb.Subscribe.Types.EventsStoreType.StartAtTime;
+                    break;
+                
+            }
+            var request = new pb.Subscribe
+            {
+                SubscribeTypeData = pb.Subscribe.Types.SubscribeType.EventsStore,
+                ClientID = clientId,
+                Channel = Channel,
+                Group = Group,
+                EventsStoreTypeData = startAtType,
+                EventsStoreTypeValue = StartAtSequenceValue,
+            };
+            return request;
         }
     }
 }

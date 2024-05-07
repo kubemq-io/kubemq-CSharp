@@ -140,7 +140,7 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// </summary>
         /// <param name="eventReceive">The <see cref="KubeMQ.Grpc.EventReceive"/> object to convert.</param>
         /// <returns>The converted <see cref="EventStoreReceived"/> object.</returns>
-        internal static EventStoreReceived FromEvent(pb.EventReceive eventReceive)
+        internal  EventStoreReceived Decode(pb.EventReceive eventReceive)
         {
             string fromClientId = "";
             if (eventReceive.Tags != null && eventReceive.Tags.TryGetValue("x-kubemq-client-id", out var tag))
