@@ -106,10 +106,10 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         internal void Validate()
         {
             if (string.IsNullOrEmpty(Channel))
-                throw new ArgumentException("Command subscription must have a channel.");
+                throw new ArgumentException("Commands subscription must have a channel.");
 
             if (OnReceivedCommand == null)
-                throw new ArgumentException("Command subscription must have an on_receive_command_callback function.");
+                throw new ArgumentException("Commands subscription must have an ReceivedCommandHandler.");
         }
 
         
