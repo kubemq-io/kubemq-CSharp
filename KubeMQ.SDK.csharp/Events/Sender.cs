@@ -80,7 +80,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains the result of the operation.</returns>
-        public async Task<CommonAsyncResult> CreateEventsChannel(string channelName)
+        public async Task<Results.Result> CreateEventsChannel(string channelName)
         {
             return await CreateDeleteChannel(_sender.Client(),_clientId, channelName, "events", true);
         }
@@ -90,7 +90,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="channelName">The name of the channel to be created.</param>
         /// <returns>A task that represents the asynchronous operation. The task result represents the result of the operation.</returns>
-        public async Task<CommonAsyncResult> CreateEventsStoreChannel(string channelName)
+        public async Task<Results.Result> CreateEventsStoreChannel(string channelName)
         {
             return await CreateDeleteChannel(_sender.Client(),_clientId, channelName, "events_store", true);
         }
@@ -100,7 +100,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>A <see cref="CommonAsyncResult"/> object that represents the result of the delete operation.</returns>
-        public async Task<CommonAsyncResult> DeleteEventsChannel(string channelName)
+        public async Task<Results.Result> DeleteEventsChannel(string channelName)
         {
             return await CreateDeleteChannel(_sender.Client(), _clientId, channelName, "events", false);
         }
@@ -110,7 +110,7 @@ namespace KubeMQ.SDK.csharp.Events
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>The task object representing the asynchronous operation.</returns>
-        public async Task<CommonAsyncResult> DeleteEventsStoreChannel(string channelName)
+        public async Task<Results.Result> DeleteEventsStoreChannel(string channelName)
         {
             return await CreateDeleteChannel(_sender.Client(), _clientId, channelName, "events_store", false);
         }

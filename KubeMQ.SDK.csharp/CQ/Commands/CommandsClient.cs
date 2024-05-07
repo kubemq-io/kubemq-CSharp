@@ -18,7 +18,7 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
-        public async Task<CommonAsyncResult> Create(string channelName)
+        public async Task<Result> Create(string channelName)
         {
             return await  CreateDeleteChannel(  Cfg.ClientId, channelName, "commands", true);
         }
@@ -28,7 +28,7 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>The result of the delete operation.</returns>
-        public async Task<CommonAsyncResult> Delete(string channelName)
+        public async Task<Result> Delete(string channelName)
         {
             return await  CreateDeleteChannel(  Cfg.ClientId, channelName, "commands", false);
         }
@@ -77,13 +77,13 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// <param name="subscription">The subscription details, including the channel and group.</param>
         /// <param name="cancellationToken">Cancellation token to stop the subscription.</param>
         /// <returns>The result of subscribing to commands. If successful, the IsSuccess property will be true; otherwise, the IsSuccess property will be false and the ErrorMessage property will contain an error message.</returns>
-        public SubscribeToCommandsResult Subscribe(CommandsSubscription subscription, CancellationToken cancellationToken)
+        public Result Subscribe(CommandsSubscription subscription, CancellationToken cancellationToken)
         {
             try
             {
                 if (!IsConnected )
                 {
-                    return new SubscribeToCommandsResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new Result("Client not connected");
                 }
                 subscription.Validate();
                 Task.Run(async () =>
@@ -115,10 +115,10 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
             }
             catch (Exception e)
             {
-                return new SubscribeToCommandsResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new Result(e) ;
             }
 
-            return new SubscribeToCommandsResult() { IsSuccess = true };
+            return new Result() ;
         }
 
         /// <summary>
@@ -126,22 +126,22 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// </summary>
         /// <param name="commandResponse">The response to send.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains the result of sending the response.</returns>
-        public async Task<SendResponseResult> Response(CommandResponse commandResponse)
+        public async Task<Result> Response(CommandResponse commandResponse)
         {
             try
             {
                 if (!IsConnected)
                 {
-                    return new SendResponseResult(){IsSuccess = false, ErrorMessage = "Client not connected"};
+                    return new Result( "Client not connected");
                 }
 
                 var grpcCommandResponse = commandResponse.Encode(Cfg.ClientId);
                 var result = await KubemqClient.SendResponseAsync(grpcCommandResponse);
-                return new SendResponseResult() { IsSuccess = true, ErrorMessage = "" };
+                return new Result();
             }
             catch (Exception e)
             {
-                return new SendResponseResult(){IsSuccess = false, ErrorMessage = e.Message};
+                return new Result(e);
             }
             
         }
