@@ -119,7 +119,7 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// </summary>
         /// <param name="clientId">The client ID to be set in the converted Kubemq.Grpc.Event instance.</param>
         /// <returns>The converted Kubemq.Grpc.Event instance.</returns>
-        internal pb.Event ToKubemqEvent(string clientId)
+        internal pb.Event Encode(string clientId)
         {
             if (string.IsNullOrEmpty(Id))
             {
