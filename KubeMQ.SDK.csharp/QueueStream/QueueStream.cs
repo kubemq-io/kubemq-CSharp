@@ -7,6 +7,7 @@ using KubeMQ.SDK.csharp.Common;
 using KubeMQ.SDK.csharp.Results;
 using static KubeMQ.SDK.csharp.Common.Common;
 using PingResult = KubeMQ.Grpc.PingResult;
+using Result = KubeMQ.SDK.csharp.Results.Result;
 
 namespace KubeMQ.SDK.csharp.QueueStream
 {
@@ -267,7 +268,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
         /// <returns>A task representing the asynchronous channel creation operation.</returns>
-        public async Task<CommonAsyncResult> CreateChannel (string channelName) {
+        public async Task<Result> CreateChannel (string channelName) {
             return await CreateDeleteChannel (GetKubeMQClient (), _clientId, channelName, "queues", true);
         }
 
@@ -276,7 +277,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>A task that represents the asynchronous delete operation. The task result is of type CommonAsyncResult.</returns>
-        public async Task<CommonAsyncResult> DeleteChannel (string channelName) {
+        public async Task<Result> DeleteChannel (string channelName) {
             return await CreateDeleteChannel (GetKubeMQClient (), _clientId, channelName, "queues", false);
         }
 

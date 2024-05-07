@@ -2,12 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using KubeMQ.SDK.csharp.Common;
-using KubeMQ.SDK.csharp.Config;
 using KubeMQ.SDK.csharp.Results;
-using KubeMQ.SDK.csharp.Transport;
-using pb= KubeMQ.Grpc;
-using static KubeMQ.Grpc.kubemq;
-using static KubeMQ.SDK.csharp.Common.Common;
+
 namespace KubeMQ.SDK.csharp.PubSub.EventsStore
 {
     /// <summary>
@@ -21,7 +17,7 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
         /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the operation.</returns>
-        public async Task<CommonAsyncResult> Create(string channelName)
+        public async Task<Result> Create(string channelName)
         {
             return await CreateDeleteChannel(Cfg.ClientId, channelName, "events_store", true);
         }
@@ -31,7 +27,7 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the delete operation.</returns>
-        public async Task<CommonAsyncResult> Delete(string channelName)
+        public async Task<Result> Delete(string channelName)
         {
             return await CreateDeleteChannel(Cfg.ClientId, channelName, "events_store", false);
         }
@@ -55,13 +51,13 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// </summary>
         /// <param name="eventToSend">The event message to be sent.</param>
         /// <returns>A <see cref="SendEventResult"/> object indicating whether the operation was successful or not.</returns>
-        public async Task<SendEventResult> Send(EventStore eventToSend)
+        public async Task<Result> Send(EventStore eventToSend)
         {
             try
             {
                 if (!IsConnected)
                 {
-                    return new SendEventResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new Result("Client not connected") ;
                 }
                 eventToSend.Validate();
                 var grpcEvent = eventToSend.Validate().Encode(Cfg.ClientId);
@@ -69,18 +65,14 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
 
                 if (!result.Sent)
                 {
-                    return new SendEventResult()
-                    {
-                        ErrorMessage = result.Error,
-                        IsSuccess = false
-                    };
+                    return new Result(result.Error);
                 }
             }
             catch (Exception e)
             {
-                return new SendEventResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new Result(e);
             }
-            return new SendEventResult() { IsSuccess = true };
+            return new Result() ;
         }
 
         /// <summary>
@@ -89,13 +81,13 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
         /// <param name="subscription">The subscription details.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The result of subscribing to events.</returns>
-        public SubscribeToEventsResult Subscribe(EventsStoreSubscription subscription, CancellationToken cancellationToken)
+        public Result Subscribe(EventsStoreSubscription subscription, CancellationToken cancellationToken)
         {
             try
             {
                 if (!IsConnected )
                 {
-                    return new SubscribeToEventsResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new Result("Client not connected");
                 }
                 subscription.Validate();
                 Task.Run(async () =>
@@ -127,10 +119,10 @@ namespace KubeMQ.SDK.csharp.PubSub.EventsStore
             }
             catch (Exception e)
             {
-                return new SubscribeToEventsResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new Result(e) ;
             }
 
-            return new SubscribeToEventsResult() { IsSuccess = true };
+            return new Result() ;
         }
      
     }

@@ -4,6 +4,7 @@ using Google.Protobuf.Collections;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Results;
 using static KubeMQ.Grpc.kubemq;
+using Result = KubeMQ.SDK.csharp.Results.Result;
 
 
 namespace KubeMQ.SDK.csharp.Common
@@ -11,7 +12,7 @@ namespace KubeMQ.SDK.csharp.Common
     public static class Common
 {
     private static readonly string RequestChannel = "kubemq.cluster.internal.requests";
-    public static async Task<CommonAsyncResult> CreateDeleteChannel(kubemqClient client, string clientId,
+    public static async Task<Result> CreateDeleteChannel(kubemqClient client, string clientId,
         string channelName, string channelType, bool isCreate)
     {
         var request = CreateRequest(clientId, channelType, channelName);
@@ -34,34 +35,24 @@ namespace KubeMQ.SDK.csharp.Common
         };
     }
 
-    private static async Task<CommonAsyncResult> ExecuteRequest(kubemqClient client, Request request)
+    private static async Task<Result> ExecuteRequest(kubemqClient client, Request request)
     {
         try
         {
             Response response = await client.SendRequestAsync(request);
             if (!string.IsNullOrEmpty(response.Error))
             {
-                return new CommonAsyncResult
-                {
-                    ErrorMessage = response.Error,
-                    IsSuccess = false
-                };
+                return new Result(response.Error);
             }
             else
             {
-                return new CommonAsyncResult
-                {
-                    IsSuccess = true
-                };
+                return new Result();
             }
         }
         catch (Exception e)
         {
-            return new CommonAsyncResult
-            {
-                ErrorMessage = $"{e.Message}, Stack Trace: {e.StackTrace}",
-                IsSuccess = false
-            };
+            return new Result(e);
+
         }
     }
 
