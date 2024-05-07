@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Config;
 using KubeMQ.SDK.csharp.Results;
 using KubeMQ.SDK.csharp.Transport;
+using System.Threading.Tasks;
+using Grpc.Core;
 using static KubeMQ.Grpc.kubemq;
-using Google.Protobuf.Collections;
+using pb= KubeMQ.Grpc;
 using PingResult = KubeMQ.SDK.csharp.Results.PingResult;
+using Result = KubeMQ.SDK.csharp.Results.Result;
 
 namespace KubeMQ.SDK.csharp.Common
 {
@@ -20,6 +24,11 @@ namespace KubeMQ.SDK.csharp.Common
         private Transport.Transport _transport;
         private static readonly string RequestChannel = "kubemq.cluster.internal.requests";
 
+        
+        private BlockingCollection<pb.Event> eventsQueue =
+            new BlockingCollection<Event>();
+        private  AsyncDuplexStreamingCall<pb.Event, pb.Result>
+            eventStreamConnection;
 
         /// <summary>
         /// Connects to the KubeMQ server using the provided connection configuration.
@@ -27,7 +36,7 @@ namespace KubeMQ.SDK.csharp.Common
         /// <param name="cfg">The connection configuration.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the connect operation.</param>
         /// <returns>A task that represents the asynchronous connect operation. The task result is a <see cref="ConnectResult"/> object.</returns>
-        public async Task<ConnectResult> Connect(Connection cfg, CancellationToken cancellationToken)
+        public async Task<Result> Connect(Connection cfg, CancellationToken cancellationToken)
         {
             await _lock.WaitAsync(cancellationToken);
             try
@@ -56,10 +65,10 @@ namespace KubeMQ.SDK.csharp.Common
                     _transport = null;
                     KubemqClient = null;
                     IsConnected = false;
-                    return new ConnectResult() { IsSuccess = false, ErrorMessage = ex.Message };
+                    return new Result(ex);
                 }
 
-                return new ConnectResult() { IsSuccess = true };
+                return new Result();
             }
             finally
             {
@@ -78,30 +87,30 @@ namespace KubeMQ.SDK.csharp.Common
             {
                 if (!IsConnected)
                 {
-                    return new PingResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new PingResult( "Client not connected");
                 }
 
                 ServerInfo result = await _transport.PingAsync(cancellationToken);
-                return new PingResult() { IsSuccess = true, ServerInfo = result };
+                return new PingResult(result) ;
             }
             catch (Exception ex)
             {
-                return new PingResult() { IsSuccess = false, ErrorMessage = ex.Message };
+                return new PingResult(ex);
             }
         }
 
         /// <summary>
         /// Closes the connection to the KubeMQ server.
         /// </summary>
-        /// <returns>A <see cref="CloseResult"/> object indicating the result of closing the connection.</returns>
-        public async Task<CloseResult> Close()
+        /// <returns>A <see cref="Result"/> object indicating the result of closing the connection.</returns>
+        public async Task<Result> Close()
         {
             try
             {
                 await _lock.WaitAsync();
                 if (!IsConnected)
                 {
-                    return new CloseResult() { IsSuccess = false, ErrorMessage = "Client not connected" };
+                    return new Result("Client not connected");
                 }
 
                 if (_transport != null)
@@ -113,16 +122,16 @@ namespace KubeMQ.SDK.csharp.Common
             }
             catch (Exception e)
             {
-                return new CloseResult() { IsSuccess = false, ErrorMessage = e.Message };
+                return new Result(e);
             }
             finally
             {
                 _lock.Release();
             }
 
-            return new CloseResult() { IsSuccess = true };
+            return new Result();
         }
-        internal  async Task<CommonAsyncResult> CreateDeleteChannel(string clientId,
+        internal  async Task<Result> CreateDeleteChannel(string clientId,
             string channelName, string channelType, bool isCreate)
         {
             var request = CreateRequest(clientId, channelType, channelName);
@@ -144,34 +153,23 @@ namespace KubeMQ.SDK.csharp.Common
             };
         }
         
-        private async Task<CommonAsyncResult> ExecuteRequest( Request request)
+        private async Task<Result> ExecuteRequest( Request request)
         {
             try
             {
                 Response response = await KubemqClient.SendRequestAsync(request);
                 if (!string.IsNullOrEmpty(response.Error))
                 {
-                    return new CommonAsyncResult
-                    {
-                        ErrorMessage = response.Error,
-                        IsSuccess = false
-                    };
+                    return new Result(response.Error);
                 }
                 else
                 {
-                    return new CommonAsyncResult
-                    {
-                        IsSuccess = true
-                    };
+                    return new Result();
                 }
             }
             catch (Exception e)
             {
-                return new CommonAsyncResult
-                {
-                    ErrorMessage = $"{e.Message}, Stack Trace: {e.StackTrace}",
-                    IsSuccess = false
-                };
+                return new Result(e);
             }
         }
         
@@ -181,11 +179,11 @@ namespace KubeMQ.SDK.csharp.Common
         {
             if (!string.IsNullOrEmpty(response.Error))
             {
-                return Activator.CreateInstance(typeof(T), new object[] { null, false, response.Error });
+                return Activator.CreateInstance(typeof(T), new object[] {  response.Error });
             }
             else
             {
-                return Activator.CreateInstance(typeof(T), new object[] { response.Body.ToByteArray(), true, "" });
+                return Activator.CreateInstance(typeof(T), new object[] { response.Body.ToByteArray() });
             }
         }
         
@@ -209,7 +207,7 @@ namespace KubeMQ.SDK.csharp.Common
             return HandleListErrors<ListPubSubAsyncResult>(await List(clientId, search, channelType));
         }
 
-        public  async Task<ListQueuesAsyncResult> ListQueuesChannels(kubemqClient client, string clientId, string search, string channelType)
+        internal  async Task<ListQueuesAsyncResult> ListQueuesChannels(kubemqClient client, string clientId, string search, string channelType)
         {
             return HandleListErrors<ListQueuesAsyncResult>(await List(clientId, search, channelType));
         }
@@ -217,7 +215,20 @@ namespace KubeMQ.SDK.csharp.Common
         {
             return HandleListErrors<ListCqAsyncResult>(await List(clientId, search, channelType));
         }
-       
+
+        internal async Task<StartSendEventsStreamResult> StartSendEventStream(CancellationToken cancellationToken)
+        {
+            try
+            {
+                eventStreamConnection = KubemqClient.SendEventsStream();
+            }
+            catch (Exception e)
+            {
+                return new StartSendEventsStreamResult(e);
+
+            }
+            return new StartSendEventsStreamResult();
+        }
     }
     
     
