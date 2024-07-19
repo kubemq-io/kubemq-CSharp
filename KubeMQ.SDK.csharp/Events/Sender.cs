@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using KubeMQ.Grpc;
+using KubeMQ.SDK.csharp.Common;
+using KubeMQ.SDK.csharp.Results;
 using Microsoft.Extensions.Logging;
+using static KubeMQ.SDK.csharp.Common.Common;
+using PingResult = KubeMQ.Grpc.PingResult;
 
 namespace KubeMQ.SDK.csharp.Events
 {
@@ -71,8 +75,67 @@ namespace KubeMQ.SDK.csharp.Events
 
         }
 
-        
+        /// <summary>
+        /// Creates a new events channel with the given name.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to create.</param>
+        /// <returns>A task representing the asynchronous operation. The task result contains the result of the operation.</returns>
+        public async Task<Results.Result> CreateEventsChannel(string channelName)
+        {
+            return await CreateDeleteChannel(_sender.Client(),_clientId, channelName, "events", true);
+        }
 
+        /// <summary>
+        /// Creates a channel for storing events.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to be created.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result represents the result of the operation.</returns>
+        public async Task<Results.Result> CreateEventsStoreChannel(string channelName)
+        {
+            return await CreateDeleteChannel(_sender.Client(),_clientId, channelName, "events_store", true);
+        }
+
+        /// <summary>
+        /// Deletes an events channel.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to delete.</param>
+        /// <returns>A <see cref="CommonAsyncResult"/> object that represents the result of the delete operation.</returns>
+        public async Task<Results.Result> DeleteEventsChannel(string channelName)
+        {
+            return await CreateDeleteChannel(_sender.Client(), _clientId, channelName, "events", false);
+        }
+
+        /// <summary>
+        /// Deletes an events store channel.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to delete.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
+        public async Task<Results.Result> DeleteEventsStoreChannel(string channelName)
+        {
+            return await CreateDeleteChannel(_sender.Client(), _clientId, channelName, "events_store", false);
+        }
+
+
+        /// <summary>
+        /// Lists the events channels.
+        /// </summary>
+        /// <param name="search">The search string to filter channel names.</param>
+        /// <returns>A list of pub/sub channels.</returns>
+        public async Task<ListPubSubAsyncResult> ListEventsChannels (string search = "") {
+            
+            return await ListPubSubChannels(_sender.Client(), _clientId, search, "events");
+        }
+
+
+        /// <summary>
+        /// Lists all events store channels.
+        /// </summary>
+        /// <param name="search">Optional parameter for filtering the results by channel name</param>
+        /// <returns>Returns a ListPubSubAsyncResult object containing the channels that match the search criteria</returns>
+        public async Task<ListPubSubAsyncResult> ListEventsStoreChannels (string search = "") {
+            return await ListPubSubChannels(_sender.Client(), _clientId, search, "events_store");
+        }
+        
         private LowLevel.Event CreateLowLevelEvent(Event notification)
         {
             return new LowLevel.Event()

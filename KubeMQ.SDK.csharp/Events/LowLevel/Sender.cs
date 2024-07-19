@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Grpc.Core;
+using System.Collections.Generic;
 using KubeMQ.SDK.csharp.Basic;
 using Microsoft.Extensions.Logging;
 using InnerEvent = KubeMQ.Grpc.Event;
@@ -16,8 +17,8 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel {
     public class Sender : GrpcClient {
         private static ILogger logger;
 
-        private readonly BufferBlock<KubeMQGrpc.Result> _RecivedResults = new BufferBlock<KubeMQGrpc.Result> ();
-
+        private readonly Queue<KubeMQGrpc.Result> _receivedResults = new Queue<KubeMQGrpc.Result>();
+        private readonly object _lockObject = new object();
         #region C'tor
         /// <summary>
         /// Initialize a new Sender.
@@ -142,15 +143,26 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel {
                     KubeMQGrpc.Result response = call.ResponseStream.Current;
 
                     // add response to queue
-                    _RecivedResults.Post(response);
+                    lock (_lockObject)
+                    {
+                        _receivedResults.Enqueue(response);
+                        Monitor.PulseAll(_lockObject);
+                    }
                     LogResponse(response);
                 }
 
                 // send result (response) to end-user 
                 var resultTask = Task.Run((Func < Task > )(async() => {
                     while (true) {
-                        // await for response from queue
-                        KubeMQGrpc.Result response = await _RecivedResults.ReceiveAsync();
+                        KubeMQGrpc.Result response;
+                        lock (_lockObject)
+                        {
+                            while (_receivedResults.Count == 0)
+                            {
+                                Monitor.Wait(_lockObject);
+                            }
+                            response = _receivedResults.Dequeue();
+                        }
 
                         // Convert KubeMQ.Grpc.Result to outer Result
                         Result result = new Result(response);
@@ -170,6 +182,12 @@ namespace KubeMQ.SDK.csharp.Events.LowLevel {
             }
         }
 
+        
+        public kubemq.kubemqClient Client()
+        {
+            return GetKubeMQClient();
+        }
+        
         /// <summary>
         /// Close a publish constant stream of events.
         /// </summary>

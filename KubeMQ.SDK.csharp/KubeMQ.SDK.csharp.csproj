@@ -8,12 +8,12 @@
     <AssemblyName>KubeMQ.SDK.csharp</AssemblyName>
     <RootNamespace>KubeMQ.SDK.csharp</RootNamespace>
     <Description>.NET SDK Client for KubeMQ</Description>
-    <AssemblyVersion>1.5.2.0</AssemblyVersion>
-    <FileVersion>1.5.2.0</FileVersion>
+    <AssemblyVersion>1.7.2</AssemblyVersion>
+    <FileVersion>1.7.2</FileVersion>
     <Version>1.0.8</Version>
     <RepositoryUrl>https://github.com/kubemq-io/kubemq-CSharp</RepositoryUrl>
     <Copyright>Copyright 2024</Copyright>
-    <PackageProjectUrl>http://kubemq.io/</PackageProjectUrl>
+    <PackageProjectUrl>https://kubemq.io/</PackageProjectUrl>
     <PackageTags>Messaging Kubernetes</PackageTags>
     <PackageVersion>1.7.2</PackageVersion>
     <Title>KubeMQ C# SDK</Title>
@@ -25,7 +25,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netstandard2.0|AnyCPU'">
 
   </PropertyGroup>
-
+  <PropertyGroup>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="RequestReply\**" />
     <EmbeddedResource Remove="RequestReply\**" />
@@ -48,6 +50,7 @@
     <PackageReference Include="Google.Protobuf" Version="3.26.1" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="Grpc.Core.Api" Version="2.62.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.2" />
@@ -63,6 +66,10 @@
 
   <ItemGroup>
     <Folder Include="Grpc\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KubeMQ\KubeMQ.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,12 @@
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using KubeMQ.Grpc;
+using KubeMQ.SDK.csharp.Common;
+using KubeMQ.SDK.csharp.Results;
 using Microsoft.Extensions.Logging;
+using static KubeMQ.SDK.csharp.Common.Common;
+using PingResult = KubeMQ.Grpc.PingResult;
+using Result = KubeMQ.SDK.csharp.Results.Result;
 
 namespace KubeMQ.SDK.csharp.CommandQuery {
     /// <summary>
@@ -86,6 +91,61 @@ namespace KubeMQ.SDK.csharp.CommandQuery {
         /// <returns>A task that represents the request that was sent using the SendRequest .</returns>
         public async Task SendRequest (QueryRequest request, HandleResponseDelegate handler) {
             await _initiator.SendRequest (request.CreateLowLevelRequest(), handler);
+        }
+
+        /// <summary>
+        /// Creates a command channel with the given name.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to create.</param>
+        /// <returns>An instance of CommonAsyncResult representing the result of the operation.</returns>
+        public async Task<Result> CreateCommandChannel (string channelName) {
+            return await CreateDeleteChannel (_initiator.Client(), ClientID, channelName, "commands", true);
+        }
+
+        /// <summary>
+        /// Creates a query channel with the specified name.
+        /// </summary>
+        /// <param name="channelName">The name of the query channel to create.</param>
+        /// <returns>A task representing the asynchronous operation. The task result will contain the result of the operation.</returns>
+        public async Task<Result> CreateQueryChannel (string channelName) {
+            return await CreateDeleteChannel (_initiator.Client(), ClientID, channelName, "queries", true);
+        }
+
+        /// <summary>
+        /// Deletes a command channel with the specified channel name.
+        /// </summary>
+        /// <param name="channelName">The name of the command channel to delete.</param>
+        /// <returns>A CommonAsyncResult object representing the result of the delete operation.</returns>
+        public async Task<Result> DeleteCommandChannel (string channelName) {
+            return await CreateDeleteChannel (_initiator.Client(), ClientID, channelName, "commands", false);
+        }
+
+        /// <summary>
+        /// Deletes a query channel in KubeMQ.
+        /// </summary>
+        /// <param name="channelName">The name of the channel to delete.</param>
+        /// <returns>A task representing the asynchronous delete operation.</returns>
+        public async Task<Result> DeleteQueryChannel (string channelName) {
+            return await CreateDeleteChannel (_initiator.Client(), ClientID, channelName, "queries", false);
+        }
+
+        /// <summary>
+        /// Lists all commands channels.
+        /// </summary>
+        /// <param name="search">Optional parameter to filter the channels by name. Default is an empty string.</param>
+        /// <returns>A <see cref="Task{ListCqAsyncResult}"/> representing the asynchronous operation.</returns>
+        public async Task<ListCqAsyncResult> ListCommandsChannels (string search = "") {
+            
+            return await ListCqChannels(_initiator.Client(), ClientID, search, "commands");
+        }
+
+        /// <summary>
+        /// Retrieves a list of queries channels.
+        /// </summary>
+        /// <param name="search">Optional. The keyword to filter the channels by.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the list of query channels.</returns>
+        public async Task<ListCqAsyncResult> ListQueriesChannels (string search = "") {
+            return await ListCqChannels(_initiator.Client(), ClientID, search, "queries");
         }
         
         /// <summary>

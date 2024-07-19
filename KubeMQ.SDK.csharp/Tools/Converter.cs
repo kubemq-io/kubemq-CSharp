@@ -5,7 +5,7 @@ using KubeMQ.SDK.csharp.Queue;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace KubeMQ.SDK.csharp.Tools
 {
@@ -32,7 +32,24 @@ namespace KubeMQ.SDK.csharp.Tools
             string utf8String = System.Text.Encoding.UTF8.GetString(data);
             return utf8String;
         }
+        /// <summary>
+        /// Convert from string to byte array
+        /// </summary>
+        public static byte[]FromString(string data)
+        {
+            byte[] utf8Bytes = System.Text.Encoding.UTF8.GetBytes(data);
+            return utf8Bytes;
+        }
 
+        /// <summary>
+        /// Convert from byte array to string
+        /// </summary>
+        public static string ToString(byte[] data)
+        {
+            string utf8String = System.Text.Encoding.UTF8.GetString(data);
+            return utf8String;
+        }
+     
         /// <summary>
         /// Byte Array to ByteString
         /// </summary>
@@ -205,7 +222,7 @@ namespace KubeMQ.SDK.csharp.Tools
                 return null;
         
             // Serialize the object to a JSON string, then get the bytes
-            string jsonString = JsonSerializer.Serialize(obj);
+            string jsonString = JsonConvert.SerializeObject(obj);
             return Encoding.UTF8.GetBytes(jsonString);
         }
 
@@ -217,7 +234,7 @@ namespace KubeMQ.SDK.csharp.Tools
         
             // Deserialize the JSON bytes back to an object of type T
             string jsonString = Encoding.UTF8.GetString(data);
-            return JsonSerializer.Deserialize<T>(jsonString);
+            return JsonConvert.DeserializeObject<T>(jsonString);
         }
     }
 }
