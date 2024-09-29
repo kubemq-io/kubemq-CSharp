@@ -130,7 +130,7 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
                     return new Result( "Client not connected");
                 }
 
-                var grpcCommandResponse = queryResponse.Encode(Cfg.ClientId);
+                var grpcCommandResponse = queryResponse.Validate().Encode(Cfg.ClientId);
                 var result = await KubemqClient.SendResponseAsync(grpcCommandResponse);
                 return new Result() ;
             }

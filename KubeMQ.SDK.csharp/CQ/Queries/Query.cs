@@ -29,7 +29,7 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
         /// <summary>
         /// A dictionary of key-value pairs representing tags associated with the query message.
         /// </summary>
-        public Dictionary<string, string> Tags { get; set; }
+        public Dictionary<string, string> Tags { get; private set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// The maximum time in seconds for which the query message is valid.
@@ -49,24 +49,7 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
         /// <summary>
         /// Initializes a new instance of the KubeMQ.SDK.csharp.RequestReply.Request for KubeMQ.SDK.csharp.RequestReply.channel use.
         /// </summary>
-
-        public Query()
-        {
-            
-        }
-        public Query(string id = null, string channel = null, string metadata = null, byte[] body = null, Dictionary<string, string> tags = null, int timeoutInSeconds = 0, string cacheKey = null, int cacheTTL = 0)
-        {
-            Id = id;
-            Channel = channel;
-            Metadata = metadata;
-            Body = body ?? Array.Empty<byte>();
-            Tags = tags ?? new Dictionary<string, string>();
-            TimeoutInSeconds = timeoutInSeconds;
-            CacheKey = cacheKey;
-            CacheTTL = cacheTTL;
-        }
-        
-        
+  
         /// <summary>
         /// Sets the identifier of the query message.
         /// </summary>
@@ -181,6 +164,7 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
         /// <returns>The encoded message.</returns>
         internal pb.Request Encode(string clientId)
         {
+            
             var pbQuery = new pb.Request()
             {
                 RequestID = Id ?? Guid.NewGuid().ToString(),
@@ -191,9 +175,8 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
                 Timeout = TimeoutInSeconds * 1000,
                 RequestTypeData = pb.Request.Types.RequestType.Query,
                 CacheTTL = CacheTTL * 1000,
-                CacheKey = CacheKey
+                CacheKey = CacheKey ?? string.Empty
             };
-
             foreach (var kvp in Tags)
                 pbQuery.Tags.Add(kvp.Key, kvp.Value);
 
