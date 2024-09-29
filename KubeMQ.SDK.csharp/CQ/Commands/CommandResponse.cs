@@ -1,4 +1,5 @@
 ﻿using System;
+using Google.Protobuf;
 using pb=KubeMQ.Grpc ;
 namespace KubeMQ.SDK.csharp.CQ.Commands
 {
@@ -93,7 +94,8 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         {
             if (CommandReceived == null)
                 throw new ArgumentException("Command response must have a command request.");
-            else if (string.IsNullOrEmpty(CommandReceived.ReplyChannel))
+            
+            if (string.IsNullOrEmpty(CommandReceived.ReplyChannel))
                 throw new ArgumentException("Command response must have a reply channel.");
 
             return this;
@@ -128,10 +130,9 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
                 RequestID = CommandReceived.Id,
                 ReplyChannel = CommandReceived.ReplyChannel,
                 Executed = IsExecuted,
-                Error = Error,
-                Timestamp = (long)(Timestamp.Ticks * 1e9)
+                Error = Error ?? string.Empty,
+                Timestamp = (long)(Timestamp.Ticks * 1e9),
             };
-
             return pbResponse;
         }
 
