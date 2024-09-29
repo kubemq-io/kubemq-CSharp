@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using Google.Protobuf;
 using pb=KubeMQ.Grpc ;
 namespace KubeMQ.SDK.csharp.CQ.Queries
 {
@@ -97,6 +99,17 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
             return this;
         }
         
+        public QueryResponse SetMetadata(string metadata)
+        {
+            Metadata = metadata;
+            return this;
+        }
+        
+        public QueryResponse SetBody(byte[] body)
+        {
+            Body = body;
+            return this;
+        }
         
         /// <summary>
         /// Validates the command response message. Throws an <see cref="ArgumentException"/> if the command response is invalid.
@@ -141,10 +154,12 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
                 RequestID = QueryReceived.Id,
                 ReplyChannel = QueryReceived.ReplyChannel,
                 Executed = IsExecuted,
-                Error = Error,
-                Timestamp = (long)(Timestamp.Ticks * 1e9)
+                Error = Error ?? string.Empty,
+                Timestamp = (long)(Timestamp.Ticks * 1e9),
+                Metadata = Metadata ?? "",
+                Body = ByteString.CopyFrom(Body),
+                CacheHit = CacheHit
             };
-
             return pbResponse;
         }
 
