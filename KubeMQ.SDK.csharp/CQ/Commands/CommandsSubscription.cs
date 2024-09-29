@@ -83,7 +83,7 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// </summary>
         /// <param name="onReceiveCommandHandler">The callback function to handle the received commands.</param>
         /// <returns>The CommandsSubscription object.</returns>
-        public CommandsSubscription SetReceivedCommandHandler(ReceivedCommandHandler onReceiveCommandHandler)
+        public CommandsSubscription SetOnReceivedCommand(ReceivedCommandHandler onReceiveCommandHandler)
         {
             OnReceivedCommand = onReceiveCommandHandler;
             return this;
@@ -94,7 +94,7 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// </summary>
         /// <param name="onErrorHandler">The error handler callback function.</param>
         /// <returns>The CommandsSubscription instance.</returns>
-        public CommandsSubscription SetErrorHandler(ErrorHandler onErrorHandler)
+        public CommandsSubscription SetOnError(ErrorHandler onErrorHandler)
         {
             OnError = onErrorHandler;
             return this;
