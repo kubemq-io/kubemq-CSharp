@@ -15,7 +15,7 @@ namespace EventsStore
             Connection conn = new Connection().SetAddress("localhost:50000").SetClientId("Some-client-id");
             EventsStoreClient client = new EventsStoreClient();
             CancellationTokenSource cts = new CancellationTokenSource();
-            ConnectAsyncResult connectResult = await client.Connect(conn, cts.Token);
+            Result connectResult = await client.Connect(conn, cts.Token);
             if (!connectResult.IsSuccess)
             {
                 Console.WriteLine($"Could not connect to KubeMQ Server, error:{connectResult.ErrorMessage}");
@@ -23,7 +23,7 @@ namespace EventsStore
             }
             
             
-            CommonAsyncResult result = await client.Create("es1");
+            Result result = await client.Create("es1");
             if (!result.IsSuccess)
             {
                 Console.WriteLine($"Could not create event store channel, error:{result.ErrorMessage}");
@@ -73,7 +73,7 @@ namespace EventsStore
                     {
                         Console.WriteLine($"Error: {exception.Message}");
                     });
-              SubscribeToEventsStoreResult subscribeResult =  client.Subscribe(subscription, cts.Token);
+            Result subscribeResult =  client.Subscribe(subscription, cts.Token);
               if (!subscribeResult.IsSuccess)
               {
                   Console.WriteLine($"Could not subscribe to KubeMQ Server, error:{subscribeResult.ErrorMessage}");
@@ -81,7 +81,7 @@ namespace EventsStore
               }
               await Task.Delay(1000);
               EventStore msg = new EventStore().SetChannel("es1").SetBody("hello kubemq - sending an event store message"u8.ToArray());
-              SendEventStoreAsyncResult sendResult=  await client.Send(msg, cts.Token);
+              Result sendResult=  await client.Send(msg);
               if (!sendResult.IsSuccess)
               {
                   Console.WriteLine($"Could not send an event to KubeMQ Server, error:{sendResult.ErrorMessage}");
