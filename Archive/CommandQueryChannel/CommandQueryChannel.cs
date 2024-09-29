@@ -35,7 +35,7 @@ namespace CommandQueryChannel
             Request request = new Request()
             {
                 Metadata = "CommandQueryChannel",
-                Body = Converter.ToByteArray("Request")
+                Body = Converter.FromString("Request")
             };
             return request;
         }
