@@ -57,7 +57,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
             _transactionId = response.TransactionId;
             foreach (var message in response.Messages)
             {
-              _messages.Add(new Message(message, requestHandler, _transactionId));
+              _messages.Add(new Message(message, requestHandler, _transactionId,_request.VisibilitySeconds,_request.AutoAck));
             }
 
             if (response.IsError)
@@ -93,6 +93,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
                 
             };
             _requestHandler(ackRequest);
+            MarkCompleted("AckAll");
         }
         /// <summary>
         /// NAck all messages in this response (reject all)
@@ -107,6 +108,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
 
             };
             _requestHandler(nackRequest);
+            MarkCompleted("NAckAll");
         }
         /// <summary>
         /// ReQueueAll all messages in this response to a new queue
@@ -116,7 +118,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         {
             if (string.IsNullOrEmpty(queue))
             {
-                throw new Exception("requeu queue name must have a valid value");
+                throw new Exception("requeue queue name must have a valid value");
             }
             CheckValidRequest();
             QueuesDownstreamRequest requeueRequest = new QueuesDownstreamRequest()
@@ -126,6 +128,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
                 ReQueueChannel = queue
             };
             _requestHandler(requeueRequest);
+            MarkCompleted("ReQueueAll");
         }
 
         internal void SendError(string err)
@@ -136,6 +139,14 @@ namespace KubeMQ.SDK.csharp.QueueStream
         internal void SendComplete()
         {
             _request.SendOnComplete();
+        }
+        
+        private void MarkCompleted(string reason)
+        {
+            foreach (var message in _messages)
+            {
+                message.SetComplete(reason);
+            }
         }
     }
 }
