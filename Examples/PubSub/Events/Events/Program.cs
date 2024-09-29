@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using KubeMQ.SDK.csharp.Common;
 using KubeMQ.SDK.csharp.PubSub.Events;
 
 using KubeMQ.SDK.csharp.Config;
@@ -16,14 +15,14 @@ namespace Events
             Connection conn = new Connection().SetAddress("localhost:50000").SetClientId("Some-client-id");
             EventsClient client = new EventsClient();
             CancellationTokenSource cts = new CancellationTokenSource();
-            ConnectAsyncResult connectResult = await client.Connect(conn, cts.Token);
+            Result connectResult = await client.Connect(conn, cts.Token);
             if (!connectResult.IsSuccess)
             {
                 Console.WriteLine($"Could not connect to KubeMQ Server, error:{connectResult.ErrorMessage}");
                 return;
             }
 
-            CommonAsyncResult result = await client.Create("e1");
+            Result result = await client.Create("e1");
             if (!result.IsSuccess)
             {
                 Console.WriteLine($"Could not create event channel, error:{result.ErrorMessage}");
@@ -66,7 +65,7 @@ namespace Events
                     {
                         Console.WriteLine($"Error: {exception.Message}");
                     });
-              SubscribeToEventsResult subscribeResult =  client.Subscribe(subscription, cts.Token);
+              Result subscribeResult =  client.Subscribe(subscription, cts.Token);
               if (!subscribeResult.IsSuccess)
               {
                   Console.WriteLine($"Could not subscribe to KubeMQ Server, error:{subscribeResult.ErrorMessage}");
@@ -74,7 +73,7 @@ namespace Events
               }
               await Task.Delay(1000);
               Event msg = new Event().SetChannel("e1").SetBody("hello kubemq - sending an event message"u8.ToArray());
-              SendEventAsyncResult sendResult=  await client.Send(msg, cts.Token);
+              Result sendResult=  await client.Send(msg);
               if (!sendResult.IsSuccess)
               {
                   Console.WriteLine($"Could not send to KubeMQ Server, error:{sendResult.ErrorMessage}");

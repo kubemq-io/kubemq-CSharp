@@ -8,11 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\..\KubeMQ.SDK.csharp\KubeMQ.SDK.csharp.csproj" />
+      <ProjectReference Include="..\..\..\KubeMQ.SDK.csharp\KubeMQ.SDK.csharp.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="KubeMQ.SDK.csharp" Version="1.7.2" />
-    </ItemGroup>
+    
 
 </Project>
