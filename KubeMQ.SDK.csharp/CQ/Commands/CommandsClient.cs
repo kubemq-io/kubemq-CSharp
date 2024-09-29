@@ -50,7 +50,7 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
         /// <returns>The response received from KubeMQ.</returns>
         public async Task<CommandResponse> Send(Command command)
         {
-            {
+            Console.WriteLine("Send Command", command);
                 try
                 {
                     if (!IsConnected)
@@ -67,8 +67,6 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
                     return new CommandResponse().SetError(e.Message).SetIsExecuted(false) ;
                     
                 }
-                
-            }
         }
 
         /// <summary>
@@ -134,8 +132,7 @@ namespace KubeMQ.SDK.csharp.CQ.Commands
                 {
                     return new Result( "Client not connected");
                 }
-
-                var grpcCommandResponse = commandResponse.Encode(Cfg.ClientId);
+                var grpcCommandResponse = commandResponse.Validate().Encode(Cfg.ClientId);
                 var result = await KubemqClient.SendResponseAsync(grpcCommandResponse);
                 return new Result();
             }
