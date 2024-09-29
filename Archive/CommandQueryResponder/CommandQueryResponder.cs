@@ -66,13 +66,13 @@ namespace CommandQueryResponder
             if (request != null)
             {
                 string strMsg = string.Empty;
-                object body = KubeMQ.SDK.csharp.Tools.Converter.FromByteArray(request.Body);
+                object body = KubeMQ.SDK.csharp.Tools.Converter.ToString(request.Body);
 
                 logger.LogInformation($"Subscriber Received request: Metadata:'{request.Metadata}', Channel:'{request.Channel}', Body:'{strMsg}'");
             }
             Response response = new Response(request)
             {
-                Body = Converter.ToByteArray("OK"),
+                Body = Converter.FromString("OK"),
                 CacheHit = false,
                 Error = "None",
                 ClientID = this.ClientID,

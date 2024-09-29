@@ -23,7 +23,7 @@ namespace PubSub_Publish_to_a_Channel
             {
                 var result = channel.SendEvent(new KubeMQ.SDK.csharp.Events.Event()
                 {                  
-                    Body = KubeMQ.SDK.csharp.Tools.Converter.ToByteArray("hello kubemq - sending multisubscribers event")
+                    Body = KubeMQ.SDK.csharp.Tools.Converter.FromString("hello kubemq - sending multisubscribers event")
                 });
                 if (!result.Sent)
                 {
