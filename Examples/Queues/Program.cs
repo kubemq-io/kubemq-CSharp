@@ -79,6 +79,7 @@ namespace Queues
                         {"key1", "value1"},
                         {"key2", "value2"} 
                     },
+                
                 Policy = new QueueMessagePolicy()
                 {
                     DelaySeconds = 1,
@@ -98,6 +99,7 @@ namespace Queues
                 Queue = "send_receive_queue",
                 WaitTimeout = 1000,
                 MaxItems = 1,
+                
             };
             PollResponse response = await client.Poll(pollRequest);
             if (response.Error != null)
