@@ -3,126 +3,40 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using KubeMQ.Grpc;
-using KubeMQ.SDK.csharp.Basic;
+using KubeMQ.SDK.csharp.Config;
 using KubeMQ.SDK.csharp.Common;
 using KubeMQ.SDK.csharp.Results;
-using static KubeMQ.SDK.csharp.Common.Common;
 using PingResult = KubeMQ.Grpc.PingResult;
 using Result = KubeMQ.SDK.csharp.Results.Result;
 
-namespace KubeMQ.SDK.csharp.QueueStream
+namespace KubeMQ.SDK.csharp.Queues
 {
    
-    public class QueueStream : GrpcClient
+    public class QueuesClient : BaseClient
     {
         private static object _downstreamSyncLock = new object();
         private static object _upstreamSyncLock = new object();
-        private string _clientId = Guid.NewGuid().ToString();
+        
         private Downstream _downstream = null;
         private Upstream _upstream = null;
-        private CancellationTokenSource _tokenSource = new CancellationTokenSource();
-        private CancellationToken ctx;
         private bool _connected = false;
-        
-        public int WaitingSendRequests
+        private CancellationTokenSource _tokenSource = new CancellationTokenSource();
+        public async Task<Result>  Connect(Configuration cfg, CancellationToken cancellationToken)
         {
-            get
+            Result result = await base.Connect(cfg, cancellationToken);
+            if (!result.IsSuccess)
             {
-                Upstream upstream ;
-                lock (_upstreamSyncLock)
-                {
-                    upstream = _upstream;
-                }
-
-                if (upstream != null)
-                {
-                    return upstream.PendingTransactions();
-                }
-                else
-                {
-                    return 0;
-                }
+                return result;
             }
+            
+            _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            RunStreams();
+            await Task.Delay(1000, cancellationToken);
+            return result;
         }
-        public int ActivePollRequests
-        {
-            get
-            {
-                Downstream downstream;
-                lock (_downstreamSyncLock)
-                {
-                    downstream = _downstream;
-                }
-
-                if (downstream != null)
-                {
-                    return downstream.ActiveTransactions();
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
-        public int WaitingPollRequests
-        {
-            get
-            {
-                Downstream downstream;
-                lock (_downstreamSyncLock)
-                {
-                    downstream = _downstream;
-                }
-
-                if (downstream != null)
-                {
-                    return downstream.PendingTransactions();
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-        }
-        public bool Connected
-        {
-            get
-            {
-                return _connected;
-            }
-        }
-
-        public QueueStream(string address) :this (address,null,null)
-        {
-        }
-        public QueueStream(string address,string clientId) :this (address,clientId,null)
-        {
-        }
-        public QueueStream(string address,string clientId, string authToken) 
-        {
-            if (!string.IsNullOrEmpty(clientId))
-            {
-                _clientId = clientId;
-            }
-
-            if (!string.IsNullOrEmpty(address))
-            {
-                _kubemqAddress = address;
-            }
-            this.addAuthToken(authToken);
-            _client = GetKubeMQClient();
-            ctx = _tokenSource.Token;
-           
-            Task.Run(async () =>
-            {
-                await RunStreams();
-            });
-            Thread.Sleep(1000);
-        }
-        
         private async  Task RunStreams()
         {
-            while (!ctx.IsCancellationRequested)
+            while (!_tokenSource.IsCancellationRequested)
             {
 
                 lock (_downstreamSyncLock)
@@ -135,10 +49,10 @@ namespace KubeMQ.SDK.csharp.QueueStream
                         {
                             _connected = false;
                             Ping();
-                            var downstreamConnection = _client.QueuesDownstream(Metadata, null, ctx);
-                            var upstreamConnection = _client.QueuesUpstream(Metadata, null, ctx);
-                            _downstream = new Downstream(downstreamConnection, _clientId);
-                            _upstream = new Upstream(upstreamConnection, _clientId);
+                            var downstreamConnection = KubemqClient.QueuesDownstream(null,null, _tokenSource.Token);
+                            var upstreamConnection = KubemqClient.QueuesUpstream(null, null, _tokenSource.Token);
+                            _downstream = new Downstream(downstreamConnection, Cfg.ClientId);
+                            _upstream = new Upstream(upstreamConnection,  Cfg.ClientId);
                             Task.Run(async () =>
                             {
                                 _downstream.StartHandelRequests();
@@ -151,7 +65,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
                                   Console.WriteLine(e);  
                                 }
                                 
-                            });
+                            }, _tokenSource.Token);
                             Task.Run(async () =>
                             {
                                 _upstream.StartHandelRequests();
@@ -164,7 +78,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
                                 {
                                     Console.WriteLine(e);  
                                 }
-                            });
+                            }, _tokenSource.Token);
                             _connected = true;
                         }
                         catch (Exception )
@@ -193,7 +107,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
                     }
                 }
 
-                await Task.Delay(1000);
+                await Task.Delay(1000, _tokenSource.Token);
 
             }
         }
@@ -213,11 +127,11 @@ namespace KubeMQ.SDK.csharp.QueueStream
            
             if (connected && downstream != null)
             {
-                return await downstream.Poll(request, _clientId);
+                return await downstream.Poll(request, Cfg.ClientId);
             }
             else
             {
-                if (ctx.IsCancellationRequested)
+                if (_tokenSource.IsCancellationRequested)
                 {
                     throw new Exception("queue client closed");
                 }
@@ -240,11 +154,11 @@ namespace KubeMQ.SDK.csharp.QueueStream
            
             if (connected && upstream != null)
             {
-                return await upstream.Send(request, _clientId);
+                return await upstream.Send(request, Cfg.ClientId);
             }
             else
             {
-                if (ctx.IsCancellationRequested)
+                if (_tokenSource.IsCancellationRequested)
                 {
                     throw new Exception("queue client closed");
                 }
@@ -262,26 +176,14 @@ namespace KubeMQ.SDK.csharp.QueueStream
             return await Send(request);
         }
         
-        /// <summary>
-    /// Get Queue information
-        /// </summary>
-        public QueuesInfo QueuesInfo(string filter)
-        {
-                QueuesInfoRequest req = new QueuesInfoRequest();
-                QueuesInfoResponse resp = _client.QueuesInfo(new QueuesInfoRequest()
-                {
-                    RequestID = Guid.NewGuid().ToString(),
-                    QueueName = filter,
-                });
-                return new QueuesInfo(resp);
-        }
+    
         /// <summary>
         /// Creates a channel with the given name.
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
         /// <returns>A task representing the asynchronous channel creation operation.</returns>
         public  Task<Result> Create (string channelName) {
-            return CreateDeleteChannel (GetKubeMQClient (), _clientId, channelName, "queues", true);
+            return CreateDeleteChannel (Cfg.ClientId, channelName, "queues", true);
         }
 
         /// <summary>
@@ -290,7 +192,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>A task that represents the asynchronous delete operation. The task result is of type CommonAsyncResult.</returns>
         public  Task<Result> Delete (string channelName) {
-            return  CreateDeleteChannel (GetKubeMQClient (), _clientId, channelName, "queues", false);
+            return  CreateDeleteChannel (Cfg.ClientId, channelName,"queues", false);
         }
 
         /// <summary>
@@ -299,7 +201,7 @@ namespace KubeMQ.SDK.csharp.QueueStream
         /// <param name="search">The search criteria to filter the channels. If left empty, all channels will be returned.</param>
         /// <returns>A task result containing a ListQueuesAsyncResult object with the channels that match the search criteria.</returns>
         public  Task<ListQueuesAsyncResult> List (string search = "") {
-            return  ListQueuesChannels(GetKubeMQClient(), _clientId, search, "queues");
+            return  ListQueuesChannels(Cfg.ClientId, search, "queues");
         }
         /// <summary>
         /// Close Queue Client - all pending transactions will be cancelled 
@@ -308,20 +210,17 @@ namespace KubeMQ.SDK.csharp.QueueStream
         {
             return _downstream.EmptyRequestsQueue();
         }
-        public void Close()
+        public async Task<Result> Close()
         {
-            do
-            {
-                Thread.Sleep(1);
-            }
             while(!_downstream.EmptyRequestsQueue());
-            Thread.Sleep(100);
             _tokenSource.Cancel();
+            // _tokenSource.Dispose();
+            return await base.CloseClient();
         }
 
         internal PingResult Ping()
         {
-           return  _client.Ping(new Empty());
+           return  KubemqClient.Ping(new Empty());
         }
         
        

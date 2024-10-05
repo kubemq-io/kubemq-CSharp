@@ -2,7 +2,7 @@ using System;
 
 namespace KubeMQ.SDK.csharp.Config
 {
-    public class Connection
+    public class Configuration
     {
         private const int DefaultMaxSendSize = 1024 * 1024 * 100; // 100MB
         private const int DefaultMaxRcvSize = 1024 * 1024 * 100; // 100MB
@@ -14,63 +14,59 @@ namespace KubeMQ.SDK.csharp.Config
         public int MaxSendSize { get; private set; } = DefaultMaxSendSize;
         public int MaxReceiveSize { get; private set; } = DefaultMaxRcvSize;
         public bool DisableAutoReconnect { get; private set; }
-        public int ReconnectIntervalSeconds { get; private set; }
+        public int ReconnectIntervalSeconds { get; private set; } = DefaultReconnectIntervalSeconds;
         public TlsConfig Tls { get; private set; } = new TlsConfig();
-        public KeepAliveConfig KeepAlive { get; private set; } = new KeepAliveConfig();
+        
 
-        public Connection SetAddress(string address)
+        public Configuration SetAddress(string address)
         {
             Address = address;
             return this;
         }
 
-        public Connection SetClientId(string clientId)
+        public Configuration SetClientId(string clientId)
         {
             ClientId = clientId;
             return this;
         }
 
-        public Connection SetAuthToken(string authToken)
+        public Configuration SetAuthToken(string authToken)
         {
             AuthToken = authToken;
             return this;
         }
 
-        public Connection SetTls(TlsConfig tls)
+        public Configuration SetTls(TlsConfig tls)
         {
             Tls = tls;
             return this;
         }
 
-        public Connection SetMaxSendSize(int maxSendSize)
+        public Configuration SetMaxSendSize(int maxSendSize)
         {
             MaxSendSize = maxSendSize;
             return this;
         }
 
-        public Connection SetMaxReceiveSize(int maxReceiveSize)
+        public Configuration SetMaxReceiveSize(int maxReceiveSize)
         {
             MaxReceiveSize = maxReceiveSize;
             return this;
         }
 
-        public Connection SetDisableAutoReconnect(bool disableAutoReconnect)
+        public Configuration SetDisableAutoReconnect(bool disableAutoReconnect)
         {
             DisableAutoReconnect = disableAutoReconnect;
             return this;
         }
 
-        public Connection SetReconnectIntervalSeconds(int reconnectIntervalSeconds)
+        public Configuration SetReconnectIntervalSeconds(int reconnectIntervalSeconds)
         {
             ReconnectIntervalSeconds = reconnectIntervalSeconds;
             return this;
         }
 
-        public Connection SetKeepAlive(KeepAliveConfig keepAlive)
-        {
-            KeepAlive = keepAlive;
-            return this;
-        }
+        
 
         public int GetReconnectIntervalDuration()
         {
@@ -81,23 +77,7 @@ namespace KubeMQ.SDK.csharp.Config
             return ReconnectIntervalSeconds*1000;
         }
 
-        public Connection Complete()
-        {
-            if (MaxSendSize == 0)
-            {
-                MaxSendSize = DefaultMaxSendSize;
-            }
-            if (MaxReceiveSize == 0)
-            {
-                MaxReceiveSize = DefaultMaxRcvSize;
-            }
-            if (ReconnectIntervalSeconds == 0)
-            {
-                ReconnectIntervalSeconds = DefaultReconnectIntervalSeconds;
-            }
-            return this;
-        }
-
+       
         public void Validate()
         {
             if (string.IsNullOrEmpty(Address))
@@ -108,25 +88,21 @@ namespace KubeMQ.SDK.csharp.Config
             {
                 throw new ArgumentException("Connection must have a clientId");
             }
-            if (MaxSendSize < 0)
+            if (MaxSendSize <= 0)
             {
                 throw new ArgumentException("Connection max send size must be greater than 0");
             }
-            if (MaxReceiveSize < 0)
+            if (MaxReceiveSize <= 0)
             {
                 throw new ArgumentException("Connection max receive size must be greater than 0");
             }
-            if (ReconnectIntervalSeconds < 0)
+            if (ReconnectIntervalSeconds <= 0)
             {
                 throw new ArgumentException("Connection reconnect interval must be greater than 0");
             }
             if (Tls != null)
             {
                 Tls.Validate(); 
-            }
-            if (KeepAlive != null)
-            {
-                KeepAlive.Validate();
             }
         }
     }

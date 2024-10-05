@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using KubeMQ.Grpc;
 
-namespace KubeMQ.SDK.csharp.QueueStream
+namespace KubeMQ.SDK.csharp.Queues
 {
     /// <summary>
     /// PollResponse

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 using KubeMQ.Grpc;
 using KubeMQ.SDK.csharp.Config;
 using KubeMQ.SDK.csharp.Results;
 using KubeMQ.SDK.csharp.Transport;
-using System.Threading.Tasks;
-using Grpc.Core;
 using static KubeMQ.Grpc.kubemq;
-using pb= KubeMQ.Grpc;
 using PingResult = KubeMQ.SDK.csharp.Results.PingResult;
 using Result = KubeMQ.SDK.csharp.Results.Result;
 
@@ -17,26 +13,21 @@ namespace KubeMQ.SDK.csharp.Common
 {
     public class BaseClient
 {
-        internal static kubemqClient KubemqClient;
-        internal Connection Cfg;
+        internal kubemqClient KubemqClient;
+        internal Configuration Cfg;
         internal bool IsConnected;
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private Transport.Transport _transport;
         private static readonly string RequestChannel = "kubemq.cluster.internal.requests";
-
         
-        private BlockingCollection<pb.Event> eventsQueue =
-            new BlockingCollection<Event>();
-        private  AsyncDuplexStreamingCall<pb.Event, pb.Result>
-            eventStreamConnection;
-
+       
         /// <summary>
         /// Connects to the KubeMQ server using the provided connection configuration.
         /// </summary>
         /// <param name="cfg">The connection configuration.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to cancel the connect operation.</param>
-        /// <returns>A task that represents the asynchronous connect operation. The task result is a <see cref="ConnectResult"/> object.</returns>
-        public async Task<Result> Connect(Connection cfg, CancellationToken cancellationToken)
+        /// <returns>A task that represents the asynchronous connect operation. The task result is a <see cref="Result"/> object.</returns>
+        public async Task<Result> Connect(Configuration cfg, CancellationToken cancellationToken)
         {
             await _lock.WaitAsync(cancellationToken);
             try
@@ -103,7 +94,7 @@ namespace KubeMQ.SDK.csharp.Common
         /// Closes the connection to the KubeMQ server.
         /// </summary>
         /// <returns>A <see cref="Result"/> object indicating the result of closing the connection.</returns>
-        public async Task<Result> Close()
+        public async Task<Result> CloseClient()
         {
             try
             {
@@ -207,7 +198,7 @@ namespace KubeMQ.SDK.csharp.Common
             return HandleListErrors<ListPubSubAsyncResult>(await List(clientId, search, channelType));
         }
 
-        internal  async Task<ListQueuesAsyncResult> ListQueuesChannels(kubemqClient client, string clientId, string search, string channelType)
+        internal  async Task<ListQueuesAsyncResult> ListQueuesChannels(string clientId, string search, string channelType)
         {
             return HandleListErrors<ListQueuesAsyncResult>(await List(clientId, search, channelType));
         }
@@ -216,19 +207,6 @@ namespace KubeMQ.SDK.csharp.Common
             return HandleListErrors<ListCqAsyncResult>(await List(clientId, search, channelType));
         }
 
-        internal async Task<StartSendEventsStreamResult> StartSendEventStream(CancellationToken cancellationToken)
-        {
-            try
-            {
-                eventStreamConnection = KubemqClient.SendEventsStream();
-            }
-            catch (Exception e)
-            {
-                return new StartSendEventsStreamResult(e);
-
-            }
-            return new StartSendEventsStreamResult();
-        }
     }
     
     

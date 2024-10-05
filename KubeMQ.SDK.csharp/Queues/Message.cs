@@ -7,7 +7,7 @@ using Google.Protobuf;
 using System.Threading;
 using System.Linq;
 
-namespace KubeMQ.SDK.csharp.QueueStream
+namespace KubeMQ.SDK.csharp.Queues
 {
     /// <summary>
     /// Queue stored message

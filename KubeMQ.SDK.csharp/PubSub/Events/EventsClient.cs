@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using KubeMQ.SDK.csharp.Common;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using KubeMQ.SDK.csharp.Results;
 namespace KubeMQ.SDK.csharp.PubSub.Events
 {
@@ -12,26 +13,26 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
     {
         private readonly BlockingCollection<Event> _sendQueue =
             new BlockingCollection<Event>();
-        
+        private readonly List<CancellationTokenSource> _subscriptionTokens = new List<CancellationTokenSource>();
         
         /// <summary>
         /// Creates a new channel for events.
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
-        /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the operation.</returns>
-        public async Task<Result> Create(string channelName)
+        /// <returns>A <see cref="Result"/> representing the result of the operation.</returns>
+        public Task<Result> Create(string channelName)
         {
-            return await CreateDeleteChannel(Cfg.ClientId, channelName, "events", true);
+            return CreateDeleteChannel(Cfg.ClientId, channelName, "events", true);
         }
 
         /// <summary>
         /// Deletes a channel.
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
-        /// <returns>A <see cref="CommonAsyncResult"/> representing the result of the delete operation.</returns>
-        public async Task<Result> Delete(string channelName)
+        /// <returns>A <see cref="Result"/> representing the result of the delete operation.</returns>
+        public Task<Result> Delete(string channelName)
         {
-            return await CreateDeleteChannel(Cfg.ClientId, channelName, "events", false);
+            return CreateDeleteChannel(Cfg.ClientId, channelName, "events", false);
         }
 
         /// <summary>
@@ -49,12 +50,27 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
         }
 
         /// <summary>
-        /// Subscribes to events based on the provided subscription information.
+        /// Subscribes to incoming events.
         /// </summary>
-        /// <param name="subscription">The subscription information specifying the channel and group to subscribe to.</param>
-        /// <param name="cancellationToken">The cancellation token to stop the subscription.</param>
-        /// <returns>The result of the subscription.</returns>
-        public Result Subscribe(EventsSubscription subscription, CancellationToken cancellationToken)
+        /// <param name="subscription">The subscription details, including the channel and group.</param>
+        /// <returns>The result of subscribing to events. If successful, the IsSuccess property will be true; otherwise, the IsSuccess property will be false and the ErrorMessage property will contain an error message.</returns>
+        public Result Subscribe(EventsSubscription subscription)
+        {
+            CancellationTokenSource token = new CancellationTokenSource();
+            return _Subscribe(subscription,token);
+        }
+        /// <summary>
+        /// Subscribes to incoming events.
+        /// </summary>
+        /// <param name="subscription">The subscription details, including the channel and group.</param>
+        /// <param name="cancellationToken">Cancellation token to stop the subscription.</param>
+        /// <returns>The result of subscribing to events. If successful, the IsSuccess property will be true; otherwise, the IsSuccess property will be false and the ErrorMessage property will contain an error message.</returns>
+
+        public Result Subscribe(EventsSubscription subscription,CancellationTokenSource cancellationToken)
+        {
+            return _Subscribe(subscription,cancellationToken);
+        }
+        private Result _Subscribe(EventsSubscription subscription, CancellationTokenSource cancellationToken)
         {
             try
             {
@@ -63,14 +79,18 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
                     return new Result("Client not connected");
                 }
                 subscription.Validate();
+                lock (_subscriptionTokens)
+                {
+                    _subscriptionTokens.Add(cancellationToken);
+                }
                 Task.Run(async () =>
                 {
                     while (!cancellationToken.IsCancellationRequested)
                     {
                         try
                         {
-                            using var stream = KubemqClient.SubscribeToEvents(subscription.Encode(Cfg.ClientId), null, null, cancellationToken);
-                            while (await stream.ResponseStream.MoveNext(cancellationToken))
+                            using var stream = KubemqClient.SubscribeToEvents(subscription.Encode(Cfg.ClientId), null, null, cancellationToken.Token);
+                            while (await stream.ResponseStream.MoveNext(cancellationToken.Token))
                             {
                                 var receivedEvent = EventReceived.Decode(stream.ResponseStream.Current);
                                 subscription.RaiseOnReceiveEvent(receivedEvent);
@@ -84,11 +104,18 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
                                 break;
                             }
 
-                            await Task.Delay(Cfg.GetReconnectIntervalDuration(), cancellationToken);
+                            await Task.Delay(Cfg.GetReconnectIntervalDuration(), cancellationToken.Token);
+                        }
+                        finally
+                        {
+                            lock (_subscriptionTokens)
+                            {
+                                _subscriptionTokens.Remove(cancellationToken);
+                            } 
                         }
                     }
 
-                }, cancellationToken);
+                }, cancellationToken.Token);
             }
             catch (Exception e)
             {
@@ -128,7 +155,21 @@ namespace KubeMQ.SDK.csharp.PubSub.Events
             return new Result();
         }
 
-        
+        public async Task<Result> Close()
+        {
+            // Cancel all active subscriptions
+            lock (_subscriptionTokens)
+            {
+                foreach (var cts in _subscriptionTokens)
+                {
+                    cts.Cancel();
+                }
+                _subscriptionTokens.Clear();
+            }
+
+            // Call the base class Close method
+            return await base.CloseClient();
+        }
     }
     
 }

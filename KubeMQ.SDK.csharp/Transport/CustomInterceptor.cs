@@ -8,9 +8,9 @@ namespace KubeMQ.SDK.csharp.Transport
 {
     public class CustomInterceptor : Interceptor
     {
-        private readonly Connection opts;
+        private readonly Configuration opts;
 
-        public CustomInterceptor(Connection opts)
+        public CustomInterceptor(Configuration opts)
         {
             this.opts = opts;
         }

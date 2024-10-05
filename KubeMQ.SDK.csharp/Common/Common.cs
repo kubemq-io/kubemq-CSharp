@@ -94,7 +94,8 @@ namespace KubeMQ.SDK.csharp.Common
         }
         else
         {
-            return Activator.CreateInstance(typeof(T), new object[] { response.Body.ToByteArray(), true, "" });
+            
+            return Activator.CreateInstance(typeof(T), new object[] { response.Body.ToByteArray() });
         }
     }
 }
