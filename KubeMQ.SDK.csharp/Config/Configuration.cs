@@ -17,7 +17,7 @@ namespace KubeMQ.SDK.csharp.Config
         public int ReconnectIntervalSeconds { get; private set; } = DefaultReconnectIntervalSeconds;
         public TlsConfig Tls { get; private set; } = new TlsConfig();
         
-
+    
         public Configuration SetAddress(string address)
         {
             Address = address;
