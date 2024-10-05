@@ -11,9 +11,8 @@ namespace Commands
     {
         static async Task<CommandsClient> CreateCommandsClient()
         {
-            Configuration cfg = new Configuration().
-                SetAddress("localhost:50000").
-                SetClientId("Some-client-id");
+            Configuration cfg = new Configuration().SetAddress("localhost:50000").SetClientId("Some-client-id");
+                
             CommandsClient client = new CommandsClient();
             Result connectResult = await client.Connect(cfg,new CancellationTokenSource().Token);
             if (!connectResult.IsSuccess)
@@ -71,7 +70,7 @@ namespace Commands
         {
             CommandsClient client =await CreateCommandsClient();
             var subscription = new CommandsSubscription()
-                .SetChannel("q1")
+                .SetChannel("c1")
                 .SetGroup("")
                 .SetOnReceivedCommand(async receivedCommand =>
                 {
@@ -100,7 +99,7 @@ namespace Commands
             }
             Thread.Sleep(1000);
             Command msg = new Command()
-                .SetChannel("q1")
+                .SetChannel("c1")
                 .SetBody("hello kubemq - sending a command message"u8.ToArray())
                 .SetTimeout(10);
             CommandResponse sendResult=  await client.Send(msg);
