@@ -15,11 +15,11 @@ namespace KubeMQ.SDK.csharp.Transport
 {
     public class Transport
     {
-        private readonly Connection _opts;
+        private readonly Configuration _opts;
         private Channel _channel;
         private kubemqClient _client;
         private CancellationToken _clientCts;
-        public Transport(Connection cfg)
+        public Transport(Configuration cfg)
         {
             _opts = cfg;
         }
@@ -30,12 +30,7 @@ namespace KubeMQ.SDK.csharp.Transport
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, _opts.MaxSendSize),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, _opts.MaxReceiveSize),
-                new ChannelOption("grpc.keepalive_time_ms", _opts.KeepAlive.PingIntervalInSeconds * 1000),
-                new ChannelOption("grpc.keepalive_timeout_ms", _opts.KeepAlive.PingTimeOutInSeconds * 1000),
-                new ChannelOption("grpc.keepalive_permit_without_calls", 1),
-                new ChannelOption("grpc.http2.min_time_between_pings_ms", _opts.KeepAlive.PingIntervalInSeconds * 1000),
-                new ChannelOption("grpc.http2.min_ping_interval_without_data_ms", _opts.KeepAlive.PingIntervalInSeconds * 1000),
-            };
+                            };
             Channel channel = null;
             if (_opts.Tls != null && _opts.Tls.Enabled)
             {
@@ -63,7 +58,7 @@ namespace KubeMQ.SDK.csharp.Transport
             }
             catch (Exception ex)
             {   
-                channel.ShutdownAsync().Wait(cancellationToken);
+                await channel.ShutdownAsync();
                 throw ex;
             }
             _clientCts = cancellationToken;

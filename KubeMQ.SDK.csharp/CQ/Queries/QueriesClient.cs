@@ -1,21 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using KubeMQ.SDK.csharp.Common;
+using KubeMQ.SDK.csharp.Config;
 using KubeMQ.SDK.csharp.Results;
 
 namespace KubeMQ.SDK.csharp.CQ.Queries
 {
     public class QueriesClient : BaseClient
     {
+        private readonly List<CancellationTokenSource> _subscriptionTokens = new List<CancellationTokenSource>();
+        
+        
         /// <summary>
         /// Creates a new channel for sending queries.
         /// </summary>
         /// <param name="channelName">The name of the channel to create.</param>
         /// <returns>A task that represents the asynchronous create operation.</returns>
-        public async Task<Result> Create(string channelName)
+        public Task<Result> Create(string channelName)
         {
-            return await  CreateDeleteChannel(  Cfg.ClientId, channelName, "queries", true);
+            return  CreateDeleteChannel(  Cfg.ClientId, channelName, "queries", true);
         }
 
         /// <summary>
@@ -23,9 +28,9 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
         /// </summary>
         /// <param name="channelName">The name of the channel to delete.</param>
         /// <returns>The result of the delete operation.</returns>
-        public async Task<Result> Delete(string channelName)
+        public Task<Result> Delete(string channelName)
         {
-            return await  CreateDeleteChannel(  Cfg.ClientId, channelName, "queries", false);
+            return  CreateDeleteChannel(  Cfg.ClientId, channelName, "queries", false);
         }
 
         /// <summary>
@@ -33,9 +38,9 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
         /// </summary>
         /// <param name="search">Optional. A string to search for specific channels. The search is case-insensitive.</param>
         /// <returns>A <see cref="ListCqAsyncResult"/> object that represents the result of the asynchronous operation.</returns>
-        public async Task<ListCqAsyncResult> List(string search="")
+        public Task<ListCqAsyncResult> List(string search="")
         {
-            return await ListCqChannels(Cfg.ClientId, search, "queries");
+            return  ListCqChannels(Cfg.ClientId, search, "queries");
         }
 
         /// <summary>
@@ -70,9 +75,24 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
         /// Subscribes to incoming queries.
         /// </summary>
         /// <param name="subscription">The subscription details, including the channel and group.</param>
+        /// <returns>The result of subscribing to queries. If successful, the IsSuccess property will be true; otherwise, the IsSuccess property will be false and the ErrorMessage property will contain an error message.</returns>
+        public Result Subscribe(QueriesSubscription subscription)
+        {
+            CancellationTokenSource token = new CancellationTokenSource();
+            return _Subscribe(subscription,token);
+        }
+        /// <summary>
+        /// Subscribes to incoming queries.
+        /// </summary>
+        /// <param name="subscription">The subscription details, including the channel and group.</param>
         /// <param name="cancellationToken">Cancellation token to stop the subscription.</param>
         /// <returns>The result of subscribing to queries. If successful, the IsSuccess property will be true; otherwise, the IsSuccess property will be false and the ErrorMessage property will contain an error message.</returns>
-        public Result Subscribe(QueriesSubscription subscription, CancellationToken cancellationToken)
+
+        public Result Subscribe(QueriesSubscription subscription,CancellationTokenSource cancellationToken)
+        {
+            return _Subscribe(subscription,cancellationToken);
+        }
+        private Result _Subscribe(QueriesSubscription subscription, CancellationTokenSource cancellationToken)
         {
             try
             {
@@ -81,16 +101,21 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
                     return new Result("Client not connected");
                 }
                 subscription.Validate();
+                lock (_subscriptionTokens)
+                {
+                    _subscriptionTokens.Add(cancellationToken);
+                }
                 Task.Run(async () =>
                 {
                     while (!cancellationToken.IsCancellationRequested)
                     {
                         try
                         {
-                            using var stream = KubemqClient.SubscribeToRequests(subscription.Encode(Cfg.ClientId), null, null, cancellationToken);
-                            while (await stream.ResponseStream.MoveNext(cancellationToken))
+                            using var stream = KubemqClient.SubscribeToRequests(subscription.Encode(Cfg.ClientId), null,
+                                null, cancellationToken.Token);
+                            while (await stream.ResponseStream.MoveNext(cancellationToken.Token))
                             {
-                                var receivedQueries =QueryReceived.Decode(stream.ResponseStream.Current);
+                                var receivedQueries = QueryReceived.Decode(stream.ResponseStream.Current);
                                 subscription.RaiseOnQueryReceive(receivedQueries);
                             }
                         }
@@ -102,11 +127,18 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
                                 break;
                             }
 
-                            await Task.Delay(Cfg.GetReconnectIntervalDuration(), cancellationToken);
+                            await Task.Delay(Cfg.GetReconnectIntervalDuration(), cancellationToken.Token);
+                        }
+                        finally
+                        {
+                            lock (_subscriptionTokens)
+                            {
+                                _subscriptionTokens.Remove(cancellationToken);
+                            } 
                         }
                     }
 
-                }, cancellationToken);
+                }, cancellationToken.Token);
             }
             catch (Exception e)
             {
@@ -140,5 +172,22 @@ namespace KubeMQ.SDK.csharp.CQ.Queries
             }
             
         }
+        
+        public async Task<Result> Close()
+        {
+            // Cancel all active subscriptions
+            lock (_subscriptionTokens)
+            {
+                foreach (var cts in _subscriptionTokens)
+                {
+                    cts.Cancel();
+                }
+                _subscriptionTokens.Clear();
+            }
+
+            // Call the base class Close method
+            return await base.CloseClient();
+        }
+        
     }
 }

@@ -45,19 +45,16 @@ namespace KubeMQ.SDK.csharp.Results
     
     public class ListQueuesAsyncResult : Result
     {
-        public QueuesChannel[] Channels { get;  }
+        public QueuesChannel[] Channels { get; private set; }
+
         public ListQueuesAsyncResult(byte[] data)
         {
             IsSuccess = true;
             Channels = JsonConverter.FromByteArray<QueuesChannel[]>(data);
         }
         
-        public ListQueuesAsyncResult(string errorMessage) : base(errorMessage)
-        {
-        }
+        public ListQueuesAsyncResult(string errorMessage) : base(errorMessage) { }
         
-        public ListQueuesAsyncResult(Exception e) : base(e)
-        {
-        }
+        public ListQueuesAsyncResult(Exception e) : base(e) { }
     }
 }

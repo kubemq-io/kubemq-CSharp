@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events", "Examples\PubSub\E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore", "Examples\PubSub\EventsStore\EventsStore\EventsStore.csproj", "{A902BBC2-0EC9-4727-BAF3-06346E3626F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld", "Examples\HelloWorld\HelloWorld.csproj", "{8E63469E-48C4-4666-B224-011DA5640416}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues", "Examples\Queues\Queues.csproj", "{8E63469E-48C4-4666-B224-011DA5640416}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commands", "Examples\CQ\Commands\Commands.csproj", "{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740}"
 EndProject
