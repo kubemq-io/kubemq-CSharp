@@ -112,7 +112,7 @@ jobs:
           --results-directory ./test-results
 
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./test-results/**/coverage.cobertura.xml
           flags: unittests
