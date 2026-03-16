@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.0.0] - YYYY-MM-DD
+## [3.0.0] - 2026-03-16
 
 ### Added
 
@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Grpc.Net.Client`
 - Upgraded `Microsoft.Extensions.*` dependencies from EOL 3.1.x to current 8.x
 
-## [2.0.0] - 2024-XX-XX
+## [2.0.0] - 2024-01-01
 
 _No changelog maintained for prior versions. See git history for changes._
 

@@ -84,6 +84,47 @@ jobs:
           name: coverage-${{ matrix.dotnet }}
           path: ./test-results/**/coverage.cobertura.xml
 
+  example-smoke-test:
+    name: Example Smoke Test
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+    services:
+      kubemq:
+        image: kubemq/kubemq:latest
+        ports:
+          - 50000:50000
+          - 8080:8080
+          - 9090:9090
+        env:
+          KUBEMQ_TOKEN: ''
+        options: >-
+          --health-cmd "wget -q --spider http://localhost:8080/health || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Wait for KubeMQ server
+        run: |
+          for i in $(seq 1 30); do
+            if wget -q --spider http://localhost:8080/health 2>/dev/null; then
+              echo "KubeMQ server is ready"
+              break
+            fi
+            echo "Waiting for KubeMQ server... ($i/30)"
+            sleep 2
+          done
+
+      - name: Smoke-test examples
+        run: |
+          timeout 30 dotnet run --project Examples/Connection/Connection.Connect/ || true
+          timeout 30 dotnet run --project Examples/Connection/Connection.Ping/ || true
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest

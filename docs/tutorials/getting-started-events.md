@@ -222,5 +222,5 @@ while (!stoppingToken.IsCancellationRequested)
 
 - **[Building a Task Queue](building-a-task-queue.md)** — guaranteed delivery with acknowledgment
 - **[Request-Reply with Commands](request-reply-with-commands.md)** — synchronous command execution
-- **Events Store** — persistent events with replay from any point in time
+- **[Getting Started with Events Store](getting-started-events-store.md)** — persistent events with replay from any point in time
 - **Consumer Groups** — load-balance events across multiple subscribers

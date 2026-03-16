@@ -49,3 +49,17 @@ await Task.Delay(3000);
 cts.Cancel();
 
 Console.WriteLine("Done.");
+
+// Expected output:
+// Connected to KubeMQ server
+// Published persistent event #1
+// Published persistent event #2
+// Published persistent event #3
+// Published persistent event #4
+// Published persistent event #5
+// [Seq=<seq>] Persistent Event #1
+// [Seq=<seq>] Persistent Event #2
+// [Seq=<seq>] Persistent Event #3
+// [Seq=<seq>] Persistent Event #4
+// [Seq=<seq>] Persistent Event #5
+// Done.
