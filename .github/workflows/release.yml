@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  PROJECT_PATH: src/KubeMQ.Sdk/KubeMQ.Sdk.csproj
+  NUGET_SOURCE: https://api.nuget.org/v3/index.json
+
+jobs:
+  validate-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      is-prerelease: ${{ steps.extract.outputs.is-prerelease }}
+    steps:
+      - name: Extract version from tag
+        id: extract
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-* ]]; then
+            echo "is-prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is-prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate SemVer format
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          if ! [[ "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$ ]]; then
+            echo "::error::Tag '$TAG' does not follow SemVer format"
+            exit 1
+          fi
+
+  build-test:
+    needs: validate-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build
+        run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore -p:Version=${{ needs.validate-tag.outputs.version }}
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+  validate-changelog:
+    needs: validate-tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate CHANGELOG contains version entry
+        run: |
+          VERSION="${{ needs.validate-tag.outputs.version }}"
+          RELEASE_VERSION="${VERSION%%-*}"
+          if ! grep -q "## \[${RELEASE_VERSION}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md does not contain entry for version ${RELEASE_VERSION}"
+            echo "Add a '## [${RELEASE_VERSION}]' section to CHANGELOG.md before releasing."
+            exit 1
+          fi
+
+  pack-publish:
+    needs: [validate-tag, build-test, validate-changelog]
+    runs-on: ubuntu-latest
+    environment: nuget-publish
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Pack
+        run: |
+          dotnet pack ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -p:Version=${{ needs.validate-tag.outputs.version }} \
+            -o ./artifacts
+
+      - name: Verify package contents
+        run: |
+          NUPKG=$(ls ./artifacts/*.nupkg | head -1)
+          echo "Package: $NUPKG"
+          unzip -l "$NUPKG" | grep -q "README.md" || { echo "::error::README.md missing from package"; exit 1; }
+          unzip -l "$NUPKG" | grep -q "LICENSE" || { echo "::error::LICENSE missing from package"; exit 1; }
+          unzip -l "$NUPKG" | grep -q "CHANGELOG.md" || { echo "::error::CHANGELOG.md missing from package"; exit 1; }
+          ls ./artifacts/*.snupkg || { echo "::error::Symbol package (.snupkg) not generated"; exit 1; }
+
+      - name: Push to NuGet.org
+        run: |
+          dotnet nuget push ./artifacts/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source ${{ env.NUGET_SOURCE }} \
+            --skip-duplicate
+          dotnet nuget push ./artifacts/*.snupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source ${{ env.NUGET_SOURCE }} \
+            --skip-duplicate
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/*
+          retention-days: 90
+
+  github-release:
+    needs: [validate-tag, pack-publish]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ needs.validate-tag.outputs.version }}"
+          RELEASE_VERSION="${VERSION%%-*}"
+          awk "/^## \[${RELEASE_VERSION}\]/{found=1; next} /^## \[/{if(found) exit} found{print}" CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "Release ${VERSION}" > release-notes.md
+          fi
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ needs.validate-tag.outputs.version }}
+          body_path: release-notes.md
+          prerelease: ${{ needs.validate-tag.outputs.is-prerelease }}
+          files: |
+            ./artifacts/*.nupkg
+            ./artifacts/*.snupkg
+          generate_release_notes: false

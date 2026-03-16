@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>
+            [KubeMQ.Sdk]KubeMQ.Grpc.*
+            [KubeMQ.Sdk]KubeMQ.Sdk.Internal.Generated.*
+          </Exclude>
+          <ExcludeByFile>
+            **/obj/**
+            **/Grpc/**/*.cs
+          </ExcludeByFile>
+          <ExcludeByAttribute>
+            System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute
+            System.Runtime.CompilerServices.CompilerGeneratedAttribute
+            System.CodeDom.Compiler.GeneratedCodeAttribute
+          </ExcludeByAttribute>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>true</UseSourceLink>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

@@ -1,0 +1,31 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "40...80"
+
+  status:
+    project:
+      default:
+        target: 40%
+        threshold: 2%
+        if_ci_failed: error
+    patch:
+      default:
+        target: 60%
+        threshold: 5%
+
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true
+
+ignore:
+  - "**/obj/**"
+  - "**/Grpc/**"
+  - "tests/**"
+  - "Archive/**"
+  - "Examples/**"
