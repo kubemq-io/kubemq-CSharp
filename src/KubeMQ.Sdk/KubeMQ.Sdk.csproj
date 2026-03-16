@@ -28,8 +28,7 @@
     <!-- License -->
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
-    <!-- Package icon: TODO replace with <PackageIcon> once an icon file is added to the repo -->
-    <PackageIconUrl>https://kubemq.io/wp-content/uploads/2024/05/kubemq-logo.png</PackageIconUrl>
+    <PackageIcon>kubemq-icon.png</PackageIcon>
 
     <!-- README embedded in NuGet package -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -84,6 +83,7 @@
     <None Include="../../README.md" Pack="true" PackagePath="/" />
     <None Include="../../CHANGELOG.md" Pack="true" PackagePath="/" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="../../assets/kubemq-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
 </Project>

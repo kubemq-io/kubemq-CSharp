@@ -18,3 +18,6 @@ await using var client = new KubeMQClient(options);
 await client.ConnectAsync();
 var info = await client.PingAsync();
 Console.WriteLine($"Connected to {info.Host} v{info.Version}");
+
+// Expected output:
+// Connected to localhost v<version>
