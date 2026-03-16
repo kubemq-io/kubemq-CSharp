@@ -46,3 +46,8 @@ catch (KubeMQOperationException ex) when (ex.Message.Contains("timeout", StringC
 }
 
 Console.WriteLine("Done.");
+
+// Expected output:
+// Connected to KubeMQ server
+// Command executed: True
+// Done.

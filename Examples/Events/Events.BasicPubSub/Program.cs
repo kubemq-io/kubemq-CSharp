@@ -56,3 +56,17 @@ await Task.Delay(2000);
 cts.Cancel();
 
 Console.WriteLine("Done.");
+
+// Expected output:
+// Connected to KubeMQ server
+// Published event #1
+// Published event #2
+// Published event #3
+// Published event #4
+// Published event #5
+// Received event: Event #1
+// Received event: Event #2
+// Received event: Event #3
+// Received event: Event #4
+// Received event: Event #5
+// Done.

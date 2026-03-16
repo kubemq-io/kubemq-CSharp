@@ -53,3 +53,10 @@ else
 }
 
 Console.WriteLine("Done.");
+
+// Expected output:
+// Connected to KubeMQ server
+// Sent message: <message-id>
+// Received: Process order #1234
+// Message acknowledged
+// Done.
