@@ -1,0 +1,42 @@
+// KubeMQ .NET SDK — Events Store: Start At Time Delta
+//
+// This example subscribes starting from events stored in the last 60 seconds,
+// using a relative time delta (seconds ago) as the start position.
+//
+// Prerequisites:
+//   - KubeMQ server running on localhost:50000
+//   - dotnet run
+
+using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.EventsStore;
+using System.Text;
+
+await using var client = new KubeMQClient(new KubeMQClientOptions
+{
+    Address = "localhost:50000",
+    ClientId = "csharp-eventsstore-start-at-time-delta-client",
+});
+await client.ConnectAsync();
+
+var subscription = new EventStoreSubscription
+{
+    Channel = "csharp-eventsstore.start-at-time-delta",
+    StartPosition = EventStoreStartPosition.FromTimeDelta,
+    StartTimeDeltaSeconds = 60,
+};
+
+Console.WriteLine("Subscribed with FromTimeDelta (60 seconds ago). Replaying stored events...");
+
+var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (_, e) =>
+{
+    e.Cancel = true;
+    cts.Cancel();
+};
+
+await foreach (var evt in client.SubscribeToEventStoreAsync(subscription, cts.Token))
+{
+    Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
+}
+
+Console.WriteLine("Done.");

@@ -1,0 +1,89 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>KubeMQ.Sdk</RootNamespace>
+    <AssemblyName>KubeMQ.Sdk</AssemblyName>
+
+    <!-- Version management (REQ-PKG-2): single Version drives all version attributes -->
+    <Version>3.0.0</Version>
+
+    <!-- Package identity -->
+    <PackageId>KubeMQ.SDK.CSharp</PackageId>
+    <Title>KubeMQ C# SDK</Title>
+    <Authors>KubeMQ</Authors>
+    <Company>KubeMQ</Company>
+    <Description>Official .NET SDK for KubeMQ — real-time messaging for Kubernetes. Supports Events, Events Store, Queues, Commands, and Queries over gRPC.</Description>
+    <PackageTags>KubeMQ;Messaging;Kubernetes;gRPC;PubSub;Queues;Events;CQRS</PackageTags>
+    <Copyright>Copyright © KubeMQ 2026</Copyright>
+
+    <!-- Links -->
+    <PackageProjectUrl>https://kubemq.io/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kubemq-io/kubemq-CSharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- License -->
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <!-- Package icon: TODO replace with <PackageIcon> once an icon file is added to the repo -->
+    <PackageIconUrl>https://kubemq.io/wp-content/uploads/2024/05/kubemq-logo.png</PackageIconUrl>
+
+    <!-- README embedded in NuGet package -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Release notes link to CHANGELOG -->
+    <PackageReleaseNotes>See https://github.com/kubemq-io/kubemq-CSharp/blob/main/CHANGELOG.md</PackageReleaseNotes>
+
+    <!-- Build configuration -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+    <!-- SourceLink and deterministic builds (CS-44) -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.*" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.*" />
+    <PackageReference Include="Grpc.Tools" Version="2.*" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.*" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.*" PrivateAssets="All" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.*" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="stylecop.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Proto/kubemq.proto" GrpcServices="Client" />
+  </ItemGroup>
+
+  <!-- Include files in NuGet package -->
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../CHANGELOG.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

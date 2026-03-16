@@ -1,0 +1,13 @@
+apiRules:
+  - exclude:
+      uidRegex: ^KubeMQ\.Sdk\.Internal
+      type: Namespace
+  - exclude:
+      uidRegex: ^KubeMQ\.Sdk\.Grpc
+      type: Namespace
+  - exclude:
+      uidRegex: ^KubeMQ\.SDK\.csharp\.Grpc
+      type: Namespace
+  - include:
+      uidRegex: ^KubeMQ\.Sdk
+      type: Namespace

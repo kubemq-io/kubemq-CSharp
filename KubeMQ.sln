@@ -1,21 +1,187 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29102.190
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KubeMQ.SDK.csharp", "KubeMQ.SDK.csharp\KubeMQ.SDK.csharp.csproj", "{30088889-86B9-42C6-9C24-7CB9182D21B5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AA000001-0000-4000-8000-000000000000}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{2CA36379-35F8-4229-9924-BFB8201362D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KubeMQ.Sdk", "src\KubeMQ.Sdk\KubeMQ.Sdk.csproj", "{AA000002-0000-4000-8000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events", "Examples\PubSub\Events\Events\Events.csproj", "{46BF1B40-1F0A-4D0E-AB92-3E8CE1418F1A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AA000003-0000-4000-8000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore", "Examples\PubSub\EventsStore\EventsStore\EventsStore.csproj", "{A902BBC2-0EC9-4727-BAF3-06346E3626F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KubeMQ.Sdk.Tests.Unit", "tests\KubeMQ.Sdk.Tests.Unit\KubeMQ.Sdk.Tests.Unit.csproj", "{AA000004-0000-4000-8000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues", "Examples\Queues\Queues.csproj", "{8E63469E-48C4-4666-B224-011DA5640416}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{BB000001-0000-4000-8000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commands", "Examples\CQ\Commands\Commands.csproj", "{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Commands", "Commands", "{BB000010-0000-4000-8000-000000000000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queries", "Examples\CQ\Queries\Queries.csproj", "{225D68E1-728C-45B1-A27A-FBDF69649BF2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commands.CommandTimeout", "Examples\Commands\Commands.CommandTimeout\Commands.CommandTimeout.csproj", "{BB000011-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commands.ConsumerGroup", "Examples\Commands\Commands.ConsumerGroup\Commands.ConsumerGroup.csproj", "{BB000012-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commands.HandleCommand", "Examples\Commands\Commands.HandleCommand\Commands.HandleCommand.csproj", "{BB000013-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commands.SendCommand", "Examples\Commands\Commands.SendCommand\Commands.SendCommand.csproj", "{BB000014-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{BB000020-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.AuthToken", "Examples\Config\Config.AuthToken\Config.AuthToken.csproj", "{BB000021-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.ChannelManagement", "Examples\Config\Config.ChannelManagement\Config.ChannelManagement.csproj", "{BB000022-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.Connect", "Examples\Config\Config.Connect\Config.Connect.csproj", "{BB000023-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.CustomTimeouts", "Examples\Config\Config.CustomTimeouts\Config.CustomTimeouts.csproj", "{BB000024-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.ExplicitClose", "Examples\Config\Config.ExplicitClose\Config.ExplicitClose.csproj", "{BB000025-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.ListChannelsWithFilter", "Examples\Config\Config.ListChannelsWithFilter\Config.ListChannelsWithFilter.csproj", "{BB000026-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.MtlsSetup", "Examples\Config\Config.MtlsSetup\Config.MtlsSetup.csproj", "{BB000027-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.PurgeQueue", "Examples\Config\Config.PurgeQueue\Config.PurgeQueue.csproj", "{BB000028-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.TlsSetup", "Examples\Config\Config.TlsSetup\Config.TlsSetup.csproj", "{BB00002A-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Config.TokenAuth", "Examples\Config\Config.TokenAuth\Config.TokenAuth.csproj", "{BB00002B-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Events", "Events", "{BB000030-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.BasicPubSub", "Examples\Events\Events.BasicPubSub\Events.BasicPubSub.csproj", "{BB000031-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.CancelSubscription", "Examples\Events\Events.CancelSubscription\Events.CancelSubscription.csproj", "{BB000032-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.MultipleSubscribers", "Examples\Events\Events.MultipleSubscribers\Events.MultipleSubscribers.csproj", "{BB000033-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.StreamPublish", "Examples\Events\Events.StreamPublish\Events.StreamPublish.csproj", "{BB000034-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.WildcardSubscription", "Examples\Events\Events.WildcardSubscription\Events.WildcardSubscription.csproj", "{BB000035-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EventsStore", "EventsStore", "{BB000040-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.CancelSubscription", "Examples\EventsStore\EventsStore.CancelSubscription\EventsStore.CancelSubscription.csproj", "{BB000041-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.ConsumerGroup", "Examples\EventsStore\EventsStore.ConsumerGroup\EventsStore.ConsumerGroup.csproj", "{BB000042-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.PersistentPubSub", "Examples\EventsStore\EventsStore.PersistentPubSub\EventsStore.PersistentPubSub.csproj", "{BB000043-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.ReplayFromSequence", "Examples\EventsStore\EventsStore.ReplayFromSequence\EventsStore.ReplayFromSequence.csproj", "{BB000044-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.ReplayFromTime", "Examples\EventsStore\EventsStore.ReplayFromTime\EventsStore.ReplayFromTime.csproj", "{BB000045-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.StartAtTime", "Examples\EventsStore\EventsStore.StartAtTime\EventsStore.StartAtTime.csproj", "{BB000046-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.StartFromFirst", "Examples\EventsStore\EventsStore.StartFromFirst\EventsStore.StartFromFirst.csproj", "{BB000047-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.StartFromLast", "Examples\EventsStore\EventsStore.StartFromLast\EventsStore.StartFromLast.csproj", "{BB000048-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.StartNewOnly", "Examples\EventsStore\EventsStore.StartNewOnly\EventsStore.StartNewOnly.csproj", "{BB000049-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.StreamPublish", "Examples\EventsStore\EventsStore.StreamPublish\EventsStore.StreamPublish.csproj", "{BB00004A-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Observability", "Observability", "{BB000050-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Observability.OpenTelemetry", "Examples\Observability\Observability.OpenTelemetry\Observability.OpenTelemetry.csproj", "{BB000051-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Queries", "Queries", "{BB000060-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queries.CachedResponse", "Examples\Queries\Queries.CachedResponse\Queries.CachedResponse.csproj", "{BB000061-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queries.ConsumerGroup", "Examples\Queries\Queries.ConsumerGroup\Queries.ConsumerGroup.csproj", "{BB000062-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queries.HandleQuery", "Examples\Queries\Queries.HandleQuery\Queries.HandleQuery.csproj", "{BB000063-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queries.SendQuery", "Examples\Queries\Queries.SendQuery\Queries.SendQuery.csproj", "{BB000064-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Queues", "Queues", "{BB000070-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.AckAllSimple", "Examples\Queues\Queues.AckAllSimple\Queues.AckAllSimple.csproj", "{BB000071-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.AckAllStream", "Examples\Queues\Queues.AckAllStream\Queues.AckAllStream.csproj", "{BB000072-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.AckRange", "Examples\Queues\Queues.AckRange\Queues.AckRange.csproj", "{BB00007F-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.AckReject", "Examples\Queues\Queues.AckReject\Queues.AckReject.csproj", "{BB000073-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.AutoAck", "Examples\Queues\Queues.AutoAck\Queues.AutoAck.csproj", "{BB000074-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.Batch", "Examples\Queues\Queues.Batch\Queues.Batch.csproj", "{BB000075-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.DeadLetterQueue", "Examples\Queues\Queues.DeadLetterQueue\Queues.DeadLetterQueue.csproj", "{BB000076-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.DelayedMessages", "Examples\Queues\Queues.DelayedMessages\Queues.DelayedMessages.csproj", "{BB000077-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.ExpirationPolicy", "Examples\Queues\Queues.ExpirationPolicy\Queues.ExpirationPolicy.csproj", "{BB000078-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.NAckAllStream", "Examples\Queues\Queues.NAckAllStream\Queues.NAckAllStream.csproj", "{BB000079-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.Peek", "Examples\Queues\Queues.Peek\Queues.Peek.csproj", "{BB00007A-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.PollMode", "Examples\Queues\Queues.PollMode\Queues.PollMode.csproj", "{BB00007F-0001-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.ReQueueAllStream", "Examples\Queues\Queues.ReQueueAllStream\Queues.ReQueueAllStream.csproj", "{BB00007B-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.SendReceive", "Examples\Queues\Queues.SendReceive\Queues.SendReceive.csproj", "{BB00007C-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.StreamUpstream", "Examples\Queues\Queues.StreamUpstream\Queues.StreamUpstream.csproj", "{BB00007D-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Queues.VisibilityTimeout", "Examples\Queues\Queues.VisibilityTimeout\Queues.VisibilityTimeout.csproj", "{BB00007E-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Events.ConsumerGroup", "Examples\Events\Events.ConsumerGroup\Events.ConsumerGroup.csproj", "{BB000036-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventsStore.StartAtTimeDelta", "Examples\EventsStore\EventsStore.StartAtTimeDelta\EventsStore.StartAtTimeDelta.csproj", "{BB00004B-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Connection", "Connection", "{BB000080-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connection.Connect", "Examples\Connection\Connection.Connect\Connection.Connect.csproj", "{BB000081-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connection.Close", "Examples\Connection\Connection.Close\Connection.Close.csproj", "{BB000082-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connection.Ping", "Examples\Connection\Connection.Ping\Connection.Ping.csproj", "{BB000083-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Patterns", "Patterns", "{BB000090-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patterns.RequestReply", "Examples\Patterns\Patterns.RequestReply\Patterns.RequestReply.csproj", "{BB000091-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patterns.FanOut", "Examples\Patterns\Patterns.FanOut\Patterns.FanOut.csproj", "{BB000092-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patterns.WorkQueue", "Examples\Patterns\Patterns.WorkQueue\Patterns.WorkQueue.csproj", "{BB000093-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ErrorHandling", "ErrorHandling", "{BB0000A0-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHandling.ConnectionError", "Examples\ErrorHandling\ErrorHandling.ConnectionError\ErrorHandling.ConnectionError.csproj", "{BB0000A1-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHandling.Reconnection", "Examples\ErrorHandling\ErrorHandling.Reconnection\ErrorHandling.Reconnection.csproj", "{BB0000A2-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHandling.GracefulShutdown", "Examples\ErrorHandling\ErrorHandling.GracefulShutdown\ErrorHandling.GracefulShutdown.csproj", "{BB0000A3-0000-4000-8000-000000000000}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QueuesStream", "QueuesStream", "{BB0000B0-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.StreamSend", "Examples\QueuesStream\QueuesStream.StreamSend\QueuesStream.StreamSend.csproj", "{BB0000B1-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.StreamReceive", "Examples\QueuesStream\QueuesStream.StreamReceive\QueuesStream.StreamReceive.csproj", "{BB0000B2-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.AckAll", "Examples\QueuesStream\QueuesStream.AckAll\QueuesStream.AckAll.csproj", "{BB0000B3-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.AckRange", "Examples\QueuesStream\QueuesStream.AckRange\QueuesStream.AckRange.csproj", "{BB0000B4-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.AutoAck", "Examples\QueuesStream\QueuesStream.AutoAck\QueuesStream.AutoAck.csproj", "{BB0000B5-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.ExpirationPolicy", "Examples\QueuesStream\QueuesStream.ExpirationPolicy\QueuesStream.ExpirationPolicy.csproj", "{BB0000B6-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.NackAll", "Examples\QueuesStream\QueuesStream.NackAll\QueuesStream.NackAll.csproj", "{BB0000B7-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.PollMode", "Examples\QueuesStream\QueuesStream.PollMode\QueuesStream.PollMode.csproj", "{BB0000B8-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.RequeueAll", "Examples\QueuesStream\QueuesStream.RequeueAll\QueuesStream.RequeueAll.csproj", "{BB0000B9-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.VisibilityTimeout", "Examples\QueuesStream\QueuesStream.VisibilityTimeout\QueuesStream.VisibilityTimeout.csproj", "{BB0000BA-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.DelayPolicy", "Examples\QueuesStream\QueuesStream.DelayPolicy\QueuesStream.DelayPolicy.csproj", "{BB0000BB-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueuesStream.DeadLetterPolicy", "Examples\QueuesStream\QueuesStream.DeadLetterPolicy\QueuesStream.DeadLetterPolicy.csproj", "{BB0000BC-0000-4000-8000-000000000000}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KubeMQ.Sdk.Tests.Integration", "tests\KubeMQ.Sdk.Tests.Integration\KubeMQ.Sdk.Tests.Integration.csproj", "{DBBED162-9E87-4624-B98A-F848417966E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,40 +189,402 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{30088889-86B9-42C6-9C24-7CB9182D21B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30088889-86B9-42C6-9C24-7CB9182D21B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30088889-86B9-42C6-9C24-7CB9182D21B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30088889-86B9-42C6-9C24-7CB9182D21B5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{46BF1B40-1F0A-4D0E-AB92-3E8CE1418F1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{46BF1B40-1F0A-4D0E-AB92-3E8CE1418F1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{46BF1B40-1F0A-4D0E-AB92-3E8CE1418F1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{46BF1B40-1F0A-4D0E-AB92-3E8CE1418F1A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A902BBC2-0EC9-4727-BAF3-06346E3626F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A902BBC2-0EC9-4727-BAF3-06346E3626F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A902BBC2-0EC9-4727-BAF3-06346E3626F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A902BBC2-0EC9-4727-BAF3-06346E3626F6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8E63469E-48C4-4666-B224-011DA5640416}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8E63469E-48C4-4666-B224-011DA5640416}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8E63469E-48C4-4666-B224-011DA5640416}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8E63469E-48C4-4666-B224-011DA5640416}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740}.Release|Any CPU.Build.0 = Release|Any CPU
-		{225D68E1-728C-45B1-A27A-FBDF69649BF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{225D68E1-728C-45B1-A27A-FBDF69649BF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{225D68E1-728C-45B1-A27A-FBDF69649BF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{225D68E1-728C-45B1-A27A-FBDF69649BF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA000002-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA000002-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA000002-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA000002-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA000004-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA000004-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA000004-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA000004-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000011-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000011-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000011-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000011-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000012-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000012-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000012-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000012-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000013-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000013-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000013-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000013-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000014-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000014-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000014-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000014-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000021-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000021-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000021-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000021-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000022-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000022-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000022-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000022-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000023-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000023-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000023-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000023-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000024-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000024-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000024-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000024-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000025-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000025-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000025-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000025-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000026-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000026-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000026-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000026-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000027-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000027-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000027-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000027-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000028-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000028-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000028-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000028-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00002A-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00002A-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00002A-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00002A-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00002B-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00002B-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00002B-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00002B-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000031-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000031-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000031-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000031-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000032-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000032-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000032-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000032-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000033-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000033-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000033-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000033-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000034-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000034-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000034-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000034-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000035-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000035-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000035-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000035-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000041-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000041-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000041-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000041-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000042-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000042-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000042-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000042-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000043-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000043-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000043-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000043-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000044-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000044-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000044-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000044-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000045-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000045-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000045-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000045-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000046-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000046-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000046-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000046-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000047-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000047-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000047-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000047-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000048-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000048-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000048-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000048-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000049-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000049-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000049-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000049-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00004A-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00004A-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00004A-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00004A-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000051-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000051-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000051-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000051-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000061-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000061-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000061-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000061-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000062-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000062-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000062-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000062-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000063-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000063-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000063-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000063-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000064-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000064-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000064-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000064-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000071-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000071-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000071-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000071-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000072-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000072-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000072-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000072-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000073-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000073-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000073-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000073-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000074-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000074-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000074-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000074-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000075-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000075-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000075-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000075-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000076-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000076-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000076-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000076-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000077-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000077-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000077-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000077-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000078-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000078-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000078-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000078-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000079-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000079-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000079-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000079-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007A-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007A-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007A-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007A-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007B-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007B-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007B-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007B-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007C-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007C-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007C-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007C-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007D-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007D-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007D-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007D-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007E-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007E-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007E-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007E-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBBED162-9E87-4624-B98A-F848417966E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBBED162-9E87-4624-B98A-F848417966E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBBED162-9E87-4624-B98A-F848417966E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBBED162-9E87-4624-B98A-F848417966E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000036-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000036-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000036-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000036-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00004B-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00004B-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00004B-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00004B-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000081-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000081-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000081-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000081-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000082-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000082-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000082-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000082-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000083-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000083-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000083-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000083-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000091-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000091-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000091-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000091-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000092-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000092-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000092-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000092-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB000093-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB000093-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB000093-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB000093-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000A1-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000A1-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000A1-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000A1-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000A2-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000A2-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000A2-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000A2-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000A3-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000A3-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000A3-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000A3-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B1-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B1-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B1-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B1-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B2-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B2-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B2-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B2-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B3-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B3-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B3-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B3-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B4-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B4-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B4-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B4-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B5-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B5-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B5-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B5-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B6-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B6-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B6-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B6-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B7-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B7-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B7-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B7-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B8-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B8-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B8-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B8-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000B9-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000B9-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000B9-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000B9-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000BA-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000BA-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000BA-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000BA-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000BB-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000BB-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000BB-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000BB-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB0000BC-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB0000BC-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB0000BC-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB0000BC-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007F-0000-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007F-0000-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007F-0000-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007F-0000-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB00007F-0001-4000-8000-000000000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB00007F-0001-4000-8000-000000000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB00007F-0001-4000-8000-000000000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB00007F-0001-4000-8000-000000000000}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{46BF1B40-1F0A-4D0E-AB92-3E8CE1418F1A} = {2CA36379-35F8-4229-9924-BFB8201362D1}
-		{A902BBC2-0EC9-4727-BAF3-06346E3626F6} = {2CA36379-35F8-4229-9924-BFB8201362D1}
-		{8E63469E-48C4-4666-B224-011DA5640416} = {2CA36379-35F8-4229-9924-BFB8201362D1}
-		{6CC9349C-50F3-46EA-9BFD-C4BC71FE8740} = {2CA36379-35F8-4229-9924-BFB8201362D1}
-		{225D68E1-728C-45B1-A27A-FBDF69649BF2} = {2CA36379-35F8-4229-9924-BFB8201362D1}
+		{AA000002-0000-4000-8000-000000000000} = {AA000001-0000-4000-8000-000000000000}
+		{AA000004-0000-4000-8000-000000000000} = {AA000003-0000-4000-8000-000000000000}
+		{BB000010-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000011-0000-4000-8000-000000000000} = {BB000010-0000-4000-8000-000000000000}
+		{BB000012-0000-4000-8000-000000000000} = {BB000010-0000-4000-8000-000000000000}
+		{BB000013-0000-4000-8000-000000000000} = {BB000010-0000-4000-8000-000000000000}
+		{BB000014-0000-4000-8000-000000000000} = {BB000010-0000-4000-8000-000000000000}
+		{BB000020-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000021-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000022-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000023-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000024-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000025-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000026-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000027-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000028-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB00002A-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB00002B-0000-4000-8000-000000000000} = {BB000020-0000-4000-8000-000000000000}
+		{BB000030-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000031-0000-4000-8000-000000000000} = {BB000030-0000-4000-8000-000000000000}
+		{BB000032-0000-4000-8000-000000000000} = {BB000030-0000-4000-8000-000000000000}
+		{BB000033-0000-4000-8000-000000000000} = {BB000030-0000-4000-8000-000000000000}
+		{BB000034-0000-4000-8000-000000000000} = {BB000030-0000-4000-8000-000000000000}
+		{BB000035-0000-4000-8000-000000000000} = {BB000030-0000-4000-8000-000000000000}
+		{BB000040-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000041-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000042-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000043-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000044-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000045-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000046-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000047-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000048-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000049-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB00004A-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000050-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000051-0000-4000-8000-000000000000} = {BB000050-0000-4000-8000-000000000000}
+		{BB000060-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000061-0000-4000-8000-000000000000} = {BB000060-0000-4000-8000-000000000000}
+		{BB000062-0000-4000-8000-000000000000} = {BB000060-0000-4000-8000-000000000000}
+		{BB000063-0000-4000-8000-000000000000} = {BB000060-0000-4000-8000-000000000000}
+		{BB000064-0000-4000-8000-000000000000} = {BB000060-0000-4000-8000-000000000000}
+		{BB000070-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000071-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000072-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000073-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000074-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000075-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000076-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000077-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000078-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB000079-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB00007A-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB00007B-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB00007C-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB00007D-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB00007E-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{DBBED162-9E87-4624-B98A-F848417966E3} = {AA000003-0000-4000-8000-000000000000}
+		{BB000036-0000-4000-8000-000000000000} = {BB000030-0000-4000-8000-000000000000}
+		{BB00004B-0000-4000-8000-000000000000} = {BB000040-0000-4000-8000-000000000000}
+		{BB000080-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000081-0000-4000-8000-000000000000} = {BB000080-0000-4000-8000-000000000000}
+		{BB000082-0000-4000-8000-000000000000} = {BB000080-0000-4000-8000-000000000000}
+		{BB000083-0000-4000-8000-000000000000} = {BB000080-0000-4000-8000-000000000000}
+		{BB000090-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB000091-0000-4000-8000-000000000000} = {BB000090-0000-4000-8000-000000000000}
+		{BB000092-0000-4000-8000-000000000000} = {BB000090-0000-4000-8000-000000000000}
+		{BB000093-0000-4000-8000-000000000000} = {BB000090-0000-4000-8000-000000000000}
+		{BB0000A0-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB0000A1-0000-4000-8000-000000000000} = {BB0000A0-0000-4000-8000-000000000000}
+		{BB0000A2-0000-4000-8000-000000000000} = {BB0000A0-0000-4000-8000-000000000000}
+		{BB0000A3-0000-4000-8000-000000000000} = {BB0000A0-0000-4000-8000-000000000000}
+		{BB0000B0-0000-4000-8000-000000000000} = {BB000001-0000-4000-8000-000000000000}
+		{BB0000B1-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B2-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B3-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B4-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B5-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B6-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B7-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B8-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000B9-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000BA-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000BB-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB0000BC-0000-4000-8000-000000000000} = {BB0000B0-0000-4000-8000-000000000000}
+		{BB00007F-0000-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
+		{BB00007F-0001-4000-8000-000000000000} = {BB000070-0000-4000-8000-000000000000}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBD39498-1EF2-4078-8704-67980A50B49B}
