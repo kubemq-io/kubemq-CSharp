@@ -82,13 +82,14 @@ public sealed class QueueStreamWorker : BaseWorker
                 if (result.Messages == null || result.Messages.Count == 0)
                     continue;
 
-                // Process all messages in the batch (Go#19: drain entire batch)
+                // Process all messages with per-message ack (matching Go behavior for contention testing)
                 foreach (var msg in result.Messages)
                 {
                     var tags = msg.Tags;
                     if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
                         && warmupVal == "true")
                     {
+                        try { await msg.AckAsync(ct); } catch { }
                         continue;
                     }
 
@@ -98,24 +99,12 @@ public sealed class QueueStreamWorker : BaseWorker
                         string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
                         RecordReceive(consumerId, msg.Body, crcTag,
                             decoded.ProducerId, decoded.Sequence);
+                        // Per-message ack
+                        await msg.AckAsync(ct);
                     }
                     catch
                     {
                         RecordError("decode_failure");
-                    }
-                }
-
-                // Ack the entire batch via AckAllDownstreamAsync with the transaction ID
-                if (!string.IsNullOrEmpty(result.TransactionId))
-                {
-                    try
-                    {
-                        await client.AckAllDownstreamAsync(result.TransactionId, ct);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine($"queue_stream ack error: {ex.Message}");
-                        RecordError("receive_failure");
                     }
                 }
             }
