@@ -22,7 +22,7 @@ Console.WriteLine("Connected to KubeMQ server");
 // Publish events first — they are persisted
 for (var i = 1; i <= 5; i++)
 {
-    await client.PublishEventStoreAsync(new EventStoreMessage
+    await client.SendEventStoreAsync(new EventStoreMessage
     {
         Channel = "csharp-eventsstore.persistent-pubsub",
         Body = Encoding.UTF8.GetBytes($"Persistent Event #{i}")
@@ -34,11 +34,11 @@ for (var i = 1; i <= 5; i++)
 var cts = new CancellationTokenSource();
 var subscribeTask = Task.Run(async () =>
 {
-    await foreach (var msg in client.SubscribeToEventStoreAsync(
+    await foreach (var msg in client.SubscribeToEventsStoreAsync(
         new EventStoreSubscription
         {
             Channel = "csharp-eventsstore.persistent-pubsub",
-            StartPosition = EventStoreStartPosition.FromFirst
+            StartPosition = EventStoreStartPosition.StartFromFirst
         }, cts.Token))
     {
         Console.WriteLine($"[Seq={msg.Sequence}] {Encoding.UTF8.GetString(msg.Body.Span)}");

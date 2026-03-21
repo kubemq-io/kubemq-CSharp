@@ -21,12 +21,12 @@ await client.ConnectAsync();
 var subscription = new EventStoreSubscription
 {
     Channel = "csharp-eventsstore.start-at-time",
-    StartPosition = EventStoreStartPosition.FromTime,
+    StartPosition = EventStoreStartPosition.StartAtTime,
     StartTime = DateTimeOffset.UtcNow.AddHours(-1),
 };
 
-Console.WriteLine("Subscribed with FromTime (1 hour ago). Replaying stored events...");
-await foreach (var evt in client.SubscribeToEventStoreAsync(subscription))
+Console.WriteLine("Subscribed with StartAtTime (1 hour ago). Replaying stored events...");
+await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription))
 {
     Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
 }

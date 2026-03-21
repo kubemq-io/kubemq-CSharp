@@ -1,6 +1,6 @@
 // Commands worker: RPC request/response via SendCommandAsync + SubscribeToCommandsAsync.
-// Responder checks warmup FIRST, then sends response via SendCommandResponseAsync.
-// Check resp.Error for timeout detection.
+// v2: accepts channelName, rate, channelIndex, patternLatencyAccum.
+// Worker IDs: {role}-{pattern}-{4-digit-channel}-{3-digit-worker}
 
 using KubeMQ.Sdk.Client;
 using KubeMQ.Sdk.Commands;
@@ -20,17 +20,21 @@ public sealed class CommandsWorker : BaseWorker
 
     private readonly List<Task> _responderTasks = new();
     private readonly List<Task> _senderTasks = new();
+    private readonly int _numSenders;
+    private readonly int _numResponders;
 
-    public CommandsWorker(BurninConfig config, string runId)
-        : base(PatternName, config, $"csharp_burnin_{runId}_{PatternName}_001", config.Rates.Commands)
+    public CommandsWorker(BurninConfig config, string runId, string channelName, int channelIndex,
+        int senders, int responders, int rate,
+        LatencyAccumulator patternLatencyAccum)
+        : base(PatternName, config, channelName, rate, channelIndex, patternLatencyAccum)
     {
+        _numSenders = senders;
+        _numResponders = responders;
     }
 
     public override async Task StartConsumersAsync(KubeMQClient client)
     {
-        int nResponders = Config.Concurrency.CommandsResponders;
-
-        for (int i = 0; i < nResponders; i++)
+        for (int i = 0; i < _numResponders; i++)
         {
             var subscription = new CommandsSubscription
             {
@@ -46,37 +50,34 @@ public sealed class CommandsWorker : BaseWorker
                         if (ConsumerCts.IsCancellationRequested) break;
 
                         var tags = cmd.Tags;
-                        // Go#18: check warmup FIRST
                         bool isWarmup = tags != null
                             && tags.TryGetValue("warmup", out string? warmupVal)
                             && warmupVal == "true";
 
-                        try
+                        if (!isWarmup)
                         {
-                            // SendCommandResponseAsync with required parameters
-                            await client.SendCommandResponseAsync(
-                                cmd.RequestId,
-                                cmd.ReplyChannel,
-                                executed: true,
-                                errorMessage: string.Empty,
-                                body: isWarmup ? Array.Empty<byte>() : cmd.Body,
-                                metadata: string.Empty,
-                                tags: null,
-                                ConsumerCts.Token);
+                            RecordBytesReceived(cmd.Body.Length);
                         }
-                        catch (Exception ex)
+
+                        var capturedCmd = cmd;
+                        var capturedIsWarmup = isWarmup;
+                        _ = client.SendCommandResponseAsync(new CommandResponse
                         {
-                            if (!isWarmup)
-                            {
-                                RecordError("response_send_failure");
-                            }
-                        }
+                            RequestId = capturedCmd.RequestId,
+                            ReplyChannel = capturedCmd.ReplyChannel,
+                            Executed = true,
+                            Body = capturedIsWarmup ? Array.Empty<byte>() : capturedCmd.Body,
+                        }, ConsumerCts.Token).ContinueWith(t =>
+                        {
+                            if (t.IsFaulted)
+                                RecordError("response_failure");
+                        }, TaskContinuationOptions.OnlyOnFaulted);
                     }
                 }
                 catch (OperationCanceledException) { /* normal shutdown */ }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"commands subscription error: {ex.Message}");
+                    Console.Error.WriteLine($"commands subscription error (ch{ChannelIndex:D4}): {ex.Message}");
                     RecordError("subscription_error");
                     IncReconnection();
                 }
@@ -85,20 +86,19 @@ public sealed class CommandsWorker : BaseWorker
             _responderTasks.Add(task);
         }
 
-        Console.WriteLine($"commands responders started on {ChannelName}");
+        Console.WriteLine($"commands responders started on {ChannelName} ({_numResponders} responders)");
         await Task.CompletedTask;
     }
 
     public override async Task StartProducersAsync(KubeMQClient client)
     {
-        int nSenders = Config.Concurrency.CommandsSenders;
-        for (int i = 0; i < nSenders; i++)
+        for (int i = 0; i < _numSenders; i++)
         {
-            string senderId = $"p-{PatternName}-{i:D3}";
+            string senderId = $"s-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _senderTasks.Add(Task.Run(() => RunSenderAsync(senderId, client)));
         }
 
-        Console.WriteLine($"commands senders started on {ChannelName}");
+        Console.WriteLine($"commands senders started on {ChannelName} ({_numSenders} senders)");
         await Task.CompletedTask;
     }
 
@@ -132,8 +132,8 @@ public sealed class CommandsWorker : BaseWorker
 
                 double rpcDuration = (StopwatchTimestamp.GetNanoseconds() - t0) / 1_000_000_000.0;
                 RpcLatencyAccum.Record(rpcDuration);
+                PatternLatencyAccum.Record(rpcDuration);
 
-                // Check for error/timeout in response
                 if (!string.IsNullOrEmpty(resp.Error))
                 {
                     if (resp.Error.Contains("timeout", StringComparison.OrdinalIgnoreCase))

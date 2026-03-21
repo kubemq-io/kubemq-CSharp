@@ -2,7 +2,7 @@
 //
 // This example demonstrates sending messages with a delivery delay.
 // The message becomes visible to consumers only after the delay expires.
-// Uses ReceiveQueueDownstreamAsync for transactional message settlement.
+// Uses QueueDownstreamReceiver.PollAsync for transactional message settlement.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -30,34 +30,40 @@ var sendResult = await client.SendQueueMessageAsync(new QueueMessage
 
 Console.WriteLine($"Sent delayed message (5s delay): {sendResult.MessageId}");
 
+// Create one receiver and reuse it for both polls
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
+
 // Immediate receive — should not find the message yet
-var immediate = await client.ReceiveQueueDownstreamAsync(
-    channel: "csharp-queues.delayed-messages",
-    maxItems: 1,
-    waitTimeoutMs: 1000,
-    autoAck: false);
-
-Console.WriteLine($"Immediate receive: {(immediate.Messages.Count > 0 ? "found" : "empty (expected)")}");
-
-// Ack any unexpected messages from the immediate check
-if (immediate.Messages.Count > 0 && !string.IsNullOrEmpty(immediate.TransactionId))
+var immediateBatch = await receiver.PollAsync(new QueuePollRequest
 {
-    await client.AckAllDownstreamAsync(immediate.TransactionId);
+    Channel = "csharp-queues.delayed-messages",
+    MaxMessages = 1,
+    WaitTimeoutSeconds = 1,
+    AutoAck = false,
+});
+
+Console.WriteLine($"Immediate receive: {(immediateBatch.HasMessages ? "found" : "empty (expected)")}");
+
+if (immediateBatch.HasMessages)
+{
+    await immediateBatch.AckAllAsync();
 }
 
 // Wait for delay to expire, then receive again
 Console.WriteLine("Waiting 6 seconds for delay to expire...");
 await Task.Delay(6000);
 
-var delayed = await client.ReceiveQueueDownstreamAsync(
-    channel: "csharp-queues.delayed-messages",
-    maxItems: 1,
-    waitTimeoutMs: 5000,
-    autoAck: false);
-
-if (delayed.Messages.Count > 0)
+var delayedBatch = await receiver.PollAsync(new QueuePollRequest
 {
-    foreach (var msg in delayed.Messages)
+    Channel = "csharp-queues.delayed-messages",
+    MaxMessages = 1,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
+
+if (delayedBatch.HasMessages)
+{
+    foreach (var msg in delayedBatch.Messages)
     {
         Console.WriteLine($"Delayed receive: {Encoding.UTF8.GetString(msg.Body.Span)}");
         await msg.AckAsync();

@@ -10,8 +10,8 @@ public class KubeMQBufferFullException : KubeMQException
     public KubeMQBufferFullException()
         : base(
             "Reconnect buffer full",
-            KubeMQErrorCode.BufferFull,
-            KubeMQErrorCategory.Backpressure,
+            ErrorCode.BufferFull,
+            ErrorCategory.Backpressure,
             isRetryable: false)
     {
     }
@@ -21,8 +21,8 @@ public class KubeMQBufferFullException : KubeMQException
     public KubeMQBufferFullException(string message)
         : base(
             message,
-            KubeMQErrorCode.BufferFull,
-            KubeMQErrorCategory.Backpressure,
+            ErrorCode.BufferFull,
+            ErrorCategory.Backpressure,
             isRetryable: false)
     {
     }
@@ -33,8 +33,8 @@ public class KubeMQBufferFullException : KubeMQException
     public KubeMQBufferFullException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.BufferFull,
-            KubeMQErrorCategory.Backpressure,
+            ErrorCode.BufferFull,
+            ErrorCategory.Backpressure,
             isRetryable: false,
             innerException: innerException)
     {

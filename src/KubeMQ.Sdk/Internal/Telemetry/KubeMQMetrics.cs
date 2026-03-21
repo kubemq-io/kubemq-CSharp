@@ -166,19 +166,19 @@ internal static class KubeMQMetrics
                 errorType));
     }
 
-    internal static string MapErrorType(KubeMQErrorCategory category) =>
+    internal static string MapErrorType(ErrorCategory category) =>
         category switch
         {
-            KubeMQErrorCategory.Transient => "transient",
-            KubeMQErrorCategory.Timeout => "timeout",
-            KubeMQErrorCategory.Throttling => "throttling",
-            KubeMQErrorCategory.Authentication => "authentication",
-            KubeMQErrorCategory.Authorization => "authorization",
-            KubeMQErrorCategory.Validation => "validation",
-            KubeMQErrorCategory.NotFound => "not_found",
-            KubeMQErrorCategory.Fatal => "fatal",
-            KubeMQErrorCategory.Cancellation => "cancellation",
-            KubeMQErrorCategory.Backpressure => "backpressure",
+            ErrorCategory.Transient => "transient",
+            ErrorCategory.Timeout => "timeout",
+            ErrorCategory.Throttling => "throttling",
+            ErrorCategory.Authentication => "authentication",
+            ErrorCategory.Authorization => "authorization",
+            ErrorCategory.Validation => "validation",
+            ErrorCategory.NotFound => "not_found",
+            ErrorCategory.Fatal => "fatal",
+            ErrorCategory.Cancellation => "cancellation",
+            ErrorCategory.Backpressure => "backpressure",
             _ => "unknown",
         };
 

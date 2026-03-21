@@ -279,7 +279,7 @@ public class KubeMQClientEdgeCaseTests
     }
 
     [Fact]
-    public async Task PublishEventAsync_CopyTagsWithEmptyTags_DoesNotThrow()
+    public async Task SendEventAsync_CopyTagsWithEmptyTags_DoesNotThrow()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -287,21 +287,21 @@ public class KubeMQClientEdgeCaseTests
             .ReturnsAsync(new KubeMQ.Grpc.Result { Sent = true });
 
         var tags = new Dictionary<string, string>();
-        var act = async () => await client.PublishEventAsync("ch", Encoding.UTF8.GetBytes("body"), tags);
+        var act = async () => await client.SendEventAsync("ch", Encoding.UTF8.GetBytes("body"), tags);
 
         await act.Should().NotThrowAsync();
         client.Dispose();
     }
 
     [Fact]
-    public async Task PublishEventAsync_CopyTagsWithNullTags_DoesNotThrow()
+    public async Task SendEventAsync_CopyTagsWithNullTags_DoesNotThrow()
     {
         var (client, transport) = TestClientFactory.Create();
 
         transport.Setup(t => t.SendEventAsync(It.IsAny<KubeMQ.Grpc.Event>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new KubeMQ.Grpc.Result { Sent = true });
 
-        var act = async () => await client.PublishEventAsync("ch", Encoding.UTF8.GetBytes("body"), null);
+        var act = async () => await client.SendEventAsync("ch", Encoding.UTF8.GetBytes("body"), null);
 
         await act.Should().NotThrowAsync();
         client.Dispose();
@@ -314,7 +314,7 @@ public class KubeMQClientEdgeCaseTests
 
         client.Dispose();
 
-        client.State.Should().Be(ConnectionState.Disposed);
+        client.State.Should().Be(ConnectionState.Closed);
     }
 
     [Fact]
@@ -338,9 +338,9 @@ public class KubeMQClientEdgeCaseTests
         await client.DisposeAsync();
 
         Func<Task> actPing = () => client.PingAsync();
-        Func<Task> actPublishEvent = () => client.PublishEventAsync(
+        Func<Task> actPublishEvent = () => client.SendEventAsync(
             new KubeMQ.Sdk.Events.EventMessage { Channel = "ch", Body = new byte[] { 1 } });
-        Func<Task> actPublishEventStore = () => client.PublishEventStoreAsync(
+        Func<Task> actPublishEventStore = () => client.SendEventStoreAsync(
             new KubeMQ.Sdk.EventsStore.EventStoreMessage { Channel = "ch", Body = new byte[] { 1 } });
         Func<Task> actSendCommand = () => client.SendCommandAsync(
             new KubeMQ.Sdk.Commands.CommandMessage { Channel = "ch", Body = new byte[] { 1 } });
@@ -371,7 +371,7 @@ public class KubeMQClientEdgeCaseTests
         client.Dispose();
 
         Func<Task> actPing = () => client.PingAsync();
-        Func<Task> actPublish = () => client.PublishEventAsync(
+        Func<Task> actPublish = () => client.SendEventAsync(
             new KubeMQ.Sdk.Events.EventMessage { Channel = "ch", Body = new byte[] { 1 } });
 
         actPing.Should().ThrowAsync<ObjectDisposedException>();

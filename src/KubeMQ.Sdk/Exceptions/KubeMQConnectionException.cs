@@ -9,8 +9,8 @@ public class KubeMQConnectionException : KubeMQException
     public KubeMQConnectionException()
         : base(
             "Connection error",
-            KubeMQErrorCode.ConnectionRefused,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.ConnectionRefused,
+            ErrorCategory.Transient,
             isRetryable: true)
     {
     }
@@ -20,8 +20,8 @@ public class KubeMQConnectionException : KubeMQException
     public KubeMQConnectionException(string message)
         : base(
             message,
-            KubeMQErrorCode.ConnectionRefused,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.ConnectionRefused,
+            ErrorCategory.Transient,
             isRetryable: true)
     {
     }
@@ -32,8 +32,8 @@ public class KubeMQConnectionException : KubeMQException
     public KubeMQConnectionException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.ConnectionRefused,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.ConnectionRefused,
+            ErrorCategory.Transient,
             isRetryable: true,
             innerException: innerException)
     {
@@ -46,10 +46,10 @@ public class KubeMQConnectionException : KubeMQException
     /// <param name="innerException">Optional inner exception.</param>
     public KubeMQConnectionException(
         string message,
-        KubeMQErrorCode errorCode,
+        ErrorCode errorCode,
         bool isRetryable,
         Exception? innerException = null)
-        : base(message, errorCode, KubeMQErrorCategory.Transient, isRetryable, innerException)
+        : base(message, errorCode, ErrorCategory.Transient, isRetryable, innerException)
     {
     }
 }

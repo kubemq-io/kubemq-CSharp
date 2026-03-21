@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Channels;
 using Google.Protobuf;
 using Grpc.Core;
 using KubeMQ.Sdk.Exceptions;
@@ -10,6 +11,11 @@ namespace KubeMQ.Sdk.Events;
 /// For non-store events, the server only sends Result on error.
 /// Automatically reconnects if the stream breaks.
 /// </summary>
+/// <remarks>
+/// Uses a bounded <see cref="Channel{T}"/> for write pipelining:
+/// multiple concurrent <see cref="SendAsync"/> calls enqueue without lock contention,
+/// and a single background writer drains them onto the gRPC stream.
+/// </remarks>
 [SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix", Justification = "EventStream is an intentional domain name.")]
 public sealed class EventStream : IAsyncDisposable
 {
@@ -17,10 +23,12 @@ public sealed class EventStream : IAsyncDisposable
     private readonly Func<CancellationToken, Task>? _waitForReady;
     private readonly Action<Exception>? _onError;
     private readonly CancellationTokenSource _cts = new();
-    private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly Channel<KubeMQ.Grpc.Event> _writeChannel;
+    private readonly Task _writerTask;
+    private readonly Task _receiveTask;
     private AsyncDuplexStreamingCall<KubeMQ.Grpc.Event, KubeMQ.Grpc.Result> _call;
-    private Task _receiveTask;
-    private bool _disposed;
+    private volatile bool _disposed;
+    private volatile bool _streamBroken;
 
     internal EventStream(
         AsyncDuplexStreamingCall<KubeMQ.Grpc.Event, KubeMQ.Grpc.Result> call,
@@ -32,6 +40,14 @@ public sealed class EventStream : IAsyncDisposable
         _onError = onError;
         _reconnectFactory = reconnectFactory;
         _waitForReady = waitForReady;
+        _writeChannel = Channel.CreateBounded<KubeMQ.Grpc.Event>(
+            new BoundedChannelOptions(4096)
+            {
+                SingleReader = true,
+                SingleWriter = false,
+                FullMode = BoundedChannelFullMode.Wait,
+            });
+        _writerTask = Task.Run(WriterLoopAsync);
         _receiveTask = Task.Run(ReceiveLoopAsync);
     }
 
@@ -45,9 +61,14 @@ public sealed class EventStream : IAsyncDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(message);
 
+        if (_streamBroken)
+        {
+            throw new KubeMQOperationException("Event stream is broken. Reconnecting or disposed.");
+        }
+
         var grpcEvent = new KubeMQ.Grpc.Event
         {
-            EventID = message.EventId ?? Guid.NewGuid().ToString("N"),
+            EventID = message.Id ?? Guid.NewGuid().ToString("N"),
             Channel = message.Channel,
             Body = ByteString.CopyFrom(message.Body.Span),
             ClientID = message.ClientId ?? clientId,
@@ -62,15 +83,7 @@ public sealed class EventStream : IAsyncDisposable
             }
         }
 
-        await _writeLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            await _call.RequestStream.WriteAsync(grpcEvent, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
+        await _writeChannel.Writer.WriteAsync(grpcEvent, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Closes the stream gracefully.</summary>
@@ -80,6 +93,17 @@ public sealed class EventStream : IAsyncDisposable
         if (_disposed)
         {
             return;
+        }
+
+        _writeChannel.Writer.TryComplete();
+
+        try
+        {
+            await _writerTask.ConfigureAwait(false);
+        }
+        catch
+        {
+            // best-effort
         }
 
         try
@@ -111,19 +135,53 @@ public sealed class EventStream : IAsyncDisposable
         }
 
         _disposed = true;
+        _writeChannel.Writer.TryComplete();
         await _cts.CancelAsync().ConfigureAwait(false);
+
+        try
+        {
+            await _writerTask.ConfigureAwait(false);
+        }
+        catch
+        {
+            // expected
+        }
+
         try
         {
             await _receiveTask.ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
+        catch
         {
             // expected
         }
 
         _call.Dispose();
         _cts.Dispose();
-        _writeLock.Dispose();
+    }
+
+    private async Task WriterLoopAsync()
+    {
+        var reader = _writeChannel.Reader;
+        try
+        {
+            while (await reader.WaitToReadAsync(_cts.Token).ConfigureAwait(false))
+            {
+                while (reader.TryRead(out var grpcEvent))
+                {
+                    await _call.RequestStream.WriteAsync(grpcEvent, _cts.Token).ConfigureAwait(false);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // expected on dispose
+        }
+        catch (Exception ex)
+        {
+            _streamBroken = true;
+            _onError?.Invoke(ex);
+        }
     }
 
     private async Task ReceiveLoopAsync()
@@ -150,6 +208,7 @@ public sealed class EventStream : IAsyncDisposable
             }
             catch (Exception ex)
             {
+                _streamBroken = true;
                 _onError?.Invoke(ex);
 
                 if (_reconnectFactory == null || _waitForReady == null)
@@ -161,16 +220,12 @@ public sealed class EventStream : IAsyncDisposable
                 {
                     await _waitForReady(_cts.Token).ConfigureAwait(false);
                     var newCall = await _reconnectFactory(_cts.Token).ConfigureAwait(false);
-                    await _writeLock.WaitAsync(_cts.Token).ConfigureAwait(false);
-                    try
-                    {
-                        _call.Dispose();
-                        _call = newCall;
-                    }
-                    finally
-                    {
-                        _writeLock.Release();
-                    }
+
+                    // Swap the call — the writer loop will use the new call on next write
+                    var oldCall = _call;
+                    _call = newCall;
+                    _streamBroken = false;
+                    oldCall.Dispose();
                 }
                 catch (OperationCanceledException)
                 {

@@ -129,6 +129,47 @@ public static class Metrics
         "burnin_active_workers", "Active workers",
         new GaugeConfiguration { LabelNames = ["sdk"] });
 
+    // --- Pre-initialization (§8.3) ---
+
+    public static void PreInitialize()
+    {
+        foreach (string pattern in new[] { "events", "events_store", "queue_stream", "queue_simple", "commands", "queries" })
+        {
+            MessagesSent.WithLabels(SDK, pattern, "p-000");
+            MessagesReceived.WithLabels(SDK, pattern, "c-000");
+            MessagesLost.WithLabels(SDK, pattern);
+            MessagesDuplicated.WithLabels(SDK, pattern);
+            MessagesCorrupted.WithLabels(SDK, pattern);
+            MessagesOutOfOrder.WithLabels(SDK, pattern);
+            MessagesUnconfirmed.WithLabels(SDK, pattern);
+            ReconnDuplicates.WithLabels(SDK, pattern);
+            Errors.WithLabels(SDK, pattern, "send_failure");
+            Reconnections.WithLabels(SDK, pattern);
+            BytesSent.WithLabels(SDK, pattern);
+            BytesReceived.WithLabels(SDK, pattern);
+            DowntimeSeconds.WithLabels(SDK, pattern);
+            MessageLatency.WithLabels(SDK, pattern);
+            SendDuration.WithLabels(SDK, pattern);
+            ActiveConnections.WithLabels(SDK, pattern).Set(0);
+            TargetRateGauge.WithLabels(SDK, pattern).Set(0);
+            ActualRateGauge.WithLabels(SDK, pattern).Set(0);
+            ConsumerLag.WithLabels(SDK, pattern).Set(0);
+            GroupBalance.WithLabels(SDK, pattern).Set(0);
+
+            if (pattern is "commands" or "queries")
+            {
+                RpcDuration.WithLabels(SDK, pattern);
+                foreach (string status in new[] { "success", "timeout", "error" })
+                    RpcResponses.WithLabels(SDK, pattern, status);
+            }
+        }
+
+        ForcedDisconnects.WithLabels(SDK);
+        UptimeGauge.WithLabels(SDK).Set(0);
+        WarmupGauge.WithLabels(SDK).Set(0);
+        ActiveWorkersGauge.WithLabels(SDK).Set(0);
+    }
+
     // --- Helper functions ---
 
     public static void IncSent(string pattern, string producerId, int bytes = 0)

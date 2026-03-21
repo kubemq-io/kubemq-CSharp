@@ -10,8 +10,8 @@ public class ExceptionHierarchyTests
     {
         var ex = new KubeMQException();
 
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.Unknown);
-        ex.Category.Should().Be(KubeMQErrorCategory.Fatal);
+        ex.ErrorCode.Should().Be(ErrorCode.Unknown);
+        ex.Category.Should().Be(ErrorCategory.Fatal);
         ex.IsRetryable.Should().BeFalse();
         ex.InnerException.Should().BeNull();
     }
@@ -22,7 +22,7 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQException("something broke");
 
         ex.Message.Should().Be("something broke");
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.Unknown);
+        ex.ErrorCode.Should().Be(ErrorCode.Unknown);
     }
 
     [Fact]
@@ -41,13 +41,13 @@ public class ExceptionHierarchyTests
         var inner = new Exception("inner");
         var ex = new KubeMQException(
             "msg",
-            KubeMQErrorCode.Unavailable,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.Unavailable,
+            ErrorCategory.Transient,
             isRetryable: true,
             innerException: inner);
 
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.Unavailable);
-        ex.Category.Should().Be(KubeMQErrorCategory.Transient);
+        ex.ErrorCode.Should().Be(ErrorCode.Unavailable);
+        ex.Category.Should().Be(ErrorCategory.Transient);
         ex.IsRetryable.Should().BeTrue();
         ex.InnerException.Should().BeSameAs(inner);
     }
@@ -57,8 +57,8 @@ public class ExceptionHierarchyTests
     {
         var ex = new KubeMQException(
             "msg",
-            KubeMQErrorCode.Internal,
-            KubeMQErrorCategory.Fatal,
+            ErrorCode.Internal,
+            ErrorCategory.Fatal,
             isRetryable: false,
             requestId: "req-123",
             operation: "PublishEvent",
@@ -85,8 +85,8 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQConnectionException("conn fail");
 
         ex.Should().BeAssignableTo<KubeMQException>();
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.ConnectionRefused);
-        ex.Category.Should().Be(KubeMQErrorCategory.Transient);
+        ex.ErrorCode.Should().Be(ErrorCode.ConnectionRefused);
+        ex.Category.Should().Be(ErrorCategory.Transient);
         ex.IsRetryable.Should().BeTrue();
     }
 
@@ -96,8 +96,8 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQAuthenticationException("bad token");
 
         ex.Should().BeAssignableTo<KubeMQException>();
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.AuthenticationFailed);
-        ex.Category.Should().Be(KubeMQErrorCategory.Authentication);
+        ex.ErrorCode.Should().Be(ErrorCode.AuthenticationFailed);
+        ex.Category.Should().Be(ErrorCategory.Authentication);
         ex.IsRetryable.Should().BeFalse();
     }
 
@@ -107,8 +107,8 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQTimeoutException("deadline exceeded");
 
         ex.Should().BeAssignableTo<KubeMQException>();
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.DeadlineExceeded);
-        ex.Category.Should().Be(KubeMQErrorCategory.Timeout);
+        ex.ErrorCode.Should().Be(ErrorCode.DeadlineExceeded);
+        ex.Category.Should().Be(ErrorCategory.Timeout);
         ex.IsRetryable.Should().BeTrue();
     }
 
@@ -118,8 +118,8 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQConfigurationException("bad config");
 
         ex.Should().BeAssignableTo<KubeMQException>();
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.ConfigurationInvalid);
-        ex.Category.Should().Be(KubeMQErrorCategory.Validation);
+        ex.ErrorCode.Should().Be(ErrorCode.ConfigurationInvalid);
+        ex.Category.Should().Be(ErrorCategory.Validation);
         ex.IsRetryable.Should().BeFalse();
     }
 
@@ -129,8 +129,8 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQOperationException("op fail");
 
         ex.Should().BeAssignableTo<KubeMQException>();
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.Internal);
-        ex.Category.Should().Be(KubeMQErrorCategory.Fatal);
+        ex.ErrorCode.Should().Be(ErrorCode.Internal);
+        ex.Category.Should().Be(ErrorCategory.Fatal);
         ex.IsRetryable.Should().BeFalse();
     }
 
@@ -149,7 +149,7 @@ public class ExceptionHierarchyTests
         ex.TotalDuration.Should().Be(TimeSpan.FromSeconds(12.5));
         ex.LastException.Should().BeSameAs(inner);
         ex.InnerException.Should().BeSameAs(inner);
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.RetryExhausted);
+        ex.ErrorCode.Should().Be(ErrorCode.RetryExhausted);
     }
 
     [Fact]
@@ -182,8 +182,8 @@ public class ExceptionHierarchyTests
     {
         var ex = new KubeMQBufferFullException();
 
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.BufferFull);
-        ex.Category.Should().Be(KubeMQErrorCategory.Backpressure);
+        ex.ErrorCode.Should().Be(ErrorCode.BufferFull);
+        ex.Category.Should().Be(ErrorCategory.Backpressure);
         ex.IsRetryable.Should().BeFalse();
         ex.Message.Should().Be("Reconnect buffer full");
     }
@@ -194,7 +194,7 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQBufferFullException("buffer is full");
 
         ex.Message.Should().Be("buffer is full");
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.BufferFull);
+        ex.ErrorCode.Should().Be(ErrorCode.BufferFull);
     }
 
     [Fact]
@@ -236,8 +236,8 @@ public class ExceptionHierarchyTests
     {
         var ex = new KubeMQStreamBrokenException();
 
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.StreamBroken);
-        ex.Category.Should().Be(KubeMQErrorCategory.Transient);
+        ex.ErrorCode.Should().Be(ErrorCode.StreamBroken);
+        ex.Category.Should().Be(ErrorCategory.Transient);
         ex.IsRetryable.Should().BeTrue();
         ex.Message.Should().Be("Stream broken");
         ex.UnackedMessageIds.Should().BeEmpty();
@@ -291,8 +291,8 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQPartialFailureException();
 
         ex.Should().BeAssignableTo<KubeMQOperationException>();
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.Internal);
-        ex.Category.Should().Be(KubeMQErrorCategory.Fatal);
+        ex.ErrorCode.Should().Be(ErrorCode.Internal);
+        ex.Category.Should().Be(ErrorCategory.Fatal);
         ex.IsRetryable.Should().BeFalse();
     }
 
@@ -342,7 +342,7 @@ public class ExceptionHierarchyTests
         var ex = new KubeMQRetryExhaustedException();
 
         ex.Message.Should().Be("All retry attempts exhausted");
-        ex.ErrorCode.Should().Be(KubeMQErrorCode.RetryExhausted);
+        ex.ErrorCode.Should().Be(ErrorCode.RetryExhausted);
         ex.AttemptCount.Should().Be(0);
         ex.LastException.Should().BeNull();
     }

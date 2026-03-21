@@ -240,7 +240,12 @@ public class KubeMQClientCommandQueryTests
             .Callback<KubeMQ.Grpc.Response, CancellationToken>((r, _) => captured = r)
             .Returns(Task.CompletedTask);
 
-        await client.SendCommandResponseAsync("req-123", "reply-channel", true, null);
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = "req-123",
+            ReplyChannel = "reply-channel",
+            Executed = true,
+        });
 
         transport.Verify(
             t => t.SendCommandResponseAsync(It.IsAny<KubeMQ.Grpc.Response>(), It.IsAny<CancellationToken>()),
@@ -259,9 +264,9 @@ public class KubeMQClientCommandQueryTests
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.SendCommandResponseAsync(null!, "reply-channel", true);
+        Func<Task> act = () => client.SendCommandResponseAsync(null!);
 
-        await act.Should().ThrowAsync<ArgumentException>();
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     // --- SendQueryResponseAsync ---
@@ -277,7 +282,12 @@ public class KubeMQClientCommandQueryTests
             .Callback<KubeMQ.Grpc.Response, CancellationToken>((r, _) => captured = r)
             .Returns(Task.CompletedTask);
 
-        await client.SendQueryResponseAsync("req-456", "reply-channel");
+        await client.SendQueryResponseAsync(new QueryResponse
+        {
+            RequestId = "req-456",
+            ReplyChannel = "reply-channel",
+            Executed = true,
+        });
 
         transport.Verify(
             t => t.SendQueryResponseAsync(It.IsAny<KubeMQ.Grpc.Response>(), It.IsAny<CancellationToken>()),
@@ -303,13 +313,15 @@ public class KubeMQClientCommandQueryTests
         var tags = new Dictionary<string, string> { ["result"] = "ok" };
         var body = Encoding.UTF8.GetBytes("response-body");
 
-        await client.SendQueryResponseAsync(
-            "req-789",
-            "reply-channel",
-            body: body,
-            executed: true,
-            tags: tags,
-            errorMessage: "minor-warning");
+        await client.SendQueryResponseAsync(new QueryResponse
+        {
+            RequestId = "req-789",
+            ReplyChannel = "reply-channel",
+            Body = body,
+            Executed = true,
+            Tags = tags,
+            Error = "minor-warning",
+        });
 
         captured.Should().NotBeNull();
         captured!.RequestID.Should().Be("req-789");
@@ -409,7 +421,12 @@ public class KubeMQClientCommandQueryTests
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.SendCommandResponseAsync("req-1", null!, true);
+        Func<Task> act = () => client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = "req-1",
+            ReplyChannel = null!,
+            Executed = true,
+        });
 
         await act.Should().ThrowAsync<ArgumentException>();
     }
@@ -419,7 +436,12 @@ public class KubeMQClientCommandQueryTests
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.SendCommandResponseAsync("req-1", "", true);
+        Func<Task> act = () => client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = "req-1",
+            ReplyChannel = "",
+            Executed = true,
+        });
 
         await act.Should().ThrowAsync<ArgumentException>();
     }
@@ -431,9 +453,9 @@ public class KubeMQClientCommandQueryTests
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.SendQueryResponseAsync(null!, "reply-ch");
+        Func<Task> act = () => client.SendQueryResponseAsync(null!);
 
-        await act.Should().ThrowAsync<ArgumentException>();
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
@@ -441,7 +463,11 @@ public class KubeMQClientCommandQueryTests
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.SendQueryResponseAsync("", "reply-ch");
+        Func<Task> act = () => client.SendQueryResponseAsync(new QueryResponse
+        {
+            RequestId = "",
+            ReplyChannel = "reply-ch",
+        });
 
         await act.Should().ThrowAsync<ArgumentException>();
     }
@@ -451,7 +477,11 @@ public class KubeMQClientCommandQueryTests
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.SendQueryResponseAsync("req-1", null!);
+        Func<Task> act = () => client.SendQueryResponseAsync(new QueryResponse
+        {
+            RequestId = "req-1",
+            ReplyChannel = null!,
+        });
 
         await act.Should().ThrowAsync<ArgumentException>();
     }

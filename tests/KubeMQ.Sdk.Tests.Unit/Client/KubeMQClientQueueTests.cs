@@ -183,7 +183,7 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task PollQueueAsync_ValidRequest_ReturnsMessages()
+    public async Task ReceiveQueueMessagesAsync_ValidRequest_ReturnsMessages()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -214,7 +214,7 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 10,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Should().NotBeNull();
         result.HasMessages.Should().BeTrue();
@@ -228,17 +228,17 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task PollQueueAsync_NullRequest_ThrowsArgumentNull()
+    public async Task ReceiveQueueMessagesAsync_NullRequest_ThrowsArgumentNull()
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.PollQueueAsync(null!);
+        Func<Task> act = () => client.ReceiveQueueMessagesAsync((QueuePollRequest)null!);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
-    public async Task PeekQueueAsync_CallsTransport_ReturnsMessages()
+    public async Task PeekQueueMessagesAsync_CallsTransport_ReturnsMessages()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -268,7 +268,7 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 5,
         };
 
-        var result = await client.PeekQueueAsync(request);
+        var result = await client.PeekQueueMessagesAsync(request);
 
         result.Should().NotBeNull();
         result.Messages.Should().HaveCount(1);
@@ -282,7 +282,7 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task PollQueueAsync_EmptyResponse_ReturnsNoMessages()
+    public async Task ReceiveQueueMessagesAsync_EmptyResponse_ReturnsNoMessages()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -306,7 +306,7 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 10,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Should().NotBeNull();
         result.HasMessages.Should().BeFalse();
@@ -315,7 +315,7 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task PollQueueAsync_ErrorResponse_ReturnsError()
+    public async Task ReceiveQueueMessagesAsync_ErrorResponse_ReturnsError()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -339,14 +339,14 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 5,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Should().NotBeNull();
         result.Error.Should().Be("queue not found");
     }
 
     [Fact]
-    public async Task PollQueueAsync_Cancellation_ThrowsOperationCanceled()
+    public async Task ReceiveQueueMessagesAsync_Cancellation_ThrowsOperationCanceled()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -364,7 +364,7 @@ public class KubeMQClientQueueTests
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        Func<Task> act = () => client.PollQueueAsync(request, cts.Token);
+        Func<Task> act = () => client.ReceiveQueueMessagesAsync(request, cts.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
@@ -467,10 +467,9 @@ public class KubeMQClientQueueTests
             metadata: null,
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
-            ackFunc: (id, ct) => { ackCalled = true; return Task.CompletedTask; },
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null);
+            ackFunc: (seq, ct) => { ackCalled = true; return Task.CompletedTask; },
+            nackFunc: null,
+            requeueFunc: null);
 
         await msg.AckAsync();
 
@@ -478,9 +477,9 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task QueueMessageReceived_RejectAsync_InvokesRejectFunc()
+    public async Task QueueMessageReceived_NackAsync_InvokesNackFunc()
     {
-        bool rejectCalled = false;
+        bool nackCalled = false;
         var msg = new QueueMessageReceived(
             channel: "q-ch",
             messageId: "mid-2",
@@ -491,17 +490,16 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: (id, ct) => { rejectCalled = true; return Task.CompletedTask; },
-            requeueFunc: null,
-            extendFunc: null);
+            nackFunc: (seq, ct) => { nackCalled = true; return Task.CompletedTask; },
+            requeueFunc: null);
 
-        await msg.RejectAsync();
+        await msg.NackAsync();
 
-        rejectCalled.Should().BeTrue();
+        nackCalled.Should().BeTrue();
     }
 
     [Fact]
-    public async Task QueueMessageReceived_RequeueAsync_InvokesRequeueFunc()
+    public async Task QueueMessageReceived_ReQueueAsync_InvokesRequeueFunc()
     {
         string? requeuedChannel = null;
         var msg = new QueueMessageReceived(
@@ -514,62 +512,12 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: (id, ch, ct) => { requeuedChannel = ch; return Task.CompletedTask; },
-            extendFunc: null);
+            nackFunc: null,
+            requeueFunc: (seq, ch, ct) => { requeuedChannel = ch; return Task.CompletedTask; });
 
-        await msg.RequeueAsync("other-channel");
+        await msg.ReQueueAsync("other-channel");
 
         requeuedChannel.Should().Be("other-channel");
-    }
-
-    [Fact]
-    public async Task QueueMessageReceived_ExtendVisibility_InvokesExtendFunc()
-    {
-        int extendedSeconds = 0;
-        var msg = new QueueMessageReceived(
-            channel: "q-ch",
-            messageId: "mid-4",
-            body: Encoding.UTF8.GetBytes("data"),
-            tags: null,
-            clientId: "c1",
-            metadata: null,
-            receiveCount: 1,
-            timestamp: DateTimeOffset.UtcNow,
-            ackFunc: (id, ct) => Task.CompletedTask,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: (id, secs, ct) => { extendedSeconds = secs; return Task.CompletedTask; });
-
-        await msg.ExtendVisibilityAsync(30);
-
-        extendedSeconds.Should().Be(30);
-    }
-
-    [Fact]
-    public async Task QueueMessageReceived_ExtendThenAck_Works()
-    {
-        bool ackCalled = false;
-        int extendedSeconds = 0;
-        var msg = new QueueMessageReceived(
-            channel: "q-ch",
-            messageId: "mid-5",
-            body: Encoding.UTF8.GetBytes("data"),
-            tags: null,
-            clientId: "c1",
-            metadata: null,
-            receiveCount: 1,
-            timestamp: DateTimeOffset.UtcNow,
-            ackFunc: (id, ct) => { ackCalled = true; return Task.CompletedTask; },
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: (id, secs, ct) => { extendedSeconds = secs; return Task.CompletedTask; });
-
-        await msg.ExtendVisibilityAsync(60);
-        await msg.AckAsync();
-
-        extendedSeconds.Should().Be(60);
-        ackCalled.Should().BeTrue();
     }
 
     [Fact]
@@ -584,10 +532,9 @@ public class KubeMQClientQueueTests
             metadata: null,
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
-            ackFunc: (id, ct) => Task.CompletedTask,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null);
+            ackFunc: (seq, ct) => Task.CompletedTask,
+            nackFunc: null,
+            requeueFunc: null);
 
         await msg.AckAsync();
 
@@ -598,7 +545,7 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task QueueMessageReceived_AckThenReject_ThrowsInvalidOperation()
+    public async Task QueueMessageReceived_AckThenNack_ThrowsInvalidOperation()
     {
         var msg = new QueueMessageReceived(
             channel: "q-ch",
@@ -609,21 +556,20 @@ public class KubeMQClientQueueTests
             metadata: null,
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
-            ackFunc: (id, ct) => Task.CompletedTask,
-            rejectFunc: (id, ct) => Task.CompletedTask,
-            requeueFunc: null,
-            extendFunc: null);
+            ackFunc: (seq, ct) => Task.CompletedTask,
+            nackFunc: (seq, ct) => Task.CompletedTask,
+            requeueFunc: null);
 
         await msg.AckAsync();
 
-        Func<Task> act = () => msg.RejectAsync();
+        Func<Task> act = () => msg.NackAsync();
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*already been settled*");
     }
 
     [Fact]
-    public async Task QueueMessageReceived_NullAckFunc_AckAsyncIsNoOp()
+    public async Task QueueMessageReceived_NullAckFunc_AckAsyncThrows()
     {
         var msg = new QueueMessageReceived(
             channel: "q-ch",
@@ -635,9 +581,8 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null);
+            nackFunc: null,
+            requeueFunc: null);
 
         var act = async () => await msg.AckAsync();
 
@@ -646,7 +591,7 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task QueueMessageReceived_NullRejectFunc_RejectAsyncThrows()
+    public async Task QueueMessageReceived_NullNackFunc_NackAsyncThrows()
     {
         var msg = new QueueMessageReceived(
             channel: "q-ch",
@@ -658,41 +603,17 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null);
+            nackFunc: null,
+            requeueFunc: null);
 
-        var act = async () => await msg.RejectAsync();
+        var act = async () => await msg.NackAsync();
 
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*Reject*not available*");
+            .WithMessage("*Nack*not available*");
     }
 
     [Fact]
-    public async Task QueueMessageReceived_NullExtendFunc_ExtendVisibilityAsyncThrows()
-    {
-        var msg = new QueueMessageReceived(
-            channel: "q-ch",
-            messageId: "mid-next-1",
-            body: Encoding.UTF8.GetBytes("data"),
-            tags: null,
-            clientId: "c1",
-            metadata: null,
-            receiveCount: 1,
-            timestamp: DateTimeOffset.UtcNow,
-            ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null);
-
-        var act = async () => await msg.ExtendVisibilityAsync(30);
-
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*ExtendVisibility*not available*");
-    }
-
-    [Fact]
-    public async Task QueueMessageReceived_NullRequeueFunc_RequeueAsyncThrows()
+    public async Task QueueMessageReceived_NullRequeueFunc_ReQueueAsyncThrows()
     {
         var msg = new QueueMessageReceived(
             channel: "q-ch",
@@ -704,18 +625,17 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null);
+            nackFunc: null,
+            requeueFunc: null);
 
-        var act = async () => await msg.RequeueAsync("other");
+        var act = async () => await msg.ReQueueAsync("other");
 
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*Requeue*not available*");
+            .WithMessage("*ReQueue*not available*");
     }
 
     [Fact]
-    public async Task QueueMessageReceived_RequeueAsync_WithChannel_PassesChannel()
+    public async Task QueueMessageReceived_ReQueueAsync_WithChannel_PassesChannel()
     {
         string? capturedChannel = null;
         var msg = new QueueMessageReceived(
@@ -728,17 +648,16 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: (id, ch, ct) => { capturedChannel = ch; return Task.CompletedTask; },
-            extendFunc: null);
+            nackFunc: null,
+            requeueFunc: (seq, ch, ct) => { capturedChannel = ch; return Task.CompletedTask; });
 
-        await msg.RequeueAsync("target-channel");
+        await msg.ReQueueAsync("target-channel");
 
         capturedChannel.Should().Be("target-channel");
     }
 
     [Fact]
-    public async Task QueueMessageReceived_RequeueAsync_WithNullChannel_PassesNull()
+    public async Task QueueMessageReceived_ReQueueAsync_WithNullChannel_PassesNull()
     {
         string? capturedChannel = "initial";
         var msg = new QueueMessageReceived(
@@ -751,11 +670,10 @@ public class KubeMQClientQueueTests
             receiveCount: 1,
             timestamp: DateTimeOffset.UtcNow,
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: (id, ch, ct) => { capturedChannel = ch; return Task.CompletedTask; },
-            extendFunc: null);
+            nackFunc: null,
+            requeueFunc: (seq, ch, ct) => { capturedChannel = ch; return Task.CompletedTask; });
 
-        await msg.RequeueAsync(null);
+        await msg.ReQueueAsync(null);
 
         capturedChannel.Should().BeNull();
     }
@@ -812,9 +730,9 @@ public class KubeMQClientQueueTests
     }
 
     // ---------------------------------------------------------------
-    // GAP-019: PollQueueAsync settlement delegate tests
-    // These tests verify that messages returned by PollQueueAsync have
-    // working settlement delegates (Ack, Reject, Requeue) instead of null.
+    // GAP-019: ReceiveQueueMessagesAsync auto-ack behavior tests
+    // ReceiveQueueMessagesAsync forces AutoAck=true. Settlement delegates are null
+    // on returned messages, and settlement methods will throw.
     // ---------------------------------------------------------------
 
     private static KubeMQ.Grpc.QueuesDownstreamResponse CreatePollResponseWithMessage(
@@ -845,122 +763,12 @@ public class KubeMQClientQueueTests
         return response;
     }
 
-    /// <summary>
-    /// Sets up the transport to return a downstream stream with the given initial response,
-    /// plus a second response for the settlement call (ack/reject/requeue).
-    /// </summary>
-    private static (KubeMQ.Sdk.Client.KubeMQClient Client, Moq.Mock<ITransport> Transport) CreateClientWithSettlementStream(
-        KubeMQ.Grpc.QueuesDownstreamResponse pollResponse,
-        KubeMQ.Grpc.QueuesDownstreamResponse settlementResponse)
-    {
-        var (client, transport) = TestClientFactory.Create();
-
-        // The stream returns two responses: the poll result, then the settlement ack.
-        var responses = new[] { pollResponse, settlementResponse };
-        var (mockCall, _) = MockDownstreamStream.Create(responses);
-        transport
-            .Setup(t => t.CreateDownstreamAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mockCall);
-
-        return (client, transport);
-    }
-
     [Fact]
-    public async Task PollQueueAsync_GAP019_ReturnsMessages_WithNonNullAckDelegate()
+    public async Task ReceiveQueueMessagesAsync_GAP019_ReturnsMessages_AutoAcked()
     {
         var pollResponse = CreatePollResponseWithMessage();
-        var settlementResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-settle",
-            IsError = false,
-            TransactionComplete = true,
-        };
 
-        var (client, _) = CreateClientWithSettlementStream(pollResponse, settlementResponse);
-
-        var request = new QueuePollRequest
-        {
-            Channel = "settle-channel",
-            MaxMessages = 1,
-            WaitTimeoutSeconds = 5,
-        };
-
-        var result = await client.PollQueueAsync(request);
-
-        result.Messages.Should().HaveCount(1);
-
-        // The core assertion: AckAsync should NOT throw "not available" (i.e., delegate is non-null).
-        // It should complete successfully because the mock stream returns a success response.
-        var act = async () => await result.Messages[0].AckAsync();
-        await act.Should().NotThrowAsync<InvalidOperationException>();
-    }
-
-    [Fact]
-    public async Task PollQueueAsync_GAP019_ReturnsMessages_WithNonNullRejectDelegate()
-    {
-        var pollResponse = CreatePollResponseWithMessage();
-        var settlementResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-settle",
-            IsError = false,
-            TransactionComplete = true,
-        };
-
-        var (client, _) = CreateClientWithSettlementStream(pollResponse, settlementResponse);
-
-        var request = new QueuePollRequest
-        {
-            Channel = "settle-channel",
-            MaxMessages = 1,
-            WaitTimeoutSeconds = 5,
-        };
-
-        var result = await client.PollQueueAsync(request);
-
-        result.Messages.Should().HaveCount(1);
-
-        // RejectAsync should NOT throw "not available"
-        var act = async () => await result.Messages[0].RejectAsync();
-        await act.Should().NotThrowAsync<InvalidOperationException>();
-    }
-
-    [Fact]
-    public async Task PollQueueAsync_GAP019_ReturnsMessages_WithNonNullRequeueDelegate()
-    {
-        var pollResponse = CreatePollResponseWithMessage();
-        var settlementResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-settle",
-            IsError = false,
-            TransactionComplete = true,
-        };
-
-        var (client, _) = CreateClientWithSettlementStream(pollResponse, settlementResponse);
-
-        var request = new QueuePollRequest
-        {
-            Channel = "settle-channel",
-            MaxMessages = 1,
-            WaitTimeoutSeconds = 5,
-        };
-
-        var result = await client.PollQueueAsync(request);
-
-        result.Messages.Should().HaveCount(1);
-
-        // RequeueAsync should NOT throw "not available"
-        var act = async () => await result.Messages[0].RequeueAsync("other-channel");
-        await act.Should().NotThrowAsync<InvalidOperationException>();
-    }
-
-    [Fact]
-    public async Task PollQueueAsync_GAP019_ExtendVisibility_IsNull_ThrowsNotAvailable()
-    {
-        // ExtendVisibility is not supported at the protocol level for downstream streams,
-        // so the delegate is null. This test documents the expected behavior.
-        var pollResponse = CreatePollResponseWithMessage();
         var (mockCall, _) = MockDownstreamStream.Create(pollResponse);
-
         var (client, transport) = TestClientFactory.Create();
         transport
             .Setup(t => t.CreateDownstreamAsync(It.IsAny<CancellationToken>()))
@@ -973,26 +781,19 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 5,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Messages.Should().HaveCount(1);
-
-        // ExtendVisibility is not supported in the downstream protocol, so it should throw.
-        var act = async () => await result.Messages[0].ExtendVisibilityAsync(30);
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*ExtendVisibility*not available*");
+        result.Messages[0].Channel.Should().Be("settle-channel");
+        result.Messages[0].MessageId.Should().Be("settle-msg-1");
     }
 
     [Fact]
-    public async Task PollQueueAsync_GAP019_AutoAck_DisposesStream_DelegatesStillNull()
+    public async Task ReceiveQueueMessagesAsync_GAP019_AutoAck_DisposesStream_MessagesReturned()
     {
-        // When AutoAck is true, the stream is disposed immediately and settlement delegates
-        // are not needed. But the message should still be returned with the delegates wired
-        // (they will fail if called after the stream is disposed, which is fine -- the message
-        // was auto-acked). This test ensures no crash when AutoAck is set.
         var grpcResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
         {
-            TransactionId = string.Empty, // auto-ack won't have a transaction
+            TransactionId = string.Empty,
             RefRequestId = "ref-auto",
             IsError = false,
             Error = string.Empty,
@@ -1019,7 +820,7 @@ public class KubeMQClientQueueTests
             AutoAck = true,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Should().NotBeNull();
         result.HasMessages.Should().BeTrue();
@@ -1028,39 +829,7 @@ public class KubeMQClientQueueTests
     }
 
     [Fact]
-    public async Task PollQueueAsync_GAP019_StreamStored_ForSettlement()
-    {
-        // Verify that the downstream stream is stored in _activeDownstreamStreams
-        // by checking that AckAsync can be called (requires the stream to be alive).
-        var pollResponse = CreatePollResponseWithMessage(transactionId: "txn-stored");
-        var settlementResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-stored",
-            IsError = false,
-            TransactionComplete = true,
-        };
-
-        var (client, _) = CreateClientWithSettlementStream(pollResponse, settlementResponse);
-
-        var request = new QueuePollRequest
-        {
-            Channel = "settle-channel",
-            MaxMessages = 1,
-            WaitTimeoutSeconds = 5,
-        };
-
-        var result = await client.PollQueueAsync(request);
-        result.Messages.Should().HaveCount(1);
-
-        // This call goes through SendDownstreamRequestAsync which looks up the stream
-        // by transactionId in _activeDownstreamStreams. If the stream wasn't stored,
-        // this would throw KubeMQOperationException.
-        var act = async () => await result.Messages[0].AckAsync();
-        await act.Should().NotThrowAsync();
-    }
-
-    [Fact]
-    public async Task PollQueueAsync_GAP019_MultipleMessages_AllHaveSettlementDelegates()
+    public async Task ReceiveQueueMessagesAsync_GAP019_MultipleMessages_AllReturned()
     {
         var response = new KubeMQ.Grpc.QueuesDownstreamResponse
         {
@@ -1091,25 +860,7 @@ public class KubeMQClientQueueTests
             Attributes = new KubeMQ.Grpc.QueueMessageAttributes { Sequence = 12 },
         });
 
-        // Settlement responses for all three messages
-        var settlementResp1 = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-multi",
-            IsError = false,
-        };
-        var settlementResp2 = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-multi",
-            IsError = false,
-        };
-        var settlementResp3 = new KubeMQ.Grpc.QueuesDownstreamResponse
-        {
-            TransactionId = "txn-multi",
-            IsError = false,
-            TransactionComplete = true,
-        };
-
-        var (mockCall, _) = MockDownstreamStream.Create(new[] { response, settlementResp1, settlementResp2, settlementResp3 });
+        var (mockCall, _) = MockDownstreamStream.Create(response);
         var (client, transport) = TestClientFactory.Create();
         transport
             .Setup(t => t.CreateDownstreamAsync(It.IsAny<CancellationToken>()))
@@ -1122,18 +873,16 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 10,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Messages.Should().HaveCount(3);
-
-        // All three should have working Ack
-        await result.Messages[0].AckAsync();
-        await result.Messages[1].RejectAsync();
-        await result.Messages[2].RequeueAsync("other");
+        result.Messages[0].MessageId.Should().Be("msg-1");
+        result.Messages[1].MessageId.Should().Be("msg-2");
+        result.Messages[2].MessageId.Should().Be("msg-3");
     }
 
     [Fact]
-    public async Task PollQueueAsync_GAP019_MessageProperties_ArePreserved()
+    public async Task ReceiveQueueMessagesAsync_GAP019_MessageProperties_ArePreserved()
     {
         var response = new KubeMQ.Grpc.QueuesDownstreamResponse
         {
@@ -1154,8 +903,6 @@ public class KubeMQClientQueueTests
                 ReceiveCount = 3,
                 Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 MD5OfBody = "abc123",
-                ReRouted = true,
-                ReRoutedFromQueue = "original-queue",
             },
         };
         grpcMsg.Tags["key1"] = "val1";
@@ -1175,7 +922,7 @@ public class KubeMQClientQueueTests
             WaitTimeoutSeconds = 5,
         };
 
-        var result = await client.PollQueueAsync(request);
+        var result = await client.ReceiveQueueMessagesAsync(request);
 
         result.Messages.Should().HaveCount(1);
         var msg = result.Messages[0];
@@ -1188,10 +935,46 @@ public class KubeMQClientQueueTests
         msg.Sequence.Should().Be(99);
         msg.ReceiveCount.Should().Be(3);
         msg.MD5OfBody.Should().Be("abc123");
-        msg.ReRouted.Should().BeTrue();
-        msg.ReRoutedFromQueue.Should().Be("original-queue");
         msg.Tags.Should().NotBeNull();
         msg.Tags!["key1"].Should().Be("val1");
         msg.Tags!["key2"].Should().Be("val2");
+    }
+
+    [Fact]
+    public async Task CreateQueueDownstreamReceiverAsync_ReturnsReceiver()
+    {
+        var (client, transport) = TestClientFactory.Create();
+
+        var grpcResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
+        {
+            TransactionId = "txn-factory",
+            IsError = false,
+            Error = string.Empty,
+        };
+        var (mockCall, _) = MockDownstreamStream.Create(grpcResponse);
+        transport
+            .Setup(t => t.CreateDownstreamAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockCall);
+
+        await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
+
+        receiver.Should().NotBeNull();
+        receiver.Should().BeOfType<QueueDownstreamReceiver>();
+
+        transport.Verify(
+            t => t.CreateDownstreamAsync(It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateQueueDownstreamReceiverAsync_Disposed_ThrowsObjectDisposedException()
+    {
+        var (client, _) = TestClientFactory.Create();
+
+        await client.DisposeAsync();
+
+        Func<Task> act = () => client.CreateQueueDownstreamReceiverAsync();
+
+        await act.Should().ThrowAsync<ObjectDisposedException>();
     }
 }

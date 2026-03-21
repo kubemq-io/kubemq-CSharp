@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -50,11 +49,12 @@ public class KubeMQClient : IKubeMQClient
     private readonly StreamManager? _streamManager;
     private readonly RetryHandler? _retryHandler;
     private readonly InFlightCallbackTracker _callbackTracker = new();
-    private readonly ConcurrentDictionary<string, AsyncDuplexStreamingCall<KubeMQ.Grpc.QueuesDownstreamRequest, KubeMQ.Grpc.QueuesDownstreamResponse>> _activeDownstreamStreams = new();
     private readonly CancellationTokenSource _shutdownCts = new();
     private readonly TimeSpan _drainTimeout = TimeSpan.FromSeconds(5);
     private readonly string _serverAddress;
     private readonly int _serverPort;
+    private readonly string _requestIdPrefix = Guid.NewGuid().ToString("N")[..8];
+    private long _requestIdSeq;
     private int _disposeStarted;
     private volatile bool _disposed;
 
@@ -161,7 +161,7 @@ public class KubeMQClient : IKubeMQClient
     /// <summary>
     /// Gets the current connection state.
     /// </summary>
-    public ConnectionState State => _stateMachine?.Current ?? ConnectionState.Disconnected;
+    public ConnectionState State => _stateMachine?.Current ?? ConnectionState.Idle;
 
     /// <summary>
     /// Disposes resources synchronously. Prefer <see cref="DisposeAsync"/> for async cleanup.
@@ -209,22 +209,22 @@ public class KubeMQClient : IKubeMQClient
         }
 
         if (!_stateMachine.TryTransition(
-            ConnectionState.Disconnected, ConnectionState.Connecting))
+            ConnectionState.Idle, ConnectionState.Connecting))
         {
             throw new InvalidOperationException(
                 $"Cannot connect: current state is {_stateMachine.Current}");
         }
 
         _connectionManager?.ResetReady();
-        RaiseStateChanged(ConnectionState.Disconnected, ConnectionState.Connecting);
+        RaiseStateChanged(ConnectionState.Idle, ConnectionState.Connecting);
 
         try
         {
             await _transport.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
             _stateMachine.TryTransition(
-                ConnectionState.Connecting, ConnectionState.Connected);
-            RaiseStateChanged(ConnectionState.Connecting, ConnectionState.Connected);
+                ConnectionState.Connecting, ConnectionState.Ready);
+            RaiseStateChanged(ConnectionState.Connecting, ConnectionState.Ready);
             _connectionManager?.NotifyReady();
 
             Log.Connected(_logger, _options!.Address);
@@ -248,8 +248,8 @@ public class KubeMQClient : IKubeMQClient
         catch
         {
             _stateMachine.TryTransition(
-                ConnectionState.Connecting, ConnectionState.Disconnected);
-            RaiseStateChanged(ConnectionState.Connecting, ConnectionState.Disconnected);
+                ConnectionState.Connecting, ConnectionState.Idle);
+            RaiseStateChanged(ConnectionState.Connecting, ConnectionState.Idle);
             throw;
         }
     }
@@ -287,7 +287,7 @@ public class KubeMQClient : IKubeMQClient
     }
 
     /// <inheritdoc />
-    public virtual async Task<EventSendResult> PublishEventAsync(
+    public virtual async Task SendEventAsync(
         EventMessage message,
         CancellationToken cancellationToken = default)
     {
@@ -298,7 +298,7 @@ public class KubeMQClient : IKubeMQClient
 
         var grpcEvent = new KubeMQ.Grpc.Event
         {
-            EventID = message.EventId ?? Guid.NewGuid().ToString("N"),
+            EventID = message.Id ?? Guid.NewGuid().ToString("N"),
             Channel = message.Channel,
             Body = ByteString.CopyFrom(message.Body.Span),
             ClientID = message.ClientId ?? _options?.ClientId ?? string.Empty,
@@ -318,7 +318,7 @@ public class KubeMQClient : IKubeMQClient
         {
             var grpcResult = await ExecuteWithRetryAsync(
                 ct => _transport!.SendEventAsync(grpcEvent, ct),
-                "PublishEvent",
+                "SendEvent",
                 message.Channel,
                 true,
                 cancellationToken).ConfigureAwait(false);
@@ -327,20 +327,11 @@ public class KubeMQClient : IKubeMQClient
 
             KubeMQMetrics.RecordOperationDuration(sw.Elapsed.TotalSeconds, SemanticConventions.OperationPublish, message.Channel);
 
-            var result = new EventSendResult
-            {
-                EventId = grpcResult.EventID,
-                Sent = grpcResult.Sent,
-                Error = grpcResult.Error,
-            };
-
-            if (!result.Sent)
+            if (!grpcResult.Sent)
             {
                 throw new KubeMQOperationException(
-                    $"Event publish failed: {result.Error ?? "server returned Sent=false"}");
+                    $"Event send failed: {grpcResult.Error ?? "server returned Sent=false"}");
             }
-
-            return result;
         }
         catch (Exception ex)
         {
@@ -351,13 +342,13 @@ public class KubeMQClient : IKubeMQClient
     }
 
     /// <inheritdoc />
-    public virtual async Task<EventSendResult> PublishEventAsync(
+    public virtual async Task SendEventAsync(
         string channel,
         ReadOnlyMemory<byte> body,
         IReadOnlyDictionary<string, string>? tags = null,
         CancellationToken cancellationToken = default)
     {
-        return await PublishEventAsync(
+        await SendEventAsync(
             new EventMessage
             {
                 Channel = channel,
@@ -430,7 +421,7 @@ public class KubeMQClient : IKubeMQClient
     }
 
     /// <inheritdoc />
-    public virtual async Task<EventSendResult> PublishEventStoreAsync(
+    public virtual async Task<EventStoreResult> SendEventStoreAsync(
         EventStoreMessage message,
         CancellationToken cancellationToken = default)
     {
@@ -441,7 +432,7 @@ public class KubeMQClient : IKubeMQClient
 
         var grpcEvent = new KubeMQ.Grpc.Event
         {
-            EventID = message.EventId ?? Guid.NewGuid().ToString("N"),
+            EventID = message.Id ?? Guid.NewGuid().ToString("N"),
             Channel = message.Channel,
             Body = ByteString.CopyFrom(message.Body.Span),
             ClientID = message.ClientId ?? _options?.ClientId ?? string.Empty,
@@ -470,9 +461,9 @@ public class KubeMQClient : IKubeMQClient
 
             KubeMQMetrics.RecordOperationDuration(sw.Elapsed.TotalSeconds, SemanticConventions.OperationPublish, message.Channel);
 
-            return new EventSendResult
+            return new EventStoreResult
             {
-                EventId = grpcResult.EventID,
+                Id = grpcResult.EventID,
                 Sent = grpcResult.Sent,
                 Error = grpcResult.Error,
             };
@@ -486,7 +477,7 @@ public class KubeMQClient : IKubeMQClient
     }
 
     /// <inheritdoc />
-    public virtual async IAsyncEnumerable<EventStoreReceived> SubscribeToEventStoreAsync(
+    public virtual async IAsyncEnumerable<EventStoreReceived> SubscribeToEventsStoreAsync(
         EventStoreSubscription subscription,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
@@ -701,148 +692,77 @@ public class KubeMQClient : IKubeMQClient
     }
 
     /// <inheritdoc />
-    public virtual async Task<QueuePollResponse> PollQueueAsync(
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Handle ownership transfers to receiver")]
+    public virtual async Task<QueueDownstreamReceiver> CreateQueueDownstreamReceiverAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ThrowIfDisposed();
+        await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
+        var call = await _transport!.CreateDownstreamAsync(CancellationToken.None)
+            .ConfigureAwait(false);
+
+        QueueDownstreamReceiver? receiver = null;
+
+        // Handle ownership transfers to the receiver — CA2000 is a false positive.
+        var handle = new KubeMQ.Sdk.Internal.Queues.DownstreamStreamHandle(
+            call,
+            _options?.ClientId ?? string.Empty,
+            _logger,
+            onError: (txnId, err) =>
+            {
+                Log.DownstreamSettlementError(_logger, txnId, err);
+                receiver?.RaiseOnError(txnId, err);
+            },
+            onTerminated: () =>
+            {
+                Log.DownstreamStreamTerminated(_logger);
+            });
+
+        receiver = new QueueDownstreamReceiver(
+            handle,
+            _options?.ClientId ?? string.Empty,
+            _serverAddress,
+            _serverPort,
+            _logger);
+
+        return receiver;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>This is a convenience method that creates a one-shot receiver internally.
+    /// Each call opens and closes a gRPC stream. For high-throughput scenarios, use
+    /// <see cref="CreateQueueDownstreamReceiverAsync"/> to create a persistent receiver
+    /// and call <see cref="QueueDownstreamReceiver.PollAsync"/> in a loop.</para>
+    /// <para>This method always forces <see cref="QueuePollRequest.AutoAck"/> to
+    /// <see langword="true"/>. Returned messages cannot be individually settled.</para>
+    /// </remarks>
+    public virtual async Task<QueuePollResponse> ReceiveQueueMessagesAsync(
         QueuePollRequest request,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(request);
+        request.AutoAck = true;
         request.Validate();
 
-        await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
-
-        var grpcRequest = new KubeMQ.Grpc.QueuesDownstreamRequest
+        var receiver = await CreateQueueDownstreamReceiverAsync(cancellationToken)
+            .ConfigureAwait(false);
+        await using (receiver.ConfigureAwait(false))
         {
-            RequestID = Guid.NewGuid().ToString("N"),
-            ClientID = _options?.ClientId ?? string.Empty,
-            Channel = request.Channel,
-            MaxItems = request.MaxMessages,
-            WaitTimeout = request.WaitTimeoutSeconds * 1000,
-            AutoAck = request.AutoAck,
-            RequestTypeData = KubeMQ.Grpc.QueuesDownstreamRequestType.Get,
-        };
+            var batch = await receiver.PollAsync(request, cancellationToken)
+                .ConfigureAwait(false);
 
-        if (request.VisibilitySeconds is > 0)
-        {
-            grpcRequest.Metadata["visibility_seconds"] = request.VisibilitySeconds.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        }
-
-        if (request.Metadata is { Count: > 0 })
-        {
-            foreach (var kvp in request.Metadata)
-            {
-                grpcRequest.Metadata.TryAdd(kvp.Key, kvp.Value);
-            }
-        }
-
-        var sw = Stopwatch.StartNew();
-        using var activity = KubeMQActivitySource.StartClientActivity(
-            request.Channel,
-            _options?.ClientId,
-            _serverAddress,
-            _serverPort);
-
-        AsyncDuplexStreamingCall<KubeMQ.Grpc.QueuesDownstreamRequest, KubeMQ.Grpc.QueuesDownstreamResponse>? call = null;
-        KubeMQ.Grpc.QueuesDownstreamResponse grpcResponse;
-        try
-        {
-            // When manual ack is needed, create the stream without the caller's
-            // cancellation token so the stream stays alive for subsequent settlement
-            // calls (Ack, Reject, Requeue). Otherwise a short-lived CTS would
-            // cancel the gRPC call before settlement completes.
-            var streamToken = request.AutoAck ? cancellationToken : CancellationToken.None;
-            call = await _transport!.CreateDownstreamAsync(streamToken).ConfigureAwait(false);
-            await call.RequestStream.WriteAsync(grpcRequest, cancellationToken).ConfigureAwait(false);
-
-            if (!await call.ResponseStream.MoveNext(cancellationToken).ConfigureAwait(false))
-            {
-                call.Dispose();
-                throw new KubeMQOperationException("No response from QueuesDownstream");
-            }
-
-            grpcResponse = call.ResponseStream.Current;
-        }
-        catch (Exception ex)
-        {
-            call?.Dispose();
-            KubeMQActivitySource.SetError(activity, ex);
-            RecordDurationWithError(sw, SemanticConventions.OperationReceive, request.Channel, ex);
-            throw;
-        }
-
-        KubeMQMetrics.RecordOperationDuration(sw.Elapsed.TotalSeconds, SemanticConventions.OperationReceive, request.Channel);
-
-        var transactionId = grpcResponse.TransactionId;
-
-        // If the server closed the stream, dispose and report the error.
-        if (grpcResponse.RequestTypeData == KubeMQ.Grpc.QueuesDownstreamRequestType.CloseByServer)
-        {
-            call.Dispose();
             return new QueuePollResponse
             {
-                Messages = Array.Empty<QueueMessageReceived>(),
-                Error = "Server closed the downstream stream.",
+                Messages = batch.Messages,
+                Error = batch.IsError ? batch.Error : null,
             };
         }
-
-        // Keep the stream alive for settlement if not auto-ack and we have a valid transaction.
-        if (!request.AutoAck && !string.IsNullOrEmpty(transactionId))
-        {
-            _activeDownstreamStreams[transactionId] = call;
-        }
-        else
-        {
-            call.Dispose();
-        }
-
-        var messages = new List<QueueMessageReceived>();
-        if (grpcResponse.Messages is not null)
-        {
-            foreach (KubeMQ.Grpc.QueueMessage msg in grpcResponse.Messages)
-            {
-                var tags = new Dictionary<string, string>();
-                foreach (var kvp in msg.Tags)
-                {
-                    tags[kvp.Key] = kvp.Value;
-                }
-
-                var seq = msg.Attributes?.Sequence ?? 0;
-                var capturedTransactionId = transactionId;
-                var capturedChannel = request.Channel;
-
-                messages.Add(new QueueMessageReceived(
-                    channel: msg.Channel,
-                    messageId: msg.MessageID,
-                    body: msg.Body.Memory,
-                    tags: tags.Count > 0 ? tags : null,
-                    clientId: string.IsNullOrEmpty(msg.ClientID) ? null : msg.ClientID,
-                    metadata: string.IsNullOrEmpty(msg.Metadata) ? null : msg.Metadata,
-                    receiveCount: msg.Attributes?.ReceiveCount ?? 0,
-                    timestamp: SafeFromUnixTimeSeconds(msg.Attributes?.Timestamp ?? 0),
-                    ackFunc: async (id, ct) => await AckRangeDownstreamAsync(capturedTransactionId, new[] { (long)seq }, ct).ConfigureAwait(false),
-                    rejectFunc: async (id, ct) => await NAckRangeDownstreamAsync(capturedTransactionId, new[] { (long)seq }, ct).ConfigureAwait(false),
-                    requeueFunc: async (id, reqCh, ct) => await ReQueueRangeDownstreamAsync(capturedTransactionId, reqCh ?? capturedChannel, new[] { (long)seq }, ct).ConfigureAwait(false),
-                    extendFunc: null)
-                {
-                    Sequence = (long)seq,
-                    MD5OfBody = msg.Attributes?.MD5OfBody,
-                    ReRouted = msg.Attributes?.ReRouted ?? false,
-                    ReRoutedFromQueue = msg.Attributes?.ReRoutedFromQueue,
-                    ExpirationAt = SafeFromUnixTimeSecondsNullable(msg.Attributes?.ExpirationAt ?? 0),
-                    DelayedTo = SafeFromUnixTimeSecondsNullable(msg.Attributes?.DelayedTo ?? 0),
-                });
-            }
-        }
-
-        return new QueuePollResponse
-        {
-            Messages = messages.AsReadOnly(),
-            Error = string.IsNullOrEmpty(grpcResponse.Error) ? null : grpcResponse.Error,
-        };
     }
 
     /// <inheritdoc />
-    public virtual async Task<QueuePollResponse> PeekQueueAsync(
+    public virtual async Task<QueuePollResponse> PeekQueueMessagesAsync(
         QueuePollRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -920,7 +840,7 @@ public class KubeMQClient : IKubeMQClient
             ct => _transport!.ReceiveQueueMessagesAsync(grpcRequest, ct),
             "ReceiveQueueMessages",
             channel,
-            true,
+            false, // destructive dequeue — NOT safe to retry on timeout
             cancellationToken).ConfigureAwait(false);
 
         var msgs = new List<QueueMessageReceived>();
@@ -1036,229 +956,6 @@ public class KubeMQClient : IKubeMQClient
     }
 
     /// <inheritdoc />
-    public virtual async Task<QueueDownstreamResult> ReceiveQueueDownstreamAsync(
-        string channel,
-        int maxItems = 1,
-        int waitTimeoutMs = 10000,
-        bool autoAck = false,
-        CancellationToken cancellationToken = default)
-    {
-        ThrowIfDisposed();
-        ArgumentException.ThrowIfNullOrWhiteSpace(channel);
-
-        await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
-
-        const int maxDownstreamRetries = 3;
-        AsyncDuplexStreamingCall<KubeMQ.Grpc.QueuesDownstreamRequest, KubeMQ.Grpc.QueuesDownstreamResponse>? call = null;
-        KubeMQ.Grpc.QueuesDownstreamResponse? resp = null;
-
-        for (int attempt = 0; attempt <= maxDownstreamRetries; attempt++)
-        {
-            try
-            {
-                call = await _transport!.CreateDownstreamAsync(cancellationToken).ConfigureAwait(false);
-
-                var grpcRequest = new KubeMQ.Grpc.QueuesDownstreamRequest
-                {
-                    RequestID = Guid.NewGuid().ToString("N"),
-                    ClientID = _options?.ClientId ?? string.Empty,
-                    Channel = channel,
-                    MaxItems = maxItems,
-                    WaitTimeout = waitTimeoutMs,
-                    AutoAck = autoAck,
-                    RequestTypeData = KubeMQ.Grpc.QueuesDownstreamRequestType.Get,
-                };
-
-                await call.RequestStream.WriteAsync(grpcRequest, cancellationToken).ConfigureAwait(false);
-
-                if (!await call.ResponseStream.MoveNext(cancellationToken).ConfigureAwait(false))
-                {
-                    call.Dispose();
-                    throw new KubeMQOperationException("No response from QueuesDownstream");
-                }
-
-                resp = call.ResponseStream.Current;
-                break;
-            }
-            catch (RpcException) when (attempt < maxDownstreamRetries)
-            {
-                call?.Dispose();
-                call = null;
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken).ConfigureAwait(false);
-                await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        if (call == null || resp == null)
-        {
-            throw new KubeMQOperationException("QueuesDownstream failed after retries");
-        }
-
-        var transactionId = resp.TransactionId;
-
-        if (resp.RequestTypeData == KubeMQ.Grpc.QueuesDownstreamRequestType.CloseByServer)
-        {
-            call.Dispose();
-            throw new KubeMQOperationException("Server closed the downstream stream.");
-        }
-
-        if (!autoAck && !string.IsNullOrEmpty(transactionId))
-        {
-            _activeDownstreamStreams[transactionId] = call;
-        }
-        else
-        {
-            call.Dispose();
-        }
-
-        var receivedMsgs = new List<QueueMessageReceived>();
-        foreach (var msg in resp.Messages)
-        {
-            var tags = new Dictionary<string, string>();
-            foreach (var kvp in msg.Tags)
-            {
-                tags[kvp.Key] = kvp.Value;
-            }
-
-            var seq = msg.Attributes?.Sequence ?? 0;
-            var capturedTransactionId = transactionId;
-            var capturedChannel = channel;
-
-            receivedMsgs.Add(new QueueMessageReceived(
-                channel: msg.Channel,
-                messageId: msg.MessageID,
-                body: msg.Body.Memory,
-                tags: tags.Count > 0 ? tags : null,
-                clientId: string.IsNullOrEmpty(msg.ClientID) ? null : msg.ClientID,
-                metadata: string.IsNullOrEmpty(msg.Metadata) ? null : msg.Metadata,
-                receiveCount: msg.Attributes?.ReceiveCount ?? 0,
-                timestamp: SafeFromUnixTimeSeconds(msg.Attributes?.Timestamp ?? 0),
-                ackFunc: async (id, ct) => await AckRangeDownstreamAsync(capturedTransactionId, new[] { (long)seq }, ct).ConfigureAwait(false),
-                rejectFunc: async (id, ct) => await NAckRangeDownstreamAsync(capturedTransactionId, new[] { (long)seq }, ct).ConfigureAwait(false),
-                requeueFunc: async (id, reqCh, ct) => await ReQueueRangeDownstreamAsync(capturedTransactionId, reqCh ?? capturedChannel, new[] { (long)seq }, ct).ConfigureAwait(false),
-                extendFunc: null)
-            {
-                Sequence = (long)seq,
-                MD5OfBody = msg.Attributes?.MD5OfBody,
-                ReRouted = msg.Attributes?.ReRouted ?? false,
-                ReRoutedFromQueue = msg.Attributes?.ReRoutedFromQueue,
-                ExpirationAt = SafeFromUnixTimeSecondsNullable(msg.Attributes?.ExpirationAt ?? 0),
-                DelayedTo = SafeFromUnixTimeSecondsNullable(msg.Attributes?.DelayedTo ?? 0),
-            });
-        }
-
-        var responseMetadata = new Dictionary<string, string>();
-        foreach (var kvp in resp.Metadata)
-        {
-            responseMetadata[kvp.Key] = kvp.Value;
-        }
-
-        return new QueueDownstreamResult
-        {
-            TransactionId = transactionId,
-            RefRequestId = resp.RefRequestId,
-            RequestTypeData = (int)resp.RequestTypeData,
-            Messages = receivedMsgs,
-            ActiveOffsets = resp.ActiveOffsets.ToList(),
-            IsError = resp.IsError,
-            Error = resp.Error,
-            TransactionComplete = resp.TransactionComplete,
-            Metadata = responseMetadata,
-        };
-    }
-
-    /// <inheritdoc />
-    public virtual Task AckAllDownstreamAsync(string transactionId, CancellationToken cancellationToken = default)
-    {
-        return SendDownstreamRequestAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.AckAll,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public virtual Task AckRangeDownstreamAsync(string transactionId, IEnumerable<long> sequenceRange, CancellationToken cancellationToken = default)
-    {
-        return SendDownstreamRequestAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.AckRange,
-            sequenceRange: sequenceRange,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public virtual Task NAckAllDownstreamAsync(string transactionId, CancellationToken cancellationToken = default)
-    {
-        return SendDownstreamRequestAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.NackAll,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public virtual Task NAckRangeDownstreamAsync(string transactionId, IEnumerable<long> sequenceRange, CancellationToken cancellationToken = default)
-    {
-        return SendDownstreamRequestAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.NackRange,
-            sequenceRange: sequenceRange,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public virtual Task ReQueueAllDownstreamAsync(string transactionId, string reQueueChannel, CancellationToken cancellationToken = default)
-    {
-        return SendDownstreamRequestAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.ReQueueAll,
-            reQueueChannel: reQueueChannel,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public virtual Task ReQueueRangeDownstreamAsync(string transactionId, string reQueueChannel, IEnumerable<long> sequenceRange, CancellationToken cancellationToken = default)
-    {
-        return SendDownstreamRequestAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.ReQueueRange,
-            sequenceRange: sequenceRange,
-            reQueueChannel: reQueueChannel,
-            cancellationToken: cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public virtual async Task<IReadOnlyList<long>> GetActiveOffsetsAsync(
-        string transactionId,
-        CancellationToken cancellationToken = default)
-    {
-        ThrowIfDisposed();
-        ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
-
-        var resp = await SendDownstreamRequestWithResponseAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.ActiveOffsets,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        return resp?.ActiveOffsets?.ToList() ?? (IReadOnlyList<long>)Array.Empty<long>();
-    }
-
-    /// <inheritdoc />
-    public virtual async Task<bool> IsTransactionActiveAsync(
-        string transactionId,
-        CancellationToken cancellationToken = default)
-    {
-        ThrowIfDisposed();
-        ArgumentException.ThrowIfNullOrWhiteSpace(transactionId);
-
-        var resp = await SendDownstreamRequestWithResponseAsync(
-            transactionId,
-            KubeMQ.Grpc.QueuesDownstreamRequestType.TransactionStatus,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        return resp != null && !resp.TransactionComplete && !resp.IsError;
-    }
-
-    /// <inheritdoc />
     public virtual async Task<CommandResponse> SendCommandAsync(
         CommandMessage message,
         CancellationToken cancellationToken = default)
@@ -1272,9 +969,13 @@ public class KubeMQClient : IKubeMQClient
             ? message.TimeoutInSeconds.Value * 1000
             : (int)_options!.DefaultTimeout.TotalMilliseconds;
 
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(timeoutMs + 5000);
+        var effectiveCt = timeoutCts.Token;
+
         var grpcRequest = new KubeMQ.Grpc.Request
         {
-            RequestID = Guid.NewGuid().ToString("N"),
+            RequestID = NextRequestId(),
             RequestTypeData = KubeMQ.Grpc.Request.Types.RequestType.Command,
             Channel = message.Channel,
             Body = ByteString.CopyFrom(message.Body.Span),
@@ -1284,31 +985,44 @@ public class KubeMQClient : IKubeMQClient
         };
         CopyTags(message.Tags, grpcRequest.Tags);
 
-        var sw = Stopwatch.StartNew();
-        using var activity = KubeMQActivitySource.StartClientActivity(
-            message.Channel,
-            _options?.ClientId,
-            _serverAddress,
-            _serverPort);
-        grpcRequest.Span = SpanContextSerializer.Serialize(activity ?? System.Diagnostics.Activity.Current);
+        long startTimestamp = Stopwatch.GetTimestamp();
+        Activity? activity = KubeMQActivitySource.Source.HasListeners()
+            ? KubeMQActivitySource.StartClientActivity(
+                message.Channel,
+                _options?.ClientId,
+                _serverAddress,
+                _serverPort)
+            : null;
+        using var activityScope = activity;
+        if (activity is not null || System.Diagnostics.Activity.Current is not null)
+        {
+            grpcRequest.Span = SpanContextSerializer.Serialize(
+                activity ?? System.Diagnostics.Activity.Current);
+        }
+
         KubeMQ.Grpc.Response grpcResponse;
         try
         {
-            grpcResponse = await ExecuteWithRetryAsync(
-                ct => _transport!.SendCommandAsync(grpcRequest, ct),
-                "SendCommand",
-                message.Channel,
-                false,
-                cancellationToken).ConfigureAwait(false);
+            grpcResponse = _retryHandler is not null
+                ? await _retryHandler.ExecuteWithRetryAsync(
+                    ct => _transport!.SendCommandAsync(grpcRequest, ct),
+                    "SendCommand",
+                    message.Channel,
+                    false,
+                    effectiveCt).ConfigureAwait(false)
+                : await _transport!.SendCommandAsync(
+                    grpcRequest, effectiveCt).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             KubeMQActivitySource.SetError(activity, ex);
-            RecordDurationWithError(sw, SemanticConventions.OperationSend, message.Channel, ex);
+            RecordDurationWithError(
+                startTimestamp,
+                SemanticConventions.OperationSend,
+                message.Channel,
+                ex);
             throw;
         }
-
-        KubeMQMetrics.RecordOperationDuration(sw.Elapsed.TotalSeconds, SemanticConventions.OperationSend, message.Channel);
 
         Dictionary<string, string>? commandResponseTags = null;
         if (grpcResponse.Tags is { Count: > 0 })
@@ -1374,9 +1088,13 @@ public class KubeMQClient : IKubeMQClient
             ? message.TimeoutInSeconds.Value * 1000
             : (int)_options!.DefaultTimeout.TotalMilliseconds;
 
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(timeoutMs + 5000);
+        var effectiveCt = timeoutCts.Token;
+
         var grpcRequest = new KubeMQ.Grpc.Request
         {
-            RequestID = Guid.NewGuid().ToString("N"),
+            RequestID = NextRequestId(),
             RequestTypeData = KubeMQ.Grpc.Request.Types.RequestType.Query,
             Channel = message.Channel,
             Body = ByteString.CopyFrom(message.Body.Span),
@@ -1396,31 +1114,44 @@ public class KubeMQClient : IKubeMQClient
             grpcRequest.CacheTTL = message.CacheTtlSeconds.Value;
         }
 
-        var sw = Stopwatch.StartNew();
-        using var activity = KubeMQActivitySource.StartClientActivity(
-            message.Channel,
-            _options?.ClientId,
-            _serverAddress,
-            _serverPort);
-        grpcRequest.Span = SpanContextSerializer.Serialize(activity ?? System.Diagnostics.Activity.Current);
+        long startTimestamp = Stopwatch.GetTimestamp();
+        Activity? activity = KubeMQActivitySource.Source.HasListeners()
+            ? KubeMQActivitySource.StartClientActivity(
+                message.Channel,
+                _options?.ClientId,
+                _serverAddress,
+                _serverPort)
+            : null;
+        using var activityScope = activity;
+        if (activity is not null || System.Diagnostics.Activity.Current is not null)
+        {
+            grpcRequest.Span = SpanContextSerializer.Serialize(
+                activity ?? System.Diagnostics.Activity.Current);
+        }
+
         KubeMQ.Grpc.Response grpcResponse;
         try
         {
-            grpcResponse = await ExecuteWithRetryAsync(
-                ct => _transport!.SendQueryAsync(grpcRequest, ct),
-                "SendQuery",
-                message.Channel,
-                false,
-                cancellationToken).ConfigureAwait(false);
+            grpcResponse = _retryHandler is not null
+                ? await _retryHandler.ExecuteWithRetryAsync(
+                    ct => _transport!.SendQueryAsync(grpcRequest, ct),
+                    "SendQuery",
+                    message.Channel,
+                    false,
+                    effectiveCt).ConfigureAwait(false)
+                : await _transport!.SendQueryAsync(
+                    grpcRequest, effectiveCt).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             KubeMQActivitySource.SetError(activity, ex);
-            RecordDurationWithError(sw, SemanticConventions.OperationSend, message.Channel, ex);
+            RecordDurationWithError(
+                startTimestamp,
+                SemanticConventions.OperationSend,
+                message.Channel,
+                ex);
             throw;
         }
-
-        KubeMQMetrics.RecordOperationDuration(sw.Elapsed.TotalSeconds, SemanticConventions.OperationSend, message.Channel);
 
         Dictionary<string, string>? responseTags = null;
         if (grpcResponse.Tags is { Count: > 0 })
@@ -1700,74 +1431,65 @@ public class KubeMQClient : IKubeMQClient
 
     /// <inheritdoc />
     public virtual async Task SendCommandResponseAsync(
-        string requestId,
-        string replyChannel,
-        bool executed,
-        string? errorMessage = null,
-        ReadOnlyMemory<byte> body = default,
-        string? metadata = null,
-        IReadOnlyDictionary<string, string>? tags = null,
+        CommandResponse response,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(replyChannel);
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentException.ThrowIfNullOrWhiteSpace(response.RequestId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(response.ReplyChannel);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 
         var grpcResponse = new KubeMQ.Grpc.Response
         {
-            RequestID = requestId,
-            ReplyChannel = replyChannel,
-            Executed = executed,
-            Error = errorMessage ?? string.Empty,
+            RequestID = response.RequestId,
+            ReplyChannel = response.ReplyChannel!,
+            Executed = response.Executed,
+            Error = response.Error ?? string.Empty,
             ClientID = _options?.ClientId ?? string.Empty,
-            Body = ByteString.CopyFrom(body.Span),
-            Metadata = metadata ?? string.Empty,
+            Body = ByteString.CopyFrom(response.Body.Span),
+            Metadata = response.Metadata ?? string.Empty,
             Span = SpanContextSerializer.Serialize(System.Diagnostics.Activity.Current),
         };
-        CopyTags(tags, grpcResponse.Tags);
+        CopyTags(response.Tags, grpcResponse.Tags);
 
         await ExecuteWithRetryAsync(
             ct => _transport!.SendCommandResponseAsync(grpcResponse, ct),
             "SendCommandResponse",
-            replyChannel,
+            response.ReplyChannel!,
             false,
             cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public virtual async Task SendQueryResponseAsync(
-        string requestId,
-        string replyChannel,
-        ReadOnlyMemory<byte> body = default,
-        bool executed = true,
-        IReadOnlyDictionary<string, string>? tags = null,
-        string? errorMessage = null,
+        QueryResponse response,
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(replyChannel);
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentException.ThrowIfNullOrWhiteSpace(response.RequestId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(response.ReplyChannel);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 
         var grpcResponse = new KubeMQ.Grpc.Response
         {
-            RequestID = requestId,
-            ReplyChannel = replyChannel,
-            Executed = executed,
-            Body = ByteString.CopyFrom(body.Span),
-            Error = errorMessage ?? string.Empty,
+            RequestID = response.RequestId,
+            ReplyChannel = response.ReplyChannel!,
+            Executed = response.Executed,
+            Body = ByteString.CopyFrom(response.Body.Span),
+            Error = response.Error ?? string.Empty,
             ClientID = _options?.ClientId ?? string.Empty,
             Span = SpanContextSerializer.Serialize(System.Diagnostics.Activity.Current),
         };
-        CopyTags(tags, grpcResponse.Tags);
+        CopyTags(response.Tags, grpcResponse.Tags);
 
         await ExecuteWithRetryAsync(
             ct => _transport!.SendQueryResponseAsync(grpcResponse, ct),
             "SendQueryResponse",
-            replyChannel,
+            response.ReplyChannel!,
             false,
             cancellationToken).ConfigureAwait(false);
     }
@@ -1823,7 +1545,7 @@ public class KubeMQClient : IKubeMQClient
 
         _disposed = true;
 
-        ConnectionState previousState = _stateMachine?.Current ?? ConnectionState.Disconnected;
+        ConnectionState previousState = _stateMachine?.Current ?? ConnectionState.Idle;
 
         await _shutdownCts.CancelAsync().ConfigureAwait(false);
 
@@ -1835,27 +1557,12 @@ public class KubeMQClient : IKubeMQClient
                 Log.BufferDiscardedOnClose(_logger, discarded);
             }
         }
-        else if (previousState == ConnectionState.Connected && _connectionManager != null)
+        else if (previousState == ConnectionState.Ready && _connectionManager != null)
         {
             await DrainAsync().ConfigureAwait(false);
         }
 
         await DrainCallbacksAsync().ConfigureAwait(false);
-
-        foreach (var kvp in _activeDownstreamStreams)
-        {
-            if (_activeDownstreamStreams.TryRemove(kvp.Key, out var call))
-            {
-                try
-                {
-                    await SendCloseByClientAsync(call).ConfigureAwait(false);
-                }
-                finally
-                {
-                    call.Dispose();
-                }
-            }
-        }
 
         if (_connectionManager != null)
         {
@@ -1867,8 +1574,8 @@ public class KubeMQClient : IKubeMQClient
             await _transport.CloseAsync(default).ConfigureAwait(false);
         }
 
-        ConnectionState oldState = _stateMachine?.ForceDisposed() ?? ConnectionState.Disconnected;
-        RaiseStateChanged(oldState, ConnectionState.Disposed);
+        ConnectionState oldState = _stateMachine?.ForceDisposed() ?? ConnectionState.Idle;
+        RaiseStateChanged(oldState, ConnectionState.Closed);
 
         _retryHandler?.Dispose();
         _shutdownCts.Dispose();
@@ -1890,32 +1597,32 @@ public class KubeMQClient : IKubeMQClient
 
         switch (subscription.StartPosition)
         {
-            case EventStoreStartPosition.FromNew:
+            case EventStoreStartPosition.StartFromNew:
                 request.EventsStoreTypeData = KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartNewOnly;
                 request.EventsStoreTypeValue = 0;
                 break;
 
-            case EventStoreStartPosition.FromFirst:
+            case EventStoreStartPosition.StartFromFirst:
                 request.EventsStoreTypeData = KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartFromFirst;
                 request.EventsStoreTypeValue = 0;
                 break;
 
-            case EventStoreStartPosition.FromLast:
+            case EventStoreStartPosition.StartFromLast:
                 request.EventsStoreTypeData = KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartFromLast;
                 request.EventsStoreTypeValue = 0;
                 break;
 
-            case EventStoreStartPosition.FromSequence:
+            case EventStoreStartPosition.StartAtSequence:
                 request.EventsStoreTypeData = KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartAtSequence;
                 request.EventsStoreTypeValue = subscription.StartSequence!.Value;
                 break;
 
-            case EventStoreStartPosition.FromTime:
+            case EventStoreStartPosition.StartAtTime:
                 request.EventsStoreTypeData = KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartAtTime;
                 request.EventsStoreTypeValue = subscription.StartTime!.Value.ToUnixTimeSeconds();
                 break;
 
-            case EventStoreStartPosition.FromTimeDelta:
+            case EventStoreStartPosition.StartAtTimeDelta:
                 request.EventsStoreTypeData = KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartAtTimeDelta;
                 request.EventsStoreTypeValue = subscription.StartTimeDeltaSeconds!.Value;
                 break;
@@ -1953,7 +1660,7 @@ public class KubeMQClient : IKubeMQClient
 
         return new EventReceived
         {
-            EventId = string.IsNullOrEmpty(item.EventID) ? null : item.EventID,
+            Id = string.IsNullOrEmpty(item.EventID) ? null : item.EventID,
             Channel = item.Channel,
             Body = item.Body.Memory,
             Tags = tags,
@@ -1972,7 +1679,7 @@ public class KubeMQClient : IKubeMQClient
 
         return new EventStoreReceived
         {
-            EventId = string.IsNullOrEmpty(item.EventID) ? null : item.EventID,
+            Id = string.IsNullOrEmpty(item.EventID) ? null : item.EventID,
             Channel = item.Channel,
             Body = item.Body.Memory,
             Tags = tags,
@@ -2039,35 +1746,12 @@ public class KubeMQClient : IKubeMQClient
             receiveCount: msg.Attributes?.ReceiveCount ?? 0,
             timestamp: SafeFromUnixTimeSeconds(msg.Attributes?.Timestamp ?? 0),
             ackFunc: null,
-            rejectFunc: null,
-            requeueFunc: null,
-            extendFunc: null)
+            nackFunc: null,
+            requeueFunc: null)
         {
             Sequence = (long)(msg.Attributes?.Sequence ?? 0),
             MD5OfBody = msg.Attributes?.MD5OfBody,
-            ReRouted = msg.Attributes?.ReRouted ?? false,
-            ReRoutedFromQueue = msg.Attributes?.ReRoutedFromQueue,
-            ExpirationAt = SafeFromUnixTimeSecondsNullable(msg.Attributes?.ExpirationAt ?? 0),
-            DelayedTo = SafeFromUnixTimeSecondsNullable(msg.Attributes?.DelayedTo ?? 0),
         };
-    }
-
-    private static async Task SendCloseByClientAsync(
-        AsyncDuplexStreamingCall<KubeMQ.Grpc.QueuesDownstreamRequest, KubeMQ.Grpc.QueuesDownstreamResponse> call)
-    {
-        try
-        {
-            var closeRequest = new KubeMQ.Grpc.QueuesDownstreamRequest
-            {
-                RequestTypeData = KubeMQ.Grpc.QueuesDownstreamRequestType.CloseByClient,
-            };
-            await call.RequestStream.WriteAsync(closeRequest).ConfigureAwait(false);
-            await call.RequestStream.CompleteAsync().ConfigureAwait(false);
-        }
-        catch
-        {
-            // Best-effort: stream may already be broken.
-        }
     }
 
     [SuppressMessage("Globalization", "CA1307:Specify StringComparison", Justification = "IndexOf(char) overload is not ambiguous")]
@@ -2214,12 +1898,36 @@ public class KubeMQClient : IKubeMQClient
         return (addr, 50000);
     }
 
-    private static void RecordDurationWithError(Stopwatch sw, string operationName, string channel, Exception ex)
+    private static void RecordDurationWithError(
+        Stopwatch sw,
+        string operationName,
+        string channel,
+        Exception ex)
     {
         string? errorType = ex is KubeMQException ke
             ? KubeMQMetrics.MapErrorType(ke.Category)
             : ex.GetType().Name;
-        KubeMQMetrics.RecordOperationDuration(sw.Elapsed.TotalSeconds, operationName, channel, errorType);
+        KubeMQMetrics.RecordOperationDuration(
+            sw.Elapsed.TotalSeconds,
+            operationName,
+            channel,
+            errorType);
+    }
+
+    private static void RecordDurationWithError(
+        long startTimestamp,
+        string operationName,
+        string channel,
+        Exception ex)
+    {
+        string? errorType = ex is KubeMQException ke
+            ? KubeMQMetrics.MapErrorType(ke.Category)
+            : ex.GetType().Name;
+        KubeMQMetrics.RecordOperationDuration(
+            Stopwatch.GetElapsedTime(startTimestamp).TotalSeconds,
+            operationName,
+            channel,
+            errorType);
     }
 
     private async IAsyncEnumerable<T> WithReconnect<T>(
@@ -2308,133 +2016,12 @@ public class KubeMQClient : IKubeMQClient
         }
     }
 
-    private async Task SendDownstreamRequestAsync(
-        string transactionId,
-        KubeMQ.Grpc.QueuesDownstreamRequestType requestType,
-        IEnumerable<long>? sequenceRange = null,
-        string? reQueueChannel = null,
-        CancellationToken cancellationToken = default)
+    private string NextRequestId()
     {
-        if (!_activeDownstreamStreams.TryGetValue(transactionId, out var call))
-        {
-            throw new KubeMQOperationException(
-                $"No active downstream stream found for transaction '{transactionId}'");
-        }
-
-        var request = new KubeMQ.Grpc.QueuesDownstreamRequest
-        {
-            RequestID = Guid.NewGuid().ToString("N"),
-            ClientID = _options?.ClientId ?? string.Empty,
-            RequestTypeData = requestType,
-            RefTransactionId = transactionId,
-        };
-
-        if (sequenceRange != null)
-        {
-            request.SequenceRange.AddRange(sequenceRange);
-        }
-
-        if (!string.IsNullOrEmpty(reQueueChannel))
-        {
-            request.ReQueueChannel = reQueueChannel;
-        }
-
-        // Settlement operations are fire-and-forget: write the request to the
-        // stream and clean up without waiting for a response. The KubeMQ server
-        // processes the settlement upon receiving the request; it does not
-        // necessarily send a response back on the stream for settlement commands.
-        await call.RequestStream.WriteAsync(request, cancellationToken).ConfigureAwait(false);
-
-        // Only close by client explicitly tears down the stream. Other settlement
-        // operations (Ack, NAck, ReQueue) keep the stream alive so that multiple
-        // messages in the same transaction can each be settled individually.
-        // Streams are cleaned up when the client is disposed.
-        if (requestType == KubeMQ.Grpc.QueuesDownstreamRequestType.CloseByClient)
-        {
-            _activeDownstreamStreams.TryRemove(transactionId, out _);
-            call.Dispose();
-        }
-    }
-
-    private async Task<KubeMQ.Grpc.QueuesDownstreamResponse?> SendDownstreamRequestWithResponseAsync(
-        string transactionId,
-        KubeMQ.Grpc.QueuesDownstreamRequestType requestType,
-        IEnumerable<long>? sequenceRange = null,
-        string? reQueueChannel = null,
-        CancellationToken cancellationToken = default)
-    {
-        if (!_activeDownstreamStreams.TryGetValue(transactionId, out var call))
-        {
-            throw new KubeMQOperationException(
-                $"No active downstream stream found for transaction '{transactionId}'");
-        }
-
-        var request = new KubeMQ.Grpc.QueuesDownstreamRequest
-        {
-            RequestID = Guid.NewGuid().ToString("N"),
-            ClientID = _options?.ClientId ?? string.Empty,
-            RequestTypeData = requestType,
-            RefTransactionId = transactionId,
-        };
-
-        if (sequenceRange != null)
-        {
-            request.SequenceRange.AddRange(sequenceRange);
-        }
-
-        if (!string.IsNullOrEmpty(reQueueChannel))
-        {
-            request.ReQueueChannel = reQueueChannel;
-        }
-
-        await call.RequestStream.WriteAsync(request, cancellationToken).ConfigureAwait(false);
-
-        if (await call.ResponseStream.MoveNext(cancellationToken).ConfigureAwait(false))
-        {
-            var resp = call.ResponseStream.Current;
-            if (resp.RequestTypeData == KubeMQ.Grpc.QueuesDownstreamRequestType.CloseByServer
-                || resp.TransactionComplete)
-            {
-                _activeDownstreamStreams.TryRemove(transactionId, out _);
-                call.Dispose();
-
-                if (resp.RequestTypeData == KubeMQ.Grpc.QueuesDownstreamRequestType.CloseByServer)
-                {
-                    throw new KubeMQOperationException(
-                        $"Transaction '{transactionId}' was closed by the server.");
-                }
-            }
-
-            if (resp.IsError)
-            {
-                throw new KubeMQOperationException(resp.Error);
-            }
-
-            return resp;
-        }
-
-        return null;
-    }
-
-    private void CleanupStaleDownstreamStreams()
-    {
-        foreach (var kvp in _activeDownstreamStreams)
-        {
-            if (_activeDownstreamStreams.TryRemove(kvp.Key, out var call))
-            {
-                try
-                {
-                    using (call)
-                    {
-                        SendCloseByClientAsync(call).GetAwaiter().GetResult();
-                    }
-                }
-                catch
-                {
-                    // best-effort cleanup
-                }
-            }
-        }
+        return string.Create(
+            null,
+            stackalloc char[24],
+            $"{_requestIdPrefix}{Interlocked.Increment(ref _requestIdSeq):x}");
     }
 
     private async Task ExecuteWithRetryAsync(
@@ -2497,11 +2084,6 @@ public class KubeMQClient : IKubeMQClient
         ConnectionState newState,
         Exception? error = null)
     {
-        if (newState == ConnectionState.Reconnecting)
-        {
-            CleanupStaleDownstreamStreams();
-        }
-
         var args = new ConnectionStateChangedEventArgs
         {
             PreviousState = oldState,
@@ -2528,7 +2110,7 @@ public class KubeMQClient : IKubeMQClient
             });
         }
 
-        if (newState == ConnectionState.Connected)
+        if (newState == ConnectionState.Ready)
         {
             _connectionManager?.NotifyReady();
         }

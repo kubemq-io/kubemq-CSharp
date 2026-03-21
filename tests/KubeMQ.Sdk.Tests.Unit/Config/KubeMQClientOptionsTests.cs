@@ -186,7 +186,8 @@ public class KubeMQClientOptionsTests
         options.DefaultTimeout.Should().Be(TimeSpan.FromSeconds(5));
         options.ConnectionTimeout.Should().Be(TimeSpan.FromSeconds(10));
         options.MaxSendSize.Should().Be(100 * 1024 * 1024);
-        options.MaxReceiveSize.Should().Be(4 * 1024 * 1024);
+        options.MaxReceiveSize.Should().Be(100 * 1024 * 1024);
+        options.GrpcChannelCount.Should().Be(2);
         options.WaitForReady.Should().BeTrue();
         options.AuthToken.Should().BeNull();
         options.ClientId.Should().BeNull();

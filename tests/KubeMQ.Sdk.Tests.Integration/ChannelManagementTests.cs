@@ -101,7 +101,7 @@ public class ChannelManagementTests : IntegrationTestBase
 
         // Ensure at least one events channel exists by publishing
         var eventsChannel = UniqueChannel("mgmt-filter-evt");
-        await client.PublishEventAsync(new EventMessage
+        await client.SendEventAsync(new EventMessage
         {
             Channel = eventsChannel,
             Body = Encoding.UTF8.GetBytes("ensure-channel-exists"),

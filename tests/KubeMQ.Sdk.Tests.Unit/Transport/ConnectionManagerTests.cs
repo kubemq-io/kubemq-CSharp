@@ -89,8 +89,8 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task WaitForReadyAsync_WhenConnected_CompletesImmediately()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
         var task = _manager.WaitForReadyAsync(CancellationToken.None);
 
@@ -101,7 +101,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task WaitForReadyAsync_WhenNotReady_BlocksUntilNotified()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
         _options.WaitForReady = true;
 
         var waitTask = _manager.WaitForReadyAsync(CancellationToken.None);
@@ -117,7 +117,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task ResetReady_AfterNotify_RequiresNewNotify()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
         _options.WaitForReady = true;
 
         _manager.NotifyReady();
@@ -144,7 +144,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public void WaitForReadyAsync_WhenNotConnectedAndWaitForReadyFalse_Throws()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
         _options.WaitForReady = false;
 
         Action act = () => _manager.WaitForReadyAsync(CancellationToken.None);
@@ -156,9 +156,9 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task BufferOrFailAsync_WhenReconnecting_EnqueuesMessage()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         var msg = new BufferedMessage(new byte[] { 1, 2 }, "ch", "event", 10);
 
@@ -170,8 +170,8 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task BufferOrFailAsync_WhenNotReconnecting_ThrowsInvalidOperation()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
         var msg = new BufferedMessage(new byte[] { 1 }, "ch", "event", 5);
 
@@ -184,14 +184,14 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task FlushBufferAsync_WithBufferedMessages_InvokesSendBufferedOnTransport()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         var msg = new BufferedMessage(new byte[] { 1 }, "ch", "event", 5);
         await _manager.BufferOrFailAsync(msg, CancellationToken.None);
 
-        _stateMachine.TryTransition(ConnectionState.Reconnecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Reconnecting, ConnectionState.Ready);
 
         await _manager.FlushBufferAsync(CancellationToken.None);
 
@@ -213,8 +213,8 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
             });
 
         _options.Reconnect.Enabled = true;
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
         _manager.OnConnectionLost(new Exception("connection lost"));
         await Task.Delay(100);
@@ -228,8 +228,8 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     public void OnConnectionLost_WhenConnected_TransitionsToReconnecting()
     {
         _options.Reconnect.Enabled = true;
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
         _manager.OnConnectionLost(new Exception("lost"));
 
@@ -240,12 +240,12 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     public void OnConnectionLost_WhenReconnectDisabled_DoesNotTransition()
     {
         _options.Reconnect.Enabled = false;
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
         _manager.OnConnectionLost(new Exception("lost"));
 
-        _stateMachine.Current.Should().Be(ConnectionState.Connected);
+        _stateMachine.Current.Should().Be(ConnectionState.Ready);
     }
 
     [Fact]
@@ -256,15 +256,15 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
 
         _manager.OnConnectionLost(new Exception("lost"));
 
-        _stateMachine.Current.Should().Be(ConnectionState.Disposed);
+        _stateMachine.Current.Should().Be(ConnectionState.Closed);
     }
 
     [Fact]
     public void StateTransitionCallback_IsInvokedOnConnectionLost()
     {
         _options.Reconnect.Enabled = true;
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
         ConnectionState? fromState = null;
         ConnectionState? toState = null;
@@ -280,7 +280,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
         var exception = new Exception("test error");
         _manager.OnConnectionLost(exception);
 
-        fromState.Should().Be(ConnectionState.Connected);
+        fromState.Should().Be(ConnectionState.Ready);
         toState.Should().Be(ConnectionState.Reconnecting);
         capturedException.Should().BeSameAs(exception);
     }
@@ -288,21 +288,21 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task ReconnectLoopAsync_SuccessfulReconnect_TransitionsToConnected()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         await _manager.ReconnectLoopAsync(CancellationToken.None);
 
-        _stateMachine.Current.Should().Be(ConnectionState.Connected);
+        _stateMachine.Current.Should().Be(ConnectionState.Ready);
     }
 
     [Fact]
     public async Task ReconnectLoopAsync_ConnectSucceeds_InvokesStateTransitionCallback()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         ConnectionState? fromState = null;
         ConnectionState? toState = null;
@@ -315,7 +315,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
         await _manager.ReconnectLoopAsync(CancellationToken.None);
 
         fromState.Should().Be(ConnectionState.Reconnecting);
-        toState.Should().Be(ConnectionState.Connected);
+        toState.Should().Be(ConnectionState.Ready);
     }
 
     [Fact]
@@ -323,9 +323,9 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     {
         _options.Reconnect.MaxAttempts = 2;
         _options.Reconnect.InitialDelay = TimeSpan.FromMilliseconds(10);
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         _transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("connect failed"));
@@ -335,7 +335,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
         await act.Should().ThrowAsync<KubeMQConnectionException>()
             .WithMessage("*Failed to reconnect*after 2 attempts*");
 
-        _stateMachine.Current.Should().Be(ConnectionState.Disposed);
+        _stateMachine.Current.Should().Be(ConnectionState.Closed);
     }
 
     [Fact]
@@ -352,9 +352,9 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
                 ct.ThrowIfCancellationRequested();
             });
 
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         Func<Task> act = () => _manager.ReconnectLoopAsync(cts.Token);
 
@@ -374,9 +374,9 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task ReconnectLoopAsync_FlushesBufferAfterReconnect()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         await _manager.BufferOrFailAsync(
             new BufferedMessage(new byte[] { 1 }, "ch", "event", 5), CancellationToken.None);
@@ -396,9 +396,9 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
             "ch", SubscriptionPattern.Events, new object(),
             (_, _) => { Interlocked.Increment(ref resubCount); return Task.CompletedTask; }));
 
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
-        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Connected);
-        _stateMachine.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         await _manager.ReconnectLoopAsync(CancellationToken.None);
 
@@ -435,7 +435,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task WaitForReadyCoreAsync_BlocksUntilConnected()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
         _options.WaitForReady = true;
 
         var waitTask = _manager.WaitForReadyAsync(CancellationToken.None);
@@ -469,7 +469,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
         var manager = new ConnectionManager(
             shortTimeoutOptions, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
 
-        stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
 
         Func<Task> act = () => manager.WaitForReadyAsync(CancellationToken.None);
 
@@ -483,7 +483,7 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
     [Fact]
     public async Task WaitForReadyAsync_CancellationToken_Respected()
     {
-        _stateMachine.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
         _options.WaitForReady = true;
 
         using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));

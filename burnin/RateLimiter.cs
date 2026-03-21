@@ -1,6 +1,8 @@
 // True token-bucket rate limiter with 1-second burst capacity.
 // Spec Section 4.1: +/-5% accuracy over 10s windows.
 
+using System.Diagnostics;
+
 namespace KubeMQ.Burnin;
 
 /// <summary>
@@ -48,20 +50,33 @@ public sealed class RateLimiter : IDisposable
                     _tokens -= 1.0;
                     return true;
                 }
-                // Calculate how long to wait for next token.
-                waitMs = Math.Max(1.0, ((1.0 - _tokens) / _rate) * 1000.0);
+                waitMs = ((1.0 - _tokens) / _rate) * 1000.0;
             }
 
-            try
+            if (waitMs <= 0.5)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(waitMs), ct).ConfigureAwait(false);
+                // Sub-millisecond: spin-wait using high-resolution timer
+                long spinUntil = Stopwatch.GetTimestamp() +
+                    (long)(waitMs / 1000.0 * Stopwatch.Frequency);
+                SpinWait spinner = default;
+                while (Stopwatch.GetTimestamp() < spinUntil)
+                {
+                    if (ct.IsCancellationRequested) return false;
+                    spinner.SpinOnce(-1);
+                }
             }
-            catch (OperationCanceledException)
+            else
             {
-                return false;
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(waitMs), ct).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return false;
+                }
             }
 
-            // After delay, try again (refill + consume in the next loop iteration).
             lock (_lock)
             {
                 Refill();

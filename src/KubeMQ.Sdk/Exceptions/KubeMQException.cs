@@ -10,8 +10,8 @@ public class KubeMQException : Exception
     public KubeMQException()
         : base()
     {
-        ErrorCode = KubeMQErrorCode.Unknown;
-        Category = KubeMQErrorCategory.Fatal;
+        ErrorCode = ErrorCode.Unknown;
+        Category = ErrorCategory.Fatal;
     }
 
     /// <summary>Initializes a new instance of the <see cref="KubeMQException"/> class.</summary>
@@ -19,8 +19,8 @@ public class KubeMQException : Exception
     public KubeMQException(string message)
         : base(message)
     {
-        ErrorCode = KubeMQErrorCode.Unknown;
-        Category = KubeMQErrorCategory.Fatal;
+        ErrorCode = ErrorCode.Unknown;
+        Category = ErrorCategory.Fatal;
     }
 
     /// <summary>Initializes a new instance of the <see cref="KubeMQException"/> class.</summary>
@@ -29,8 +29,8 @@ public class KubeMQException : Exception
     public KubeMQException(string message, Exception innerException)
         : base(message, innerException)
     {
-        ErrorCode = KubeMQErrorCode.Unknown;
-        Category = KubeMQErrorCategory.Fatal;
+        ErrorCode = ErrorCode.Unknown;
+        Category = ErrorCategory.Fatal;
     }
 
     /// <summary>Initializes a new instance of the <see cref="KubeMQException"/> class.</summary>
@@ -41,8 +41,8 @@ public class KubeMQException : Exception
     /// <param name="innerException">Optional inner exception.</param>
     public KubeMQException(
         string message,
-        KubeMQErrorCode errorCode,
-        KubeMQErrorCategory category,
+        ErrorCode errorCode,
+        ErrorCategory category,
         bool isRetryable,
         Exception? innerException = null)
         : base(message, innerException)
@@ -63,8 +63,8 @@ public class KubeMQException : Exception
     /// <param name="innerException">Optional inner exception.</param>
     public KubeMQException(
         string message,
-        KubeMQErrorCode errorCode,
-        KubeMQErrorCategory category,
+        ErrorCode errorCode,
+        ErrorCategory category,
         bool isRetryable,
         string? requestId,
         string? operation,
@@ -81,10 +81,10 @@ public class KubeMQException : Exception
     }
 
     /// <summary>Gets the machine-readable error code for programmatic handling.</summary>
-    public KubeMQErrorCode ErrorCode { get; }
+    public ErrorCode ErrorCode { get; }
 
     /// <summary>Gets the semantic category determining retryability and recommended action.</summary>
-    public KubeMQErrorCategory Category { get; }
+    public ErrorCategory Category { get; }
 
     /// <summary>
     /// Gets the client-generated unique ID for correlating with server logs.

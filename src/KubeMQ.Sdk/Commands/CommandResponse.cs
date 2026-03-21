@@ -18,6 +18,9 @@ public record CommandResponse
     /// <summary>Gets the correlation ID matching the original command's request ID.</summary>
     public required string RequestId { get; init; }
 
+    /// <summary>Gets the reply channel for sending the response back to the command sender.</summary>
+    public string? ReplyChannel { get; init; }
+
     /// <summary>Gets a value indicating whether the command was executed successfully by the handler.</summary>
     public bool Executed { get; init; }
 

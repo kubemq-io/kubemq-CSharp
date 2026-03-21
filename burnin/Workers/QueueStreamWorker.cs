@@ -1,15 +1,17 @@
-// Queue Stream worker: SendQueueMessagesUpstreamAsync for sending, ReceiveQueueDownstreamAsync for receiving.
-// After processing batch: AckAllDownstreamAsync(transactionId). Check result.IsError.
+// Queue Stream worker: SendQueueMessageAsync for sending, QueueDownstreamReceiver.PollAsync for receiving.
+// v2: accepts channelName, rate, channelIndex, patternLatencyAccum.
+// Worker IDs: {role}-{pattern}-{4-digit-channel}-{3-digit-worker}
 
 using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.Exceptions;
 using KubeMQ.Sdk.Queues;
 
 namespace KubeMQ.Burnin.Workers;
 
 /// <summary>
-/// Queue Stream pattern worker: bidirectional streaming with manual batch ack.
-/// Producer uses SendQueueMessagesUpstreamAsync(IEnumerable&lt;QueueMessage&gt;, ct).
-/// Consumer uses ReceiveQueueDownstreamAsync then AckAllDownstreamAsync(transactionId).
+/// Queue Stream pattern worker: persistent downstream receiver with manual per-message ack.
+/// Producer uses SendQueueMessageAsync (unary).
+/// Consumer creates a QueueDownstreamReceiver and polls in a loop.
 /// </summary>
 public sealed class QueueStreamWorker : BaseWorker
 {
@@ -19,37 +21,41 @@ public sealed class QueueStreamWorker : BaseWorker
     private readonly List<Task> _consumerTasks = new();
     private readonly List<Task> _producerTasks = new();
     private KubeMQClient? _client;
+    private readonly int _numProducers;
+    private readonly int _numConsumers;
 
-    public QueueStreamWorker(BurninConfig config, string runId)
-        : base(PatternName, config, $"csharp_burnin_{runId}_{PatternName}_001", config.Rates.QueueStream)
+    public QueueStreamWorker(BurninConfig config, string runId, string channelName, int channelIndex,
+        int producers, int consumers, int rate,
+        LatencyAccumulator patternLatencyAccum)
+        : base(PatternName, config, channelName, rate, channelIndex, patternLatencyAccum)
     {
+        _numProducers = producers;
+        _numConsumers = consumers;
     }
 
     public override async Task StartConsumersAsync(KubeMQClient client)
     {
         _client = client;
-        int nConsumers = Config.Concurrency.QueueStreamConsumers;
 
-        for (int i = 0; i < nConsumers; i++)
+        for (int i = 0; i < _numConsumers; i++)
         {
-            string consumerId = $"c-{PatternName}-{i:D3}";
+            string consumerId = $"c-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _consumerTasks.Add(Task.Run(() => RunConsumerAsync(consumerId, client)));
         }
 
-        Console.WriteLine($"queue_stream consumers started on {ChannelName}");
+        Console.WriteLine($"queue_stream consumers started on {ChannelName} ({_numConsumers} consumers)");
         await Task.CompletedTask;
     }
 
     public override async Task StartProducersAsync(KubeMQClient client)
     {
-        int nProducers = Config.Concurrency.QueueStreamProducers;
-        for (int i = 0; i < nProducers; i++)
+        for (int i = 0; i < _numProducers; i++)
         {
-            string producerId = $"p-{PatternName}-{i:D3}";
+            string producerId = $"p-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _producerTasks.Add(Task.Run(() => RunProducerAsync(producerId, client)));
         }
 
-        Console.WriteLine($"queue_stream producers started on {ChannelName}");
+        Console.WriteLine($"queue_stream producers started on {ChannelName} ({_numProducers} producers)");
         await Task.CompletedTask;
     }
 
@@ -57,54 +63,94 @@ public sealed class QueueStreamWorker : BaseWorker
     {
         var ct = ConsumerCts.Token;
         int maxItems = Config.Queue.PollMaxMessages;
-        int waitTimeoutMs = Config.Queue.PollWaitTimeoutSeconds * 1000;
-        bool autoAck = false; // manual ack for stream pattern
+        int waitTimeoutSec = Config.Queue.PollWaitTimeoutSeconds;
 
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                // ReceiveQueueDownstreamAsync returns QueueDownstreamResult
-                var result = await client.ReceiveQueueDownstreamAsync(
-                    ChannelName, maxItems, waitTimeoutMs, autoAck, ct);
+                await using var receiver = await client.CreateQueueDownstreamReceiverAsync(ct);
 
-                // Check for error before processing
-                if (result.IsError)
+                receiver.OnError += (_, e) =>
                 {
-                    string errMsg = result.Error ?? "unknown downstream error";
-                    if (!errMsg.Contains("timeout", StringComparison.OrdinalIgnoreCase))
-                    {
-                        RecordError("receive_failure");
-                    }
-                    continue;
-                }
+                    RecordError("settlement_error");
+                };
 
-                if (result.Messages == null || result.Messages.Count == 0)
-                    continue;
-
-                // Process all messages with per-message ack (matching Go behavior for contention testing)
-                foreach (var msg in result.Messages)
+                while (!ct.IsCancellationRequested)
                 {
-                    var tags = msg.Tags;
-                    if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
-                        && warmupVal == "true")
-                    {
-                        try { await msg.AckAsync(ct); } catch { }
-                        continue;
-                    }
-
                     try
                     {
-                        var decoded = Payload.Decode(msg.Body);
-                        string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
-                        RecordReceive(consumerId, msg.Body, crcTag,
-                            decoded.ProducerId, decoded.Sequence);
-                        // Per-message ack
-                        await msg.AckAsync(ct);
+                        var batch = await receiver.PollAsync(new QueuePollRequest
+                        {
+                            Channel = ChannelName,
+                            MaxMessages = maxItems,
+                            WaitTimeoutSeconds = waitTimeoutSec,
+                            AutoAck = false,
+                        }, ct);
+
+                        if (batch.IsError)
+                        {
+                            string errMsg = batch.Error ?? "unknown downstream error";
+                            if (!errMsg.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+                            {
+                                RecordError("receive_failure");
+                            }
+                            continue;
+                        }
+
+                        if (!batch.HasMessages)
+                            continue;
+
+                        // Process all messages first, then ack the entire batch
+                        // in a single round-trip via AckAllAsync.
+                        // Deduplicate within the batch — the broker/SDK can return
+                        // the same message twice in a single response.
+                        var seenInBatch = new HashSet<string>();
+                        foreach (var msg in batch.Messages)
+                        {
+                            if (!seenInBatch.Add(msg.MessageId))
+                                continue; // skip duplicate
+
+                            var tags = msg.Tags;
+                            if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
+                                && warmupVal == "true")
+                            {
+                                continue;
+                            }
+
+                            try
+                            {
+                                var decoded = Payload.Decode(msg.Body);
+                                string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
+                                RecordReceive(consumerId, msg.Body, crcTag,
+                                    decoded.ProducerId, decoded.Sequence);
+                            }
+                            catch
+                            {
+                                RecordError("decode_failure");
+                            }
+                        }
+
+                        // Batch ack all processed messages in a single round-trip
+                        try
+                        {
+                            await batch.AckAllAsync(ct);
+                        }
+                        catch (KubeMQOperationException)
+                        {
+                            RecordError("ack_failure");
+                            IncReconnection();
+                            throw; // bubble up to trigger reconnect
+                        }
+                        catch
+                        {
+                            RecordError("ack_failure");
+                        }
                     }
-                    catch
+                    catch (KubeMQOperationException)
                     {
-                        RecordError("decode_failure");
+                        IncReconnection();
+                        break;
                     }
                 }
             }
@@ -113,17 +159,7 @@ public sealed class QueueStreamWorker : BaseWorker
             {
                 if (ct.IsCancellationRequested) break;
 
-                // GAP-3 FIX: CloseByServer is a reconnection event, not an error.
-                // SDK throws KubeMQOperationException("Server closed the downstream stream.")
-                bool isServerClose = ex.Message.Contains("Server closed", StringComparison.OrdinalIgnoreCase);
-                if (isServerClose)
-                {
-                    IncReconnection();
-                    // Retry immediately — no error, no delay
-                    continue;
-                }
-
-                Console.Error.WriteLine($"queue_stream consumer error: {ex.Message}");
+                Console.Error.WriteLine($"queue_stream consumer error (ch{ChannelIndex:D4}): {ex.Message}");
                 RecordError("receive_failure");
                 IncReconnection();
                 await Task.Delay(1000, ct).ConfigureAwait(false);
@@ -158,12 +194,6 @@ public sealed class QueueStreamWorker : BaseWorker
                     Tags = new Dictionary<string, string> { ["content_hash"] = encoded.CrcHex },
                 };
 
-                // C# SDK's SendQueueMessagesUpstreamAsync opens a fresh QueuesUpstream
-                // stream per call (stream-per-request, not persistent stream). At 50 msg/s
-                // the per-stream overhead (~1s) makes it impractical. Use SendQueueMessageAsync
-                // (unary) for production rate, which the SDK routes through the gRPC channel
-                // efficiently. The downstream side correctly uses ReceiveQueueDownstreamAsync
-                // (persistent QueuesDownstream bidi stream) for the receive path.
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 var result = await client.SendQueueMessageAsync(message, ct);
                 sw.Stop();

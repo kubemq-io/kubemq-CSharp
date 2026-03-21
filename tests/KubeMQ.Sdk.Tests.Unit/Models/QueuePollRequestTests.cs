@@ -13,7 +13,6 @@ public class QueuePollRequestTests
 
         request.MaxMessages.Should().Be(1);
         request.WaitTimeoutSeconds.Should().Be(10);
-        request.VisibilitySeconds.Should().BeNull();
         request.AutoAck.Should().BeFalse();
     }
 
@@ -83,36 +82,6 @@ public class QueuePollRequestTests
     }
 
     [Fact]
-    public void Validate_WithNegativeVisibilitySeconds_Throws()
-    {
-        var request = new QueuePollRequest
-        {
-            Channel = "ch",
-            VisibilitySeconds = -1,
-        };
-
-        var act = () => request.Validate();
-
-        act.Should().Throw<KubeMQConfigurationException>()
-            .WithMessage("*VisibilitySeconds*");
-    }
-
-    [Fact]
-    public void Validate_WithZeroVisibilitySeconds_Throws()
-    {
-        var request = new QueuePollRequest
-        {
-            Channel = "ch",
-            VisibilitySeconds = 0,
-        };
-
-        var act = () => request.Validate();
-
-        act.Should().Throw<KubeMQConfigurationException>()
-            .WithMessage("*VisibilitySeconds*");
-    }
-
-    [Fact]
     public void AllPropertySetters_Work()
     {
         var request = new QueuePollRequest
@@ -120,14 +89,12 @@ public class QueuePollRequestTests
             Channel = "test-channel",
             MaxMessages = 10,
             WaitTimeoutSeconds = 60,
-            VisibilitySeconds = 120,
             AutoAck = true,
         };
 
         request.Channel.Should().Be("test-channel");
         request.MaxMessages.Should().Be(10);
         request.WaitTimeoutSeconds.Should().Be(60);
-        request.VisibilitySeconds.Should().Be(120);
         request.AutoAck.Should().BeTrue();
     }
 }

@@ -35,10 +35,12 @@ await foreach (var cmd in client.SubscribeToCommandsAsync(
     var body = Encoding.UTF8.GetString(cmd.Body.Span);
     Console.WriteLine($"Command: {cmd.RequestId} — {body}");
 
-    await client.SendCommandResponseAsync(
-        requestId: cmd.RequestId,
-        replyChannel: cmd.ReplyChannel!,
-        executed: true);
+    await client.SendCommandResponseAsync(new CommandResponse
+    {
+        RequestId = cmd.RequestId,
+        ReplyChannel = cmd.ReplyChannel!,
+        Executed = true,
+    });
 
     Console.WriteLine("  -> Responded: executed=true");
 }

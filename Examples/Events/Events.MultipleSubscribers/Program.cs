@@ -46,7 +46,7 @@ await Task.Delay(1000);
 // Publish 6 events — distributed between the two workers
 for (var i = 1; i <= 6; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "csharp-events.multiple-subscribers",
         Body = Encoding.UTF8.GetBytes($"Task #{i}")
