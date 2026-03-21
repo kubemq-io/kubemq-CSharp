@@ -1,7 +1,7 @@
 // KubeMQ .NET SDK — Events Store: Replay From Time
 //
 // This example demonstrates replaying events from a specific timestamp.
-// Also shows the FromTimeDelta option for relative time offsets.
+// Also shows the StartAtTimeDelta option for relative time offsets.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -22,7 +22,7 @@ Console.WriteLine("Connected to KubeMQ server");
 // Publish some events
 for (var i = 1; i <= 5; i++)
 {
-    await client.PublishEventStoreAsync(new EventStoreMessage
+    await client.SendEventStoreAsync(new EventStoreMessage
     {
         Channel = "csharp-eventsstore.replay-from-time",
         Body = Encoding.UTF8.GetBytes($"Event #{i}")
@@ -35,11 +35,11 @@ Console.WriteLine("Published 5 events. Replaying from last 60 seconds...");
 var cts = new CancellationTokenSource();
 var subscribeTask = Task.Run(async () =>
 {
-    await foreach (var msg in client.SubscribeToEventStoreAsync(
+    await foreach (var msg in client.SubscribeToEventsStoreAsync(
         new EventStoreSubscription
         {
             Channel = "csharp-eventsstore.replay-from-time",
-            StartPosition = EventStoreStartPosition.FromTimeDelta,
+            StartPosition = EventStoreStartPosition.StartAtTimeDelta,
             StartTimeDeltaSeconds = 60
         }, cts.Token))
     {

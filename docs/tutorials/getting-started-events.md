@@ -79,7 +79,7 @@ string[] newUsers = { "alice@example.com", "bob@example.com", "carol@example.com
 
 foreach (var user in newUsers)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = channel,
         Body = Encoding.UTF8.GetBytes(user),
@@ -148,7 +148,7 @@ string[] newUsers = { "alice@example.com", "bob@example.com", "carol@example.com
 
 foreach (var user in newUsers)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = channel,
         Body = Encoding.UTF8.GetBytes(user),

@@ -155,7 +155,7 @@ public class SubscriptionTests
 
             sub.Channel.Should().Be("store.orders");
             sub.Group.Should().BeNull();
-            sub.StartPosition.Should().Be(EventStoreStartPosition.FromNew);
+            sub.StartPosition.Should().Be(EventStoreStartPosition.StartFromNew);
             sub.StartSequence.Should().BeNull();
             sub.StartTime.Should().BeNull();
             sub.StartTimeDeltaSeconds.Should().BeNull();
@@ -177,7 +177,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromFirst,
+                StartPosition = EventStoreStartPosition.StartFromFirst,
             };
 
             var act = () => sub.Validate();
@@ -191,7 +191,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromLast,
+                StartPosition = EventStoreStartPosition.StartFromLast,
             };
 
             var act = () => sub.Validate();
@@ -219,7 +219,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromSequence,
+                StartPosition = EventStoreStartPosition.StartAtSequence,
                 StartSequence = 100,
             };
 
@@ -234,7 +234,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromSequence,
+                StartPosition = EventStoreStartPosition.StartAtSequence,
                 StartSequence = 0,
             };
 
@@ -250,7 +250,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromSequence,
+                StartPosition = EventStoreStartPosition.StartAtSequence,
                 StartSequence = null,
             };
 
@@ -266,7 +266,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromSequence,
+                StartPosition = EventStoreStartPosition.StartAtSequence,
                 StartSequence = -1,
             };
 
@@ -282,7 +282,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromTime,
+                StartPosition = EventStoreStartPosition.StartAtTime,
                 StartTime = DateTimeOffset.UtcNow.AddHours(-1),
             };
 
@@ -297,7 +297,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromTime,
+                StartPosition = EventStoreStartPosition.StartAtTime,
                 StartTime = null,
             };
 
@@ -313,7 +313,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromTimeDelta,
+                StartPosition = EventStoreStartPosition.StartAtTimeDelta,
                 StartTimeDeltaSeconds = 3600,
             };
 
@@ -328,7 +328,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromTimeDelta,
+                StartPosition = EventStoreStartPosition.StartAtTimeDelta,
                 StartTimeDeltaSeconds = null,
             };
 
@@ -344,7 +344,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromTimeDelta,
+                StartPosition = EventStoreStartPosition.StartAtTimeDelta,
                 StartTimeDeltaSeconds = 0,
             };
 
@@ -360,7 +360,7 @@ public class SubscriptionTests
             var sub = new EventStoreSubscription
             {
                 Channel = "ch",
-                StartPosition = EventStoreStartPosition.FromTimeDelta,
+                StartPosition = EventStoreStartPosition.StartAtTimeDelta,
                 StartTimeDeltaSeconds = -10,
             };
 

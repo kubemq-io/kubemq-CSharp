@@ -1,30 +1,29 @@
 // CLI entry point for the KubeMQ C# burn-in test.
+// Boot sequence per spec §2: HTTP server first, app starts in Idle state.
 // Supports --config, --validate-config, --cleanup-only.
-// Exit codes: 0=PASSED, 1=FAILED, 2=config error.
+// Exit codes: 0=PASSED/idle, 1=FAILED, 2=config error.
 
 using KubeMQ.Burnin;
 
-// Global unobserved task exception handler (log, don't terminate)
 TaskScheduler.UnobservedTaskException += (_, e) =>
 {
     Console.Error.WriteLine($"unobserved task exception: {e.Exception.Message}");
-    e.SetObserved(); // prevent process termination
+    e.SetObserved();
 };
 
-// Global unhandled exception handler
 AppDomain.CurrentDomain.UnhandledException += (_, e) =>
 {
     Console.Error.WriteLine($"unhandled exception: {e.ExceptionObject}");
     if (e.IsTerminating)
-    {
         Environment.Exit(2);
-    }
 };
 
 return await RunAsync(args);
 
 static async Task<int> RunAsync(string[] args)
 {
+    // P1: Ensure enough threadpool threads for high-concurrency burn-in workloads
+    System.Threading.ThreadPool.SetMinThreads(64, 64);
     // Parse CLI arguments
     string configPath = "";
     bool validateConfig = false;
@@ -47,41 +46,32 @@ static async Task<int> RunAsync(string[] args)
         }
     }
 
-    // Load config
+    // Load startup config (YAML/env)
     var loadResult = Config.LoadConfig(configPath);
     var cfg = loadResult.Config;
     foreach (string w in loadResult.Warnings)
         Console.Error.WriteLine($"WARNING: {w}");
 
     // Validate config
-    var errors = Config.ValidateConfig(cfg);
-    bool hasErrors = false;
-    foreach (string e in errors)
+    var (validationErrors, validationWarnings) = Config.ValidateConfig(cfg);
+    foreach (string w in validationWarnings)
+        Console.Error.WriteLine($"WARNING: {w}");
+    if (validationErrors.Count > 0)
     {
-        if (e.StartsWith("WARNING", StringComparison.Ordinal))
-        {
-            Console.Error.WriteLine(e);
-        }
-        else
-        {
+        foreach (string e in validationErrors)
             Console.Error.WriteLine($"config error: {e}");
-            hasErrors = true;
-        }
+        return 2;
     }
 
-    if (hasErrors)
-        return 2;
-
-    // --validate-config mode
+    // --validate-config mode (no HTTP server)
     if (validateConfig)
     {
         Console.WriteLine("config validation passed");
-        Console.WriteLine(
-            $"mode={cfg.Mode} duration={cfg.Duration} broker={cfg.Broker.Address} run_id={cfg.RunId}");
+        Console.WriteLine($"mode={cfg.Mode} duration={cfg.Duration} broker={cfg.Broker.Address}");
         return 0;
     }
 
-    // --cleanup-only mode
+    // --cleanup-only mode (no HTTP server)
     if (cleanupOnly)
     {
         Console.WriteLine("running cleanup-only mode");
@@ -98,49 +88,53 @@ static async Task<int> RunAsync(string[] args)
         return 0;
     }
 
-    // Signal handling: ManualResetEventSlim signaled from Console.CancelKeyPress and AppDomain.ProcessExit
+    // === API-controlled lifecycle (spec §2) ===
+
+    // Step 1: Create Engine (enters Idle state)
+    using var engine = new Engine(cfg);
+
+    // Step 2: Pre-initialize Prometheus metrics (§8.3)
+    Metrics.PreInitialize();
+
+    // Step 3: Start HTTP server FIRST (§2 step 2)
+    string corsOrigins = cfg.Cors.Origins;
+    var httpServer = new BurninHttpServer(cfg.Metrics.Port, engine, corsOrigins);
+    await httpServer.StartAsync();
+    Console.WriteLine($"HTTP server started on port {cfg.Metrics.Port} (state=idle)");
+    Console.WriteLine($"broker address: {cfg.Broker.Address}");
+    Console.WriteLine($"CORS origins: {corsOrigins}");
+
+    // Step 4: SIGTERM/SIGINT handling
     using var shutdownCts = new CancellationTokenSource();
-    var shutdownSignal = new ManualResetEventSlim(false);
+    var shutdownTcs = new TaskCompletionSource();
 
     Console.CancelKeyPress += (_, e) =>
     {
-        e.Cancel = true; // prevent immediate termination
+        e.Cancel = true;
         Console.WriteLine("received SIGINT, shutting down");
         shutdownCts.Cancel();
-        shutdownSignal.Set();
+        shutdownTcs.TrySetResult();
     };
 
     AppDomain.CurrentDomain.ProcessExit += (_, _) =>
     {
         Console.WriteLine("received SIGTERM, shutting down");
         shutdownCts.Cancel();
-        shutdownSignal.Set();
+        shutdownTcs.TrySetResult();
     };
 
-    // Run engine
-    using var engine = new Engine(cfg);
-    bool passed;
+    // Step 5: Wait for signal (app is idle, waiting for API commands)
+    Console.WriteLine("ready — waiting for API commands (POST /run/start)");
+    await shutdownTcs.Task;
 
-    try
-    {
-        // Run the engine (blocks until duration expires or signal received)
-        await engine.RunAsync(shutdownCts.Token);
-    }
-    catch (OperationCanceledException)
-    {
-        // normal shutdown via signal
-    }
-    catch (Exception ex)
-    {
-        if (!shutdownCts.IsCancellationRequested)
-        {
-            Console.Error.WriteLine($"engine run failed: {ex}");
-        }
-    }
+    // Step 6: Graceful shutdown
+    int exitCode = await engine.GracefulShutdownAsync();
 
-    // Execute 2-phase shutdown sequence
-    passed = await engine.ShutdownAsync();
-    Console.WriteLine("burn-in test complete");
+    // Step 7: Stop HTTP server
+    using var stopCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+    await httpServer.StopAsync(stopCts.Token);
+    await httpServer.DisposeAsync();
 
-    return passed ? 0 : 1;
+    Console.WriteLine("burn-in app exiting");
+    return exitCode;
 }

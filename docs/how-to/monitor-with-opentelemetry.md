@@ -43,7 +43,7 @@ await using var client = new KubeMQClient(new KubeMQClientOptions
 await client.ConnectAsync();
 
 // 3. Operations produce spans automatically
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "orders.created",
     Body = Encoding.UTF8.GetBytes("{\"orderId\":\"ORD-001\"}"),
@@ -87,7 +87,7 @@ await client.ConnectAsync();
 
 for (int i = 1; i <= 3; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "demo.traced",
         Body = Encoding.UTF8.GetBytes($"Traced event #{i}"),

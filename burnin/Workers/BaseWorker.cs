@@ -1,5 +1,6 @@
 // BaseWorker: shared state, counters, 2-phase shutdown via CancellationTokenSource, dual tracking.
 // All recording methods are thread-safe for multi-producer/consumer concurrency.
+// v2: accepts channelName, rate, channelIndex; dual-write latency to per-channel + pattern-level accumulators.
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -10,14 +11,21 @@ namespace KubeMQ.Burnin.Workers;
 /// Abstract base class for all 6 messaging pattern workers.
 /// Provides 2-phase CTS shutdown, all counters, tracking, rate limiting,
 /// latency measurement, and backpressure support.
-/// Uses existing types: Tracker, PeakRateTracker, LatencyAccumulator,
-/// TimestampStore, RateLimiter, SizeDistribution from the shared project.
+/// v2: Each instance operates on a single channel. Pattern-level latency
+/// accumulator is shared across all channel workers (thread-safe via lock).
 /// </summary>
 public abstract class BaseWorker : IDisposable
 {
     public string Pattern { get; }
     public BurninConfig Config { get; }
     public string ChannelName { get; }
+    public int ChannelIndex { get; }
+
+    /// <summary>
+    /// Shared pattern-level latency accumulator. All channel workers for a pattern
+    /// dual-write to this accumulator at receive time.
+    /// </summary>
+    public LatencyAccumulator PatternLatencyAccum { get; }
 
     // 2-phase shutdown (Go#2): producer stops first, consumer drains, then stops.
     protected readonly CancellationTokenSource ProducerCts = new();
@@ -28,6 +36,7 @@ public abstract class BaseWorker : IDisposable
     public readonly LatencyAccumulator LatencyAccum = new();
     public readonly LatencyAccumulator RpcLatencyAccum = new();
     public readonly PeakRateTracker PeakRate = new();
+    public readonly SlidingRateTracker SlidingRate = new();
     public readonly TimestampStore TsStore = new();
 
     // Rate limiting
@@ -43,6 +52,10 @@ public abstract class BaseWorker : IDisposable
     private long _rpcSuccess;
     private long _rpcTimeout;
     private long _rpcError;
+    private long _bytesSent;
+    private long _bytesReceived;
+    private long _unconfirmed;
+    private long _inFlight;
 
     public long Sent => Interlocked.Read(ref _sent);
     public long Received => Interlocked.Read(ref _received);
@@ -52,6 +65,13 @@ public abstract class BaseWorker : IDisposable
     public long RpcSuccess => Interlocked.Read(ref _rpcSuccess);
     public long RpcTimeout => Interlocked.Read(ref _rpcTimeout);
     public long RpcError => Interlocked.Read(ref _rpcError);
+    public long BytesSent => Interlocked.Read(ref _bytesSent);
+    public long BytesReceived => Interlocked.Read(ref _bytesReceived);
+    public long Unconfirmed => Interlocked.Read(ref _unconfirmed);
+    public long InFlight => Interlocked.Read(ref _inFlight);
+
+    // Per-producer sent counts for per-worker breakdown
+    public readonly ConcurrentDictionary<string, long> ProducerSentCounts = new();
 
     // Downtime tracking
     private long _downtimeStartTicks; // 0 means not in downtime
@@ -68,11 +88,14 @@ public abstract class BaseWorker : IDisposable
     // Per-consumer message counts for group balance (GAP-17)
     public readonly ConcurrentDictionary<string, long> ConsumerCounts = new();
 
-    protected BaseWorker(string pattern, BurninConfig config, string channelName, double rate)
+    protected BaseWorker(string pattern, BurninConfig config, string channelName, double rate,
+        int channelIndex = 0, LatencyAccumulator? patternLatencyAccum = null)
     {
         Pattern = pattern;
         Config = config;
         ChannelName = channelName;
+        ChannelIndex = channelIndex;
+        PatternLatencyAccum = patternLatencyAccum ?? new LatencyAccumulator();
         Tracker = new Tracker(config.Message.ReorderWindow);
         Limiter = new RateLimiter(rate);
         SizeDist = config.Message.SizeMode == "distribution"
@@ -94,12 +117,12 @@ public abstract class BaseWorker : IDisposable
     /// </summary>
     public bool BackpressureCheck()
     {
-        long lag = Sent - Received;
+        long lag = Sent + InFlight - Received;
         bool active = lag > Config.Queue.MaxDepth;
         if (active && !_backpressureLogged)
         {
             Console.Error.WriteLine(
-                $"WARNING: {Pattern} producer paused -- consumer lag {lag} exceeds max_depth {Config.Queue.MaxDepth}");
+                $"WARNING: {Pattern} ch{ChannelIndex:D4} producer paused -- consumer lag {lag} (sent={Sent} inflight={InFlight} recv={Received}) exceeds max_depth {Config.Queue.MaxDepth}");
             _backpressureLogged = true;
         }
         if (!active)
@@ -123,18 +146,23 @@ public abstract class BaseWorker : IDisposable
     public void RecordSend(string producerId, long seq, int byteCount = 0)
     {
         Interlocked.Increment(ref _sent);
+        if (byteCount > 0) Interlocked.Add(ref _bytesSent, byteCount);
+        ProducerSentCounts.AddOrUpdate(producerId, 1, (_, v) => v + 1);
         TsStore.Store(producerId, seq);
         PeakRate.Record();
+        SlidingRate.Record();
         Metrics.IncSent(Pattern, producerId, byteCount);
     }
 
     /// <summary>
     /// Record a received message with CRC verification, sequence tracking, and latency measurement.
+    /// v2: dual-write latency to per-channel accumulator AND pattern-level accumulator.
     /// </summary>
     public void RecordReceive(string consumerId, ReadOnlyMemory<byte> body, string crcTag,
         string producerId, long seq)
     {
         Interlocked.Increment(ref _received);
+        if (body.Length > 0) Interlocked.Add(ref _bytesReceived, body.Length);
         ConsumerCounts.AddOrUpdate(consumerId, 1, (_, v) => v + 1);
         Metrics.IncReceived(Pattern, consumerId, body.Length);
 
@@ -165,13 +193,25 @@ public abstract class BaseWorker : IDisposable
         if (result.IsOutOfOrder)
             Metrics.IncOutOfOrder(Pattern);
 
-        // Latency measurement
+        // Latency measurement -- dual-write to per-channel AND pattern-level accumulators
         long? sendTime = TsStore.LoadAndDelete(producerId, seq);
         if (sendTime.HasValue)
         {
             double latency = TimestampStore.ElapsedSeconds(sendTime.Value);
-            LatencyAccum.Record(latency);
+            LatencyAccum.Record(latency);           // per-channel
+            PatternLatencyAccum.Record(latency);     // pattern-level (shared, thread-safe)
             Metrics.ObserveLatency(Pattern, latency);
+        }
+    }
+
+    /// <summary>
+    /// Record bytes received without full message tracking (used by RPC responders).
+    /// </summary>
+    public void RecordBytesReceived(int byteCount)
+    {
+        if (byteCount > 0)
+        {
+            Interlocked.Add(ref _bytesReceived, byteCount);
         }
     }
 
@@ -211,6 +251,27 @@ public abstract class BaseWorker : IDisposable
     {
         Interlocked.Increment(ref _rpcError);
         Metrics.IncRpcResponse(Pattern, "error");
+    }
+
+    public void IncUnconfirmed()
+    {
+        Interlocked.Increment(ref _unconfirmed);
+        Metrics.IncUnconfirmed(Pattern);
+    }
+
+    public void DecUnconfirmed()
+    {
+        Interlocked.Decrement(ref _unconfirmed);
+    }
+
+    public void IncInFlight()
+    {
+        Interlocked.Increment(ref _inFlight);
+    }
+
+    public void DecInFlight()
+    {
+        Interlocked.Decrement(ref _inFlight);
     }
 
     /// <summary>
@@ -300,6 +361,10 @@ public abstract class BaseWorker : IDisposable
         Interlocked.Exchange(ref _rpcSuccess, 0);
         Interlocked.Exchange(ref _rpcTimeout, 0);
         Interlocked.Exchange(ref _rpcError, 0);
+        Interlocked.Exchange(ref _bytesSent, 0);
+        Interlocked.Exchange(ref _bytesReceived, 0);
+        Interlocked.Exchange(ref _unconfirmed, 0);
+        Interlocked.Exchange(ref _inFlight, 0);
 
         lock (_downtimeLock)
         {
@@ -311,8 +376,10 @@ public abstract class BaseWorker : IDisposable
         LatencyAccum.Reset();
         RpcLatencyAccum.Reset();
         PeakRate.Reset();
-        TsStore.Purge(TimeSpan.Zero); // clear warmup entries
+        SlidingRate.Reset();
+        TsStore.Purge(TimeSpan.Zero);
         ConsumerCounts.Clear();
+        ProducerSentCounts.Clear();
     }
 
     public virtual void Dispose()

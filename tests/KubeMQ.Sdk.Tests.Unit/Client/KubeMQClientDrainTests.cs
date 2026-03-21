@@ -51,7 +51,7 @@ public class KubeMQClientDrainTests
 
         await client.DisposeAsync();
 
-        client.State.Should().Be(ConnectionState.Disposed);
+        client.State.Should().Be(ConnectionState.Closed);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class KubeMQClientDrainTests
         await Task.Delay(100);
 
         stateChanges.Should().Contain(e =>
-            e.CurrentState == ConnectionState.Disposed);
+            e.CurrentState == ConnectionState.Closed);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class KubeMQClientDrainTests
         await client.DisposeAsync();
 
         Func<Task> actPing = () => client.PingAsync();
-        Func<Task> actPublish = () => client.PublishEventAsync(
+        Func<Task> actPublish = () => client.SendEventAsync(
             new EventMessage { Channel = "ch", Body = new byte[] { 1 } });
 
         await actPing.Should().ThrowAsync<ObjectDisposedException>();

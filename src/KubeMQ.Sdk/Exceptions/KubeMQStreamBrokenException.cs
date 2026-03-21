@@ -10,8 +10,8 @@ public class KubeMQStreamBrokenException : KubeMQException
     public KubeMQStreamBrokenException()
         : base(
             "Stream broken",
-            KubeMQErrorCode.StreamBroken,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.StreamBroken,
+            ErrorCategory.Transient,
             isRetryable: true)
     {
         UnackedMessageIds = Array.Empty<string>();
@@ -22,8 +22,8 @@ public class KubeMQStreamBrokenException : KubeMQException
     public KubeMQStreamBrokenException(string message)
         : base(
             message,
-            KubeMQErrorCode.StreamBroken,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.StreamBroken,
+            ErrorCategory.Transient,
             isRetryable: true)
     {
         UnackedMessageIds = Array.Empty<string>();
@@ -35,8 +35,8 @@ public class KubeMQStreamBrokenException : KubeMQException
     public KubeMQStreamBrokenException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.StreamBroken,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.StreamBroken,
+            ErrorCategory.Transient,
             isRetryable: true,
             innerException: innerException)
     {
@@ -53,8 +53,8 @@ public class KubeMQStreamBrokenException : KubeMQException
         Exception? innerException = null)
         : base(
             message,
-            KubeMQErrorCode.StreamBroken,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.StreamBroken,
+            ErrorCategory.Transient,
             isRetryable: true,
             innerException: innerException)
     {

@@ -1,5 +1,6 @@
 // Queries worker: RPC request/response via SendQueryAsync + SubscribeToQueriesAsync.
-// Responder echoes body. Sender verifies response body CRC.
+// v2: accepts channelName, rate, channelIndex, patternLatencyAccum.
+// Worker IDs: {role}-{pattern}-{4-digit-channel}-{3-digit-worker}
 
 using KubeMQ.Sdk.Client;
 using KubeMQ.Sdk.Queries;
@@ -19,17 +20,21 @@ public sealed class QueriesWorker : BaseWorker
 
     private readonly List<Task> _responderTasks = new();
     private readonly List<Task> _senderTasks = new();
+    private readonly int _numSenders;
+    private readonly int _numResponders;
 
-    public QueriesWorker(BurninConfig config, string runId)
-        : base(PatternName, config, $"csharp_burnin_{runId}_{PatternName}_001", config.Rates.Queries)
+    public QueriesWorker(BurninConfig config, string runId, string channelName, int channelIndex,
+        int senders, int responders, int rate,
+        LatencyAccumulator patternLatencyAccum)
+        : base(PatternName, config, channelName, rate, channelIndex, patternLatencyAccum)
     {
+        _numSenders = senders;
+        _numResponders = responders;
     }
 
     public override async Task StartConsumersAsync(KubeMQClient client)
     {
-        int nResponders = Config.Concurrency.QueriesResponders;
-
-        for (int i = 0; i < nResponders; i++)
+        for (int i = 0; i < _numResponders; i++)
         {
             var subscription = new QueriesSubscription
             {
@@ -49,31 +54,29 @@ public sealed class QueriesWorker : BaseWorker
                             && tags.TryGetValue("warmup", out string? warmupVal)
                             && warmupVal == "true";
 
-                        try
+                        if (!isWarmup)
                         {
-                            // Echo body back via SendQueryResponseAsync
-                            await client.SendQueryResponseAsync(
-                                query.RequestId,
-                                query.ReplyChannel,
-                                body: query.Body, // echo the request body
-                                executed: true,
-                                tags: null,
-                                errorMessage: string.Empty,
-                                ConsumerCts.Token);
+                            RecordBytesReceived(query.Body.Length);
                         }
-                        catch (Exception ex)
+
+                        var capturedQuery = query;
+                        _ = client.SendQueryResponseAsync(new QueryResponse
                         {
-                            if (!isWarmup)
-                            {
-                                RecordError("response_send_failure");
-                            }
-                        }
+                            RequestId = capturedQuery.RequestId,
+                            ReplyChannel = capturedQuery.ReplyChannel,
+                            Body = capturedQuery.Body,
+                            Executed = true,
+                        }, ConsumerCts.Token).ContinueWith(t =>
+                        {
+                            if (t.IsFaulted)
+                                RecordError("response_failure");
+                        }, TaskContinuationOptions.OnlyOnFaulted);
                     }
                 }
                 catch (OperationCanceledException) { /* normal shutdown */ }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"queries subscription error: {ex.Message}");
+                    Console.Error.WriteLine($"queries subscription error (ch{ChannelIndex:D4}): {ex.Message}");
                     RecordError("subscription_error");
                     IncReconnection();
                 }
@@ -82,20 +85,19 @@ public sealed class QueriesWorker : BaseWorker
             _responderTasks.Add(task);
         }
 
-        Console.WriteLine($"queries responders started on {ChannelName}");
+        Console.WriteLine($"queries responders started on {ChannelName} ({_numResponders} responders)");
         await Task.CompletedTask;
     }
 
     public override async Task StartProducersAsync(KubeMQClient client)
     {
-        int nSenders = Config.Concurrency.QueriesSenders;
-        for (int i = 0; i < nSenders; i++)
+        for (int i = 0; i < _numSenders; i++)
         {
-            string senderId = $"p-{PatternName}-{i:D3}";
+            string senderId = $"s-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _senderTasks.Add(Task.Run(() => RunSenderAsync(senderId, client)));
         }
 
-        Console.WriteLine($"queries senders started on {ChannelName}");
+        Console.WriteLine($"queries senders started on {ChannelName} ({_numSenders} senders)");
         await Task.CompletedTask;
     }
 
@@ -129,8 +131,8 @@ public sealed class QueriesWorker : BaseWorker
 
                 double rpcDuration = (StopwatchTimestamp.GetNanoseconds() - t0) / 1_000_000_000.0;
                 RpcLatencyAccum.Record(rpcDuration);
+                PatternLatencyAccum.Record(rpcDuration);
 
-                // Check for error/timeout
                 if (!string.IsNullOrEmpty(resp.Error))
                 {
                     if (resp.Error.Contains("timeout", StringComparison.OrdinalIgnoreCase))
@@ -147,18 +149,15 @@ public sealed class QueriesWorker : BaseWorker
                     IncRpcSuccess();
                     RecordSend(senderId, seq, encoded.Body.Length);
 
-                    // Verify response body CRC — should match the original sent body CRC
                     if (resp.Body.Length > 0)
                     {
                         if (Payload.VerifyCrc(resp.Body.Span, encoded.CrcHex))
                         {
-                            // Response body integrity verified — record received for RPC round-trip
                             RecordReceive(senderId, resp.Body, encoded.CrcHex,
                                 senderId, seq);
                         }
                         else
                         {
-                            // Response body corrupted
                             RecordError("response_corruption");
                         }
                     }

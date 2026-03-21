@@ -14,7 +14,7 @@ public class ConnectionTests : IntegrationTestBase
         await using var client = CreateClient();
         await client.ConnectAsync();
 
-        client.State.Should().Be(ConnectionState.Connected);
+        client.State.Should().Be(ConnectionState.Ready);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class ConnectionTests : IntegrationTestBase
 
         await client.ConnectAsync();
 
-        stateChanges.Should().Contain(e => e.CurrentState == ConnectionState.Connected);
+        stateChanges.Should().Contain(e => e.CurrentState == ConnectionState.Ready);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class ConnectionTests : IntegrationTestBase
 
         await client.DisposeAsync();
 
-        client.State.Should().Be(ConnectionState.Disposed);
+        client.State.Should().Be(ConnectionState.Closed);
     }
 
     [Fact]
@@ -65,9 +65,9 @@ public class ConnectionTests : IntegrationTestBase
         await client2.ConnectAsync();
         await client3.ConnectAsync();
 
-        client1.State.Should().Be(ConnectionState.Connected);
-        client2.State.Should().Be(ConnectionState.Connected);
-        client3.State.Should().Be(ConnectionState.Connected);
+        client1.State.Should().Be(ConnectionState.Ready);
+        client2.State.Should().Be(ConnectionState.Ready);
+        client3.State.Should().Be(ConnectionState.Ready);
 
         var info1 = await client1.PingAsync();
         var info2 = await client2.PingAsync();

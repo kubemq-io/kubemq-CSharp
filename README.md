@@ -86,7 +86,7 @@ using System.Text;
 await using var client = new KubeMQClient(new KubeMQClientOptions());
 await client.ConnectAsync();
 
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "my-channel",
     Body = Encoding.UTF8.GetBytes("Hello, KubeMQ!")
@@ -97,7 +97,7 @@ await client.PublishEventAsync(new EventMessage
 
 > **Note:** Start the receiver before the sender. Events are not persisted — only
 > subscribers connected at publish time receive the message. For persistent delivery,
-> use Events Store with `EventStoreStartPosition.FromFirst`.
+> use Events Store with `EventStoreStartPosition.StartFromFirst`.
 
 ```csharp
 using KubeMQ.Sdk.Client;
@@ -158,8 +158,7 @@ timestamp, or time delta. Use for audit trails and event sourcing.
 ### Queues
 
 Pull-based message delivery with explicit acknowledgment. Each message is processed by
-exactly one consumer. Supports delayed delivery, expiration, dead letter queues, and
-visibility timeout.
+exactly one consumer. Supports delayed delivery, expiration, and dead letter queues.
 
 → [Queue Examples](https://github.com/kubemq-io/kubemq-CSharp/tree/main/examples/Queues)
 
@@ -236,7 +235,7 @@ hierarchy enables precise error handling:
 ```csharp
 try
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "events",
         Body = Encoding.UTF8.GetBytes("hello")

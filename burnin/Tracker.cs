@@ -132,6 +132,26 @@ public sealed class Tracker
         }
     }
 
+    /// <summary>
+    /// Check if a sequence number would be flagged as duplicate without recording it.
+    /// </summary>
+    public bool Peek(string producerId, long seq)
+    {
+        lock (_lock)
+        {
+            if (!_producers.TryGetValue(producerId, out var state))
+                return false;
+            if (!state.Initialized)
+                return false;
+            if (seq <= state.HighContiguous)
+                return true;
+            long offset = seq - state.HighContiguous - 1;
+            if (offset >= state.WindowBits)
+                return false;
+            return GetBit(state.Window, offset);
+        }
+    }
+
     public long TotalReceived()
     {
         lock (_lock)

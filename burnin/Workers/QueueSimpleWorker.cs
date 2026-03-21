@@ -1,15 +1,17 @@
 // Queue Simple worker: SendQueueMessageAsync for sending, ReceiveQueueMessagesAsync for receiving.
-// Auto-consumed messages. Check result.IsError before processing.
+// v2: accepts channelName, rate, channelIndex, patternLatencyAccum.
+// Worker IDs: {role}-{pattern}-{4-digit-channel}-{3-digit-worker}
 
 using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.Exceptions;
 using KubeMQ.Sdk.Queues;
 
 namespace KubeMQ.Burnin.Workers;
 
 /// <summary>
-/// Queue Simple pattern worker: unary send/receive with auto-ack.
+/// Queue Simple pattern worker: unary send with persistent downstream receiver (auto-ack).
 /// Producer uses SendQueueMessageAsync (single message).
-/// Consumer uses ReceiveQueueMessagesAsync (batch poll with auto-consumption).
+/// Consumer creates a QueueDownstreamReceiver and polls with AutoAck=true.
 /// </summary>
 public sealed class QueueSimpleWorker : BaseWorker
 {
@@ -18,98 +20,137 @@ public sealed class QueueSimpleWorker : BaseWorker
 
     private readonly List<Task> _consumerTasks = new();
     private readonly List<Task> _producerTasks = new();
+    private readonly int _numProducers;
+    private readonly int _numConsumers;
 
-    public QueueSimpleWorker(BurninConfig config, string runId)
-        : base(PatternName, config, $"csharp_burnin_{runId}_{PatternName}_001", config.Rates.QueueSimple)
+    public QueueSimpleWorker(BurninConfig config, string runId, string channelName, int channelIndex,
+        int producers, int consumers, int rate,
+        LatencyAccumulator patternLatencyAccum)
+        : base(PatternName, config, channelName, rate, channelIndex, patternLatencyAccum)
     {
+        _numProducers = producers;
+        _numConsumers = consumers;
     }
 
     public override async Task StartConsumersAsync(KubeMQClient client)
     {
-        int nConsumers = Config.Concurrency.QueueSimpleConsumers;
-
-        for (int i = 0; i < nConsumers; i++)
+        for (int i = 0; i < _numConsumers; i++)
         {
-            string consumerId = $"c-{PatternName}-{i:D3}";
+            string consumerId = $"c-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _consumerTasks.Add(Task.Run(() => RunConsumerAsync(consumerId, client)));
         }
 
-        Console.WriteLine($"queue_simple consumers started on {ChannelName}");
+        Console.WriteLine($"queue_simple consumers started on {ChannelName} ({_numConsumers} consumers)");
         await Task.CompletedTask;
     }
 
     public override async Task StartProducersAsync(KubeMQClient client)
     {
-        int nProducers = Config.Concurrency.QueueSimpleProducers;
-        for (int i = 0; i < nProducers; i++)
+        for (int i = 0; i < _numProducers; i++)
         {
-            string producerId = $"p-{PatternName}-{i:D3}";
+            string producerId = $"p-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _producerTasks.Add(Task.Run(() => RunProducerAsync(producerId, client)));
         }
 
-        Console.WriteLine($"queue_simple producers started on {ChannelName}");
+        Console.WriteLine($"queue_simple producers started on {ChannelName} ({_numProducers} producers)");
         await Task.CompletedTask;
     }
 
     private async Task RunConsumerAsync(string consumerId, KubeMQClient client)
     {
         var ct = ConsumerCts.Token;
+        int maxItems = Config.Queue.PollMaxMessages;
+        int waitTimeoutSec = Config.Queue.PollWaitTimeoutSeconds;
 
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                // ReceiveQueueMessagesAsync: returns QueueReceiveResult
-                var result = await client.ReceiveQueueMessagesAsync(
-                    ChannelName,
-                    Config.Queue.PollMaxMessages,
-                    Config.Queue.PollWaitTimeoutSeconds,
-                    ct);
+                await using var receiver = await client.CreateQueueDownstreamReceiverAsync(ct);
 
-                // Check result.IsError
-                if (result.IsError)
+                while (!ct.IsCancellationRequested)
                 {
-                    string errMsg = result.Error ?? "unknown";
-                    if (!errMsg.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+                    var batch = await receiver.PollAsync(new QueuePollRequest
                     {
+                        Channel = ChannelName,
+                        MaxMessages = maxItems,
+                        WaitTimeoutSeconds = waitTimeoutSec,
+                        AutoAck = true,
+                    }, ct);
+
+                    if (batch.IsError)
+                    {
+                        string errMsg = batch.Error ?? "unknown downstream error";
+                        if (errMsg.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
                         RecordError("receive_failure");
+                        break;
                     }
-                    continue;
-                }
 
-                if (result.Messages == null || result.Messages.Count == 0)
-                    continue;
-
-                foreach (var msg in result.Messages)
-                {
-                    var tags = msg.Tags;
-                    if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
-                        && warmupVal == "true")
+                    if (!batch.HasMessages)
                     {
                         continue;
                     }
 
-                    try
+                    // Deduplicate within the batch — the broker/SDK can return
+                    // the same message twice in a single response.
+                    var seenInBatch = new HashSet<string>();
+                    foreach (var msg in batch.Messages)
                     {
-                        var decoded = Payload.Decode(msg.Body);
-                        string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
-                        RecordReceive(consumerId, msg.Body, crcTag,
-                            decoded.ProducerId, decoded.Sequence);
-                    }
-                    catch
-                    {
-                        RecordError("decode_failure");
+                        if (!seenInBatch.Add(msg.MessageId))
+                        {
+                            continue; // skip intra-batch duplicate
+                        }
+
+                        var tags = msg.Tags;
+                        if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
+                            && warmupVal == "true")
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            var decoded = Payload.Decode(msg.Body);
+                            string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
+                            RecordReceive(consumerId, msg.Body, crcTag,
+                                decoded.ProducerId, decoded.Sequence);
+                        }
+                        catch
+                        {
+                            RecordError("decode_failure");
+                        }
                     }
                 }
             }
-            catch (OperationCanceledException) { break; }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (KubeMQOperationException)
+            {
+                // Stream broken — will recreate receiver on next outer loop iteration
+                if (ct.IsCancellationRequested)
+                {
+                    break;
+                }
+
+                IncReconnection();
+                await Task.Delay(1000, ct).ConfigureAwait(false);
+            }
             catch (Exception ex)
             {
-                if (ct.IsCancellationRequested) break;
-                if (!ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase))
+                if (ct.IsCancellationRequested)
                 {
-                    RecordError("receive_failure");
+                    break;
                 }
+
+                Console.Error.WriteLine($"queue_simple consumer error (ch{ChannelIndex:D4}): {ex.Message}");
+                RecordError("receive_failure");
+                IncReconnection();
                 await Task.Delay(1000, ct).ConfigureAwait(false);
             }
         }
@@ -142,7 +183,6 @@ public sealed class QueueSimpleWorker : BaseWorker
                     Tags = new Dictionary<string, string> { ["content_hash"] = encoded.CrcHex },
                 };
 
-                // SendQueueMessageAsync for single message send
                 var result = await client.SendQueueMessageAsync(message, ct);
 
                 if (result.IsError)

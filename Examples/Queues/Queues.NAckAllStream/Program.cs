@@ -1,8 +1,8 @@
 // KubeMQ .NET SDK — Queues: Downstream NAckAll via Stream
 //
-// This example demonstrates receiving messages via the downstream stream API
-// and negatively acknowledging all messages using NAckAllDownstreamAsync.
-// NAck'd messages are returned to the queue for redelivery.
+// This example demonstrates receiving messages via the downstream receiver
+// and negatively acknowledging all messages using NackAllAsync.
+// Nacked messages are returned to the queue for redelivery.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -10,6 +10,7 @@
 //   - dotnet run
 
 using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.Queues;
 
 await using var client = new KubeMQClient(new KubeMQClientOptions
 {
@@ -19,16 +20,21 @@ await client.ConnectAsync();
 
 Console.WriteLine("Connected to KubeMQ server");
 
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queues.nack-all-stream",
-    maxItems: 10,
-    waitTimeoutMs: 5000);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-Console.WriteLine($"Received {downstream.Messages.Count} messages, Transaction: {downstream.TransactionId}");
-
-if (downstream.Messages.Count > 0 && !string.IsNullOrEmpty(downstream.TransactionId))
+var batch = await receiver.PollAsync(new QueuePollRequest
 {
-    await client.NAckAllDownstreamAsync(downstream.TransactionId);
+    Channel = "csharp-queues.nack-all-stream",
+    MaxMessages = 10,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
+
+Console.WriteLine($"Received {batch.Messages.Count} messages");
+
+if (batch.HasMessages)
+{
+    await batch.NackAllAsync();
     Console.WriteLine("All messages negatively acknowledged (returned to queue).");
 }
 

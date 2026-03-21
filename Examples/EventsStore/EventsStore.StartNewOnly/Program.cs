@@ -21,11 +21,11 @@ await client.ConnectAsync();
 var subscription = new EventStoreSubscription
 {
     Channel = "csharp-eventsstore.start-new-only",
-    StartPosition = EventStoreStartPosition.FromNew,
+    StartPosition = EventStoreStartPosition.StartFromNew,
 };
 
-Console.WriteLine("Subscribed with FromNew. Waiting for new events...");
-await foreach (var evt in client.SubscribeToEventStoreAsync(subscription))
+Console.WriteLine("Subscribed with StartFromNew. Waiting for new events...");
+await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription))
 {
     Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
 }

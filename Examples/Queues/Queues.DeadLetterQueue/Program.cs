@@ -32,7 +32,7 @@ Console.WriteLine("Sent message with MaxReceiveCount=3 and DLQ configured");
 Console.WriteLine("After 3 failed receive attempts, the message moves to 'csharp-queues.dead-letter-queue-destination'");
 
 // Poll the DLQ for failed messages
-var dlqResponse = await client.PollQueueAsync(new QueuePollRequest
+var dlqResponse = await client.ReceiveQueueMessagesAsync(new QueuePollRequest
 {
     Channel = "csharp-queues.dead-letter-queue-destination",
     MaxMessages = 10,

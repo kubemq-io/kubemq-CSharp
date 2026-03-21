@@ -37,11 +37,13 @@ await foreach (var query in client.SubscribeToQueriesAsync(
 
     var responseBody = Encoding.UTF8.GetBytes("{\"status\":\"ok\",\"handler\":\"group-member\"}");
 
-    await client.SendQueryResponseAsync(
-        requestId: query.RequestId,
-        replyChannel: query.ReplyChannel!,
-        body: responseBody,
-        executed: true);
+    await client.SendQueryResponseAsync(new QueryResponse
+    {
+        RequestId = query.RequestId,
+        ReplyChannel = query.ReplyChannel!,
+        Body = responseBody,
+        Executed = true,
+    });
 
     Console.WriteLine("  -> Responded with data");
 }

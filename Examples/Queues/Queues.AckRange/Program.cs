@@ -1,7 +1,7 @@
-// KubeMQ .NET SDK — Queues: Ack Range
+// KubeMQ .NET SDK — Queues: Ack Range (Per-Message)
 //
-// This example demonstrates acknowledging a specific range of messages
-// by their sequence numbers using the downstream stream API.
+// This example demonstrates acknowledging specific messages by selectively
+// calling AckAsync on individual messages from a polled batch.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -30,22 +30,31 @@ for (var i = 1; i <= 5; i++)
 
 Console.WriteLine("Sent 5 messages");
 
-var result = await client.ReceiveQueueDownstreamAsync(
-    channel: "csharp-queues.ack-range",
-    maxItems: 5,
-    waitTimeoutMs: 10000,
-    autoAck: false);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-Console.WriteLine($"Received {result.Messages.Count} messages, Transaction: {result.TransactionId}");
+var batch = await receiver.PollAsync(new QueuePollRequest
+{
+    Channel = "csharp-queues.ack-range",
+    MaxMessages = 5,
+    WaitTimeoutSeconds = 10,
+    AutoAck = false,
+});
 
-var sequencesToAck = result.Messages
-    .Where(m => Encoding.UTF8.GetString(m.Body.Span).Contains("#1") ||
-                Encoding.UTF8.GetString(m.Body.Span).Contains("#3"))
-    .Select(m => m.Sequence)
-    .ToList();
+Console.WriteLine($"Received {batch.Messages.Count} messages");
 
-Console.WriteLine($"Acking sequences: {string.Join(", ", sequencesToAck)}");
-await client.AckRangeDownstreamAsync(result.TransactionId, sequencesToAck);
+foreach (var msg in batch.Messages)
+{
+    var body = Encoding.UTF8.GetString(msg.Body.Span);
+    if (body.Contains("#1") || body.Contains("#3"))
+    {
+        await msg.AckAsync();
+        Console.WriteLine($"Acked: {body}");
+    }
+    else
+    {
+        Console.WriteLine($"Skipped (not acked): {body}");
+    }
+}
 
-Console.WriteLine("Ack range completed. Remaining messages stay in queue.");
+Console.WriteLine("Selective ack completed. Non-acked messages stay in queue.");
 Console.WriteLine("Done.");

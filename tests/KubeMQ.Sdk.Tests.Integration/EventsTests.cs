@@ -23,7 +23,7 @@ public class EventsTests : IntegrationTestBase
             Body = Encoding.UTF8.GetBytes("hello-event"),
         };
 
-        var act = () => client.PublishEventAsync(message);
+        var act = () => client.SendEventAsync(message);
 
         await act.Should().NotThrowAsync();
     }
@@ -56,7 +56,7 @@ public class EventsTests : IntegrationTestBase
 
         await Task.Delay(1000);
 
-        await publisher.PublishEventAsync(new EventMessage
+        await publisher.SendEventAsync(new EventMessage
         {
             Channel = channel,
             Body = payload,
@@ -97,7 +97,7 @@ public class EventsTests : IntegrationTestBase
 
         await Task.Delay(1000);
 
-        await publisher.PublishEventAsync(new EventMessage
+        await publisher.SendEventAsync(new EventMessage
         {
             Channel = channel,
             Body = Encoding.UTF8.GetBytes("tagged-event"),
@@ -141,7 +141,7 @@ public class EventsTests : IntegrationTestBase
 
         await Task.Delay(1000);
 
-        await publisher.PublishEventAsync(new EventMessage
+        await publisher.SendEventAsync(new EventMessage
         {
             Channel = publishChannel,
             Body = payload,
@@ -193,7 +193,7 @@ public class EventsTests : IntegrationTestBase
 
         await Task.Delay(1000);
 
-        await publisher.PublishEventAsync(new EventMessage
+        await publisher.SendEventAsync(new EventMessage
         {
             Channel = channel,
             Body = Encoding.UTF8.GetBytes("group-event"),
@@ -239,7 +239,7 @@ public class EventsTests : IntegrationTestBase
 
         for (var i = 0; i < messageCount; i++)
         {
-            await publisher.PublishEventAsync(new EventMessage
+            await publisher.SendEventAsync(new EventMessage
             {
                 Channel = channel,
                 Body = Encoding.UTF8.GetBytes($"multi-event-{i}"),

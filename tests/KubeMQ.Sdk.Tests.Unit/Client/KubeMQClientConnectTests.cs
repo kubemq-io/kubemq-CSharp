@@ -40,11 +40,11 @@ public class KubeMQClientConnectTests
             .Setup(t => t.PingAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ServerInfo { Host = "h", Version = "3.5.0" });
 
-        client.State.Should().Be(ConnectionState.Disconnected);
+        client.State.Should().Be(ConnectionState.Idle);
 
         await client.ConnectAsync();
 
-        client.State.Should().Be(ConnectionState.Connected);
+        client.State.Should().Be(ConnectionState.Ready);
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class KubeMQClientConnectTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("connection refused");
 
-        client.State.Should().Be(ConnectionState.Disconnected);
+        client.State.Should().Be(ConnectionState.Idle);
     }
 
     [Fact]
@@ -116,11 +116,11 @@ public class KubeMQClientConnectTests
         await Task.Delay(100);
 
         stateChanges.Should().Contain(e =>
-            e.PreviousState == ConnectionState.Disconnected &&
+            e.PreviousState == ConnectionState.Idle &&
             e.CurrentState == ConnectionState.Connecting);
         stateChanges.Should().Contain(e =>
             e.PreviousState == ConnectionState.Connecting &&
-            e.CurrentState == ConnectionState.Connected);
+            e.CurrentState == ConnectionState.Ready);
     }
 
     [Fact]

@@ -30,10 +30,12 @@ var handlerTask = Task.Run(async () =>
         var body = Encoding.UTF8.GetString(cmd.Body.Span);
         Console.WriteLine($"[Handler] Received command: {body}");
 
-        await client.SendCommandResponseAsync(
-            requestId: cmd.RequestId,
-            replyChannel: cmd.ReplyChannel!,
-            executed: true);
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = true,
+        });
 
         Console.WriteLine("[Handler] Responded: executed=true");
     }

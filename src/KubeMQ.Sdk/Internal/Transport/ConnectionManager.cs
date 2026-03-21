@@ -93,13 +93,13 @@ internal sealed class ConnectionManager : IAsyncDisposable
     internal void OnConnectionLost(Exception? ex)
     {
         if (!_options.Reconnect.Enabled ||
-            _stateMachine.Current == ConnectionState.Disposed)
+            _stateMachine.Current == ConnectionState.Closed)
         {
             return;
         }
 
         if (_stateMachine.TryTransition(
-            ConnectionState.Connected, ConnectionState.Reconnecting))
+            ConnectionState.Ready, ConnectionState.Reconnecting))
         {
             lock (_readyLock)
             {
@@ -108,7 +108,7 @@ internal sealed class ConnectionManager : IAsyncDisposable
             }
 
             StateTransitionCallback?.Invoke(
-                ConnectionState.Connected, ConnectionState.Reconnecting, ex);
+                ConnectionState.Ready, ConnectionState.Reconnecting, ex);
             _reconnectTask = Task.Run(
                 () => ReconnectLoopAsync(_shutdownCts.Token));
         }
@@ -139,7 +139,7 @@ internal sealed class ConnectionManager : IAsyncDisposable
     /// <returns>A task that completes when the connection is ready.</returns>
     internal Task WaitForReadyAsync(CancellationToken ct)
     {
-        if (_stateMachine.Current == ConnectionState.Connected)
+        if (_stateMachine.Current == ConnectionState.Ready)
         {
             return Task.CompletedTask;
         }
@@ -232,10 +232,10 @@ internal sealed class ConnectionManager : IAsyncDisposable
                 Log.Reconnected(_logger, _options.Address, attempt);
 
                 if (_stateMachine.TryTransition(
-                    ConnectionState.Reconnecting, ConnectionState.Connected))
+                    ConnectionState.Reconnecting, ConnectionState.Ready))
                 {
                     StateTransitionCallback?.Invoke(
-                        ConnectionState.Reconnecting, ConnectionState.Connected, null);
+                        ConnectionState.Reconnecting, ConnectionState.Ready, null);
                 }
 
                 _readyTcs.TrySetResult();
@@ -256,7 +256,7 @@ internal sealed class ConnectionManager : IAsyncDisposable
                     Log.ReconnectExhausted(_logger, _options.Address, attempt);
 
                     ConnectionState previous = _stateMachine.ForceDisposed();
-                    StateTransitionCallback?.Invoke(previous, ConnectionState.Disposed, ex);
+                    StateTransitionCallback?.Invoke(previous, ConnectionState.Closed, ex);
 
                     int discarded = _buffer.DiscardAll();
                     if (discarded > 0)

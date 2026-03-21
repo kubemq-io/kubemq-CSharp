@@ -1,7 +1,7 @@
 // KubeMQ .NET SDK — QueuesStream: Poll Mode
 //
 // This example demonstrates using the poll-based queue consumption pattern
-// with the downstream stream API. Messages are fetched on demand, giving
+// with the downstream receiver API. Messages are fetched on demand, giving
 // the consumer full control over when to receive and process messages.
 //
 // Prerequisites:
@@ -31,28 +31,32 @@ for (var i = 1; i <= 10; i++)
 
 Console.WriteLine("Sent 10 messages");
 
-var batch = 1;
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
+
+var batchNum = 1;
 while (true)
 {
-    var downstream = await client.ReceiveQueueDownstreamAsync(
-        channel: "csharp-queuesstream.poll-mode",
-        maxItems: 3,
-        waitTimeoutMs: 5000,
-        autoAck: true);
+    var batch = await receiver.PollAsync(new QueuePollRequest
+    {
+        Channel = "csharp-queuesstream.poll-mode",
+        MaxMessages = 3,
+        WaitTimeoutSeconds = 5,
+        AutoAck = true,
+    });
 
-    if (downstream.Messages.Count == 0)
+    if (!batch.HasMessages)
     {
         Console.WriteLine("No more messages. Exiting poll loop.");
         break;
     }
 
-    Console.WriteLine($"Poll batch #{batch}: received {downstream.Messages.Count} messages");
-    foreach (var msg in downstream.Messages)
+    Console.WriteLine($"Poll batch #{batchNum}: received {batch.Messages.Count} messages");
+    foreach (var msg in batch.Messages)
     {
         Console.WriteLine($"  {Encoding.UTF8.GetString(msg.Body.Span)}");
     }
 
-    batch++;
+    batchNum++;
 }
 
 Console.WriteLine("Done.");

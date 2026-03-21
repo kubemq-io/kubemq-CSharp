@@ -34,19 +34,19 @@ var subscribeTask = Task.Run(async () =>
 await Task.Delay(1000);
 
 // Publish to different sub-channels
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "csharp-events.wildcard.created",
     Body = Encoding.UTF8.GetBytes("Order #100 created")
 });
 
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "csharp-events.wildcard.shipped",
     Body = Encoding.UTF8.GetBytes("Order #99 shipped")
 });
 
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "csharp-events.wildcard.cancelled",
     Body = Encoding.UTF8.GetBytes("Order #98 cancelled")

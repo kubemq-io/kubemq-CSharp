@@ -1,11 +1,11 @@
-// KubeMQ .NET SDK — Queues: Acknowledge, Reject, and Requeue
+// KubeMQ .NET SDK — Queues: Acknowledge, Nack, and Requeue
 //
 // This example demonstrates different message settlement options:
 // - AckAsync(): Successfully processed, remove from queue
-// - RejectAsync(): Processing failed, discard message
-// - RequeueAsync(): Return message to queue for retry
+// - NackAsync(): Processing failed, reject message
+// - ReQueueAsync(): Return message to queue for retry
 //
-// Uses ReceiveQueueDownstreamAsync for transactional message settlement.
+// Uses QueueDownstreamReceiver.PollAsync for transactional message settlement.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -35,14 +35,18 @@ for (var i = 1; i <= 3; i++)
 
 Console.WriteLine("Sent 3 messages");
 
-// Receive via downstream stream (supports manual settlement)
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    channel: "csharp-queues.ack-reject",
-    maxItems: 3,
-    waitTimeoutMs: 10000,
-    autoAck: false);
+// Receive via downstream receiver (supports manual settlement)
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-foreach (var msg in downstream.Messages)
+var batch = await receiver.PollAsync(new QueuePollRequest
+{
+    Channel = "csharp-queues.ack-reject",
+    MaxMessages = 3,
+    WaitTimeoutSeconds = 10,
+    AutoAck = false,
+});
+
+foreach (var msg in batch.Messages)
 {
     var body = Encoding.UTF8.GetString(msg.Body.Span);
     Console.WriteLine($"Processing: {body}");
@@ -54,12 +58,12 @@ foreach (var msg in downstream.Messages)
     }
     else if (body.Contains("#2"))
     {
-        await msg.RejectAsync();
-        Console.WriteLine("  -> Rejected (discarded)");
+        await msg.NackAsync();
+        Console.WriteLine("  -> Nacked (rejected)");
     }
     else
     {
-        await msg.RequeueAsync();
+        await msg.ReQueueAsync();
         Console.WriteLine("  -> Requeued (will retry)");
     }
 }

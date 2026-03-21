@@ -23,7 +23,7 @@ namespace KubeMQ.Sdk.Events;
 public record EventMessage
 {
     /// <summary>Gets the optional event ID. Auto-generated UUID if not provided.</summary>
-    public string? EventId { get; init; }
+    public string? Id { get; init; }
 
     /// <summary>Gets the target channel name.</summary>
     public required string Channel { get; init; }

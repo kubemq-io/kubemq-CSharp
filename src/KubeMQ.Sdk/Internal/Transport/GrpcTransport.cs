@@ -22,9 +22,10 @@ internal sealed class GrpcTransport : ITransport, IDisposable
     private readonly KubeMQClientOptions _options;
     private readonly ILogger _logger;
     private readonly AuthInterceptor? _authInterceptor;
-    private GrpcChannel? _grpcChannel;
-    private KubeMQ.Grpc.kubemq.kubemqClient? _grpcClient;
-    private volatile ConnectionState _transportState = ConnectionState.Disconnected;
+    private volatile GrpcChannel[]? _grpcChannels;
+    private volatile KubeMQ.Grpc.kubemq.kubemqClient[]? _grpcClients;
+    private long _roundRobinCounter = -1;
+    private volatile ConnectionState _transportState = ConnectionState.Idle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GrpcTransport"/> class.
@@ -51,7 +52,8 @@ internal sealed class GrpcTransport : ITransport, IDisposable
 
     public ConnectionState State => _transportState;
 
-    internal KubeMQ.Grpc.kubemq.kubemqClient? Client => _grpcClient;
+    internal KubeMQ.Grpc.kubemq.kubemqClient? Client =>
+        _grpcClients is { Length: > 0 } clients ? clients[0] : null;
 
     public void Dispose()
     {
@@ -70,36 +72,42 @@ internal sealed class GrpcTransport : ITransport, IDisposable
         DisposeChannel();
         _transportState = ConnectionState.Connecting;
 
-        SocketsHttpHandler? handler = null;
+        int count = Math.Max(1, _options.GrpcChannelCount);
+        var channels = new GrpcChannel[count];
+        var clients = new KubeMQ.Grpc.kubemq.kubemqClient[count];
+        var handlers = new SocketsHttpHandler?[count];
+
         try
         {
-            handler = CreateHandler(_options);
             var tls = _options.Tls ?? new TlsOptions();
-            TlsConfigurator.ConfigureTls(handler, tls, _logger, _options.Address);
-
             string uri = BuildUri(_options.Address, tls.Enabled);
-
-            _grpcChannel = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
-            {
-                HttpHandler = handler,
-                MaxSendMessageSize = _options.MaxSendSize,
-                MaxReceiveMessageSize = _options.MaxReceiveSize,
-            });
-
-            handler = null; // ownership transferred to _grpcChannel
-
-            CallInvoker invoker = _grpcChannel.CreateCallInvoker();
-
             (string host, int port) = ParseAddress(_options.Address);
-            invoker = invoker.Intercept(
-                new TelemetryInterceptor(_options.ClientId, host, port, _logger));
 
-            if (_authInterceptor is not null)
+            for (int i = 0; i < count; i++)
             {
-                invoker = invoker.Intercept(_authInterceptor);
-            }
+                handlers[i] = CreateHandler(_options);
+                TlsConfigurator.ConfigureTls(handlers[i]!, tls, _logger, _options.Address);
 
-            _grpcClient = new KubeMQ.Grpc.kubemq.kubemqClient(invoker);
+                channels[i] = GrpcChannel.ForAddress(uri, new GrpcChannelOptions
+                {
+                    HttpHandler = handlers[i],
+                    MaxSendMessageSize = _options.MaxSendSize,
+                    MaxReceiveMessageSize = _options.MaxReceiveSize,
+                });
+
+                handlers[i] = null; // ownership transferred to channels[i]
+
+                CallInvoker invoker = channels[i].CreateCallInvoker();
+                invoker = invoker.Intercept(
+                    new TelemetryInterceptor(_options.ClientId, host, port, _logger));
+
+                if (_authInterceptor is not null)
+                {
+                    invoker = invoker.Intercept(_authInterceptor);
+                }
+
+                clients[i] = new KubeMQ.Grpc.kubemq.kubemqClient(invoker);
+            }
 
             using var connectCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             connectCts.CancelAfter(_options.ConnectionTimeout);
@@ -109,31 +117,39 @@ internal sealed class GrpcTransport : ITransport, IDisposable
                 await _authInterceptor.GetTokenAsync(connectCts.Token).ConfigureAwait(false);
             }
 
-            await PingAsync(connectCts.Token).ConfigureAwait(false);
-            _transportState = ConnectionState.Connected;
+            // Ping only the first channel to verify connectivity
+            await clients[0].PingAsync(
+                new KubeMQ.Grpc.Empty(),
+                cancellationToken: connectCts.Token).ConfigureAwait(false);
+
+            // Atomic swap
+            _grpcChannels = channels;
+            _grpcClients = clients;
+
+            _transportState = ConnectionState.Ready;
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            handler?.Dispose();
+            DisposeHandlersAndChannels(handlers, channels);
             DisposeChannel();
             throw new KubeMQTimeoutException(
                 $"Connection to {_options.Address} timed out after {_options.ConnectionTimeout}");
         }
         catch (OperationCanceledException)
         {
-            handler?.Dispose();
+            DisposeHandlersAndChannels(handlers, channels);
             DisposeChannel();
             throw;
         }
         catch (KubeMQException)
         {
-            handler?.Dispose();
+            DisposeHandlersAndChannels(handlers, channels);
             DisposeChannel();
             throw;
         }
         catch (Exception ex)
         {
-            handler?.Dispose();
+            DisposeHandlersAndChannels(handlers, channels);
             DisposeChannel();
             throw new KubeMQConnectionException(
                 $"Failed to connect to {_options.Address}: {ex.Message}", ex);
@@ -143,7 +159,7 @@ internal sealed class GrpcTransport : ITransport, IDisposable
     public async Task CloseAsync(CancellationToken cancellationToken = default)
     {
         DisposeChannel();
-        _transportState = ConnectionState.Disconnected;
+        _transportState = ConnectionState.Idle;
         await Task.CompletedTask.ConfigureAwait(false);
     }
 
@@ -279,7 +295,7 @@ internal sealed class GrpcTransport : ITransport, IDisposable
         return Task.FromResult(client.QueuesDownstream(cancellationToken: cancellationToken));
     }
 
-    public async Task<KubeMQ.Grpc.QueuesDownstreamResponse> PollQueueAsync(
+    public async Task<KubeMQ.Grpc.QueuesDownstreamResponse> ReceiveQueueMessagesAsync(
         KubeMQ.Grpc.QueuesDownstreamRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -483,6 +499,19 @@ internal sealed class GrpcTransport : ITransport, IDisposable
         return (addr, 50000);
     }
 
+    private static void DisposeHandlersAndChannels(SocketsHttpHandler?[] handlers, GrpcChannel[] channels)
+    {
+        foreach (var h in handlers)
+        {
+            h?.Dispose();
+        }
+
+        foreach (var ch in channels)
+        {
+            ch?.Dispose();
+        }
+    }
+
     private static SocketsHttpHandler CreateHandler(KubeMQClientOptions opts)
     {
         return new SocketsHttpHandler
@@ -494,6 +523,9 @@ internal sealed class GrpcTransport : ITransport, IDisposable
                 : HttpKeepAlivePingPolicy.WithActiveRequests,
             EnableMultipleHttp2Connections = true,
             PooledConnectionIdleTimeout = Timeout.InfiniteTimeSpan,
+
+            // Performance: larger HTTP/2 flow-control window reduces round-trips for high-throughput streams.
+            InitialHttp2StreamWindowSize = 2 * 1024 * 1024,
         };
     }
 
@@ -511,14 +543,34 @@ internal sealed class GrpcTransport : ITransport, IDisposable
 
     private void DisposeChannel()
     {
-        _grpcChannel?.Dispose();
-        _grpcChannel = null;
-        _grpcClient = null;
+        var channels = _grpcChannels;
+        _grpcChannels = null;
+        _grpcClients = null;
+
+        if (channels != null)
+        {
+            foreach (var ch in channels)
+            {
+                ch.Dispose();
+            }
+        }
     }
 
     private KubeMQ.Grpc.kubemq.kubemqClient GetClientOrThrow()
     {
-        return _grpcClient ?? throw new KubeMQConnectionException(
-            "Not connected. Call ConnectAsync() first.");
+        var clients = _grpcClients;
+        if (clients is null || clients.Length == 0)
+        {
+            throw new KubeMQConnectionException(
+                "Not connected. Call ConnectAsync() first.");
+        }
+
+        if (clients.Length == 1)
+        {
+            return clients[0];
+        }
+
+        long idx = Interlocked.Increment(ref _roundRobinCounter);
+        return clients[(idx & long.MaxValue) % clients.Length];
     }
 }

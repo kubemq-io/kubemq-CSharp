@@ -10,8 +10,8 @@ public class KubeMQTimeoutException : KubeMQException
     public KubeMQTimeoutException()
         : base(
             "Deadline exceeded",
-            KubeMQErrorCode.DeadlineExceeded,
-            KubeMQErrorCategory.Timeout,
+            ErrorCode.DeadlineExceeded,
+            ErrorCategory.Timeout,
             isRetryable: true)
     {
     }
@@ -21,8 +21,8 @@ public class KubeMQTimeoutException : KubeMQException
     public KubeMQTimeoutException(string message)
         : base(
             message,
-            KubeMQErrorCode.DeadlineExceeded,
-            KubeMQErrorCategory.Timeout,
+            ErrorCode.DeadlineExceeded,
+            ErrorCategory.Timeout,
             isRetryable: true)
     {
     }
@@ -33,8 +33,8 @@ public class KubeMQTimeoutException : KubeMQException
     public KubeMQTimeoutException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.DeadlineExceeded,
-            KubeMQErrorCategory.Timeout,
+            ErrorCode.DeadlineExceeded,
+            ErrorCategory.Timeout,
             isRetryable: true,
             innerException: innerException)
     {

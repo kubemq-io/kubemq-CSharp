@@ -1,5 +1,6 @@
 // Events worker: fire-and-forget pub/sub via CreateEventStreamAsync + SubscribeToEventsAsync.
-// Uses IAsyncEnumerable for consumption. SendAsync requires clientId parameter.
+// v2: accepts channelName, rate, channelIndex, patternLatencyAccum.
+// Worker IDs: {role}-{pattern}-{4-digit-channel}-{3-digit-worker}
 
 using KubeMQ.Sdk.Client;
 using KubeMQ.Sdk.Events;
@@ -8,7 +9,7 @@ namespace KubeMQ.Burnin.Workers;
 
 /// <summary>
 /// Events pattern worker: fire-and-forget publish/subscribe.
-/// Producer uses CreateEventStreamAsync → EventStream.SendAsync(message, clientId, ct).
+/// Producer uses CreateEventStreamAsync -> EventStream.SendAsync(message, clientId, ct).
 /// Consumer uses SubscribeToEventsAsync returning IAsyncEnumerable&lt;EventReceived&gt;.
 /// </summary>
 public sealed class EventsWorker : BaseWorker
@@ -20,27 +21,35 @@ public sealed class EventsWorker : BaseWorker
     private readonly List<Task> _consumerTasks = new();
     private readonly List<Task> _producerTasks = new();
     private KubeMQClient? _client;
+    private readonly int _numProducers;
+    private readonly int _numConsumers;
+    private readonly bool _useGroup;
+    private readonly string _runId;
 
-    public EventsWorker(BurninConfig config, string runId)
-        : base(PatternName, config, $"csharp_burnin_{runId}_{PatternName}_001", config.Rates.Events)
+    public EventsWorker(BurninConfig config, string runId, string channelName, int channelIndex,
+        int producers, int consumers, bool consumerGroup, int rate,
+        LatencyAccumulator patternLatencyAccum)
+        : base(PatternName, config, channelName, rate, channelIndex, patternLatencyAccum)
     {
+        _numProducers = producers;
+        _numConsumers = consumers;
+        _useGroup = consumerGroup;
+        _runId = runId;
     }
 
     public override async Task StartConsumersAsync(KubeMQClient client)
     {
         _client = client;
-        int nConsumers = Config.Concurrency.EventsConsumers;
-        bool useGroup = Config.Concurrency.EventsConsumerGroup;
 
-        for (int i = 0; i < nConsumers; i++)
+        for (int i = 0; i < _numConsumers; i++)
         {
-            string consumerId = $"c-{PatternName}-{i:D3}";
-            string? group = useGroup ? $"csharp_burnin_{PatternName}_group" : null;
+            string consumerId = $"c-{PatternName}-{ChannelIndex:D4}-{i:D3}";
+            string group = _useGroup ? $"csharp_burnin_{_runId}_{PatternName}_{ChannelIndex:D4}_group" : string.Empty;
 
             var subscription = new EventsSubscription
             {
                 Channel = ChannelName,
-                Group = group ?? string.Empty,
+                Group = group,
             };
 
             var task = Task.Run(async () =>
@@ -74,7 +83,7 @@ public sealed class EventsWorker : BaseWorker
                 catch (OperationCanceledException) { /* normal shutdown */ }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"events subscription error: {ex.Message}");
+                    Console.Error.WriteLine($"events subscription error (ch{ChannelIndex:D4}): {ex.Message}");
                     RecordError("subscription_error");
                     IncReconnection();
                 }
@@ -83,7 +92,7 @@ public sealed class EventsWorker : BaseWorker
             _consumerTasks.Add(task);
         }
 
-        Console.WriteLine($"events consumers started on {ChannelName}");
+        Console.WriteLine($"events consumers started on {ChannelName} ({_numConsumers} consumers)");
         await Task.CompletedTask;
     }
 
@@ -91,14 +100,13 @@ public sealed class EventsWorker : BaseWorker
     {
         _eventStream = await client.CreateEventStreamAsync(null, ProducerCts.Token);
 
-        int nProducers = Config.Concurrency.EventsProducers;
-        for (int i = 0; i < nProducers; i++)
+        for (int i = 0; i < _numProducers; i++)
         {
-            string producerId = $"p-{PatternName}-{i:D3}";
+            string producerId = $"p-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _producerTasks.Add(Task.Run(() => RunProducerAsync(producerId)));
         }
 
-        Console.WriteLine($"events producers started on {ChannelName}");
+        Console.WriteLine($"events producers started on {ChannelName} ({_numProducers} producers)");
     }
 
     private async Task RunProducerAsync(string producerId)
@@ -129,10 +137,7 @@ public sealed class EventsWorker : BaseWorker
                     Tags = new Dictionary<string, string> { ["content_hash"] = encoded.CrcHex },
                 };
 
-                // F2: SendAsync requires clientId parameter
                 await _eventStream!.SendAsync(message, clientId, ct);
-
-                // Go#7: count after success (no exception = success for fire-and-forget)
                 RecordSend(producerId, seq, encoded.Body.Length);
             }
             catch (OperationCanceledException) { break; }

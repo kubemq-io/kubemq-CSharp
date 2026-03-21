@@ -30,7 +30,7 @@ for (int i = 0; i < 10; i++)
         Body = Encoding.UTF8.GetBytes($"Persistent event #{i}"),
     };
     var result = await stream.SendAsync(msg, options.ClientId!);
-    Console.WriteLine($"Event {result.EventId}: Sent={result.Sent}");
+    Console.WriteLine($"Event {result.Id}: Sent={result.Sent}");
 }
 
 await stream.CloseAsync();

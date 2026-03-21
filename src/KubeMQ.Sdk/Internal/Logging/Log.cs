@@ -327,4 +327,28 @@ internal static partial class Log
         Level = LogLevel.Debug,
         Message = "Stream reconnecting for {Channel}")]
     internal static partial void StreamReconnecting(ILogger logger, string channel);
+
+    [LoggerMessage(
+        EventId = 700,
+        Level = LogLevel.Warning,
+        Message = "Downstream settlement error for transaction {TransactionId}: {ErrorMessage}")]
+    internal static partial void DownstreamSettlementError(ILogger logger, string transactionId, string errorMessage);
+
+    [LoggerMessage(
+        EventId = 701,
+        Level = LogLevel.Warning,
+        Message = "Downstream stream closed by server (ref: {RefRequestId})")]
+    internal static partial void DownstreamCloseByServer(ILogger logger, string refRequestId);
+
+    [LoggerMessage(
+        EventId = 702,
+        Level = LogLevel.Error,
+        Message = "Downstream reader task failed")]
+    internal static partial void DownstreamReaderFailed(ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        EventId = 703,
+        Level = LogLevel.Information,
+        Message = "Downstream stream terminated")]
+    internal static partial void DownstreamStreamTerminated(ILogger logger);
 }

@@ -1,7 +1,7 @@
-// KubeMQ .NET SDK — QueuesStream: ReQueueAll via Stream
+// KubeMQ .NET SDK — QueuesStream: ReQueueAll via Batch
 //
-// This example demonstrates receiving messages via the downstream stream API
-// and re-routing all messages to a different channel using ReQueueAllDownstreamAsync.
+// This example demonstrates receiving messages via the downstream receiver API
+// and re-routing all messages to a different channel using batch.ReQueueAllAsync().
 // This is useful for dead-letter queue (DLQ) patterns.
 //
 // Prerequisites:
@@ -10,6 +10,7 @@
 //   - dotnet run
 
 using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.Queues;
 
 await using var client = new KubeMQClient(new KubeMQClientOptions
 {
@@ -19,16 +20,21 @@ await client.ConnectAsync();
 
 Console.WriteLine("Connected to KubeMQ server");
 
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queuesstream.requeue-all",
-    maxItems: 10,
-    waitTimeoutMs: 5000);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-Console.WriteLine($"Received {downstream.Messages.Count} messages, Transaction: {downstream.TransactionId}");
-
-if (downstream.Messages.Count > 0 && !string.IsNullOrEmpty(downstream.TransactionId))
+var batch = await receiver.PollAsync(new QueuePollRequest
 {
-    await client.ReQueueAllDownstreamAsync(downstream.TransactionId, "csharp-queuesstream.dlq");
+    Channel = "csharp-queuesstream.requeue-all",
+    MaxMessages = 10,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
+
+Console.WriteLine($"Received {batch.Messages.Count} messages");
+
+if (batch.HasMessages)
+{
+    await batch.ReQueueAllAsync("csharp-queuesstream.dlq");
     Console.WriteLine("All messages re-queued to 'csharp-queuesstream.dlq'.");
 }
 

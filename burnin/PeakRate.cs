@@ -6,6 +6,58 @@ using HdrHistogram;
 namespace KubeMQ.Burnin;
 
 /// <summary>
+/// 30-second sliding window rate tracker for actual_rate computation.
+/// Thread-safe via lock.
+/// </summary>
+public sealed class SlidingRateTracker
+{
+    private const int WindowSize = 30;
+    private readonly long[] _buckets = new long[WindowSize];
+    private int _idx;
+    private int _totalSlots;
+    private readonly object _lock = new();
+
+    public void Record()
+    {
+        lock (_lock) { _buckets[_idx]++; }
+    }
+
+    public void Advance()
+    {
+        lock (_lock)
+        {
+            _idx = (_idx + 1) % WindowSize;
+            _buckets[_idx] = 0;
+            if (_totalSlots < WindowSize) _totalSlots++;
+        }
+    }
+
+    public double Rate
+    {
+        get
+        {
+            lock (_lock)
+            {
+                if (_totalSlots == 0) return 0;
+                int filled = Math.Min(_totalSlots, WindowSize);
+                long sum = 0;
+                for (int i = 0; i < WindowSize; i++) sum += _buckets[i];
+                return (double)sum / filled;
+            }
+        }
+    }
+
+    public void Reset()
+    {
+        lock (_lock)
+        {
+            Array.Clear(_buckets);
+            _totalSlots = 0;
+        }
+    }
+}
+
+/// <summary>
 /// 10-bucket sliding window peak rate tracker.
 /// Each bucket represents one second. advance() is called once per second.
 /// Thread-safe via lock.

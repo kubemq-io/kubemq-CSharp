@@ -9,8 +9,8 @@ public class KubeMQOperationException : KubeMQException
     public KubeMQOperationException()
         : base(
             "Operation failed",
-            KubeMQErrorCode.Internal,
-            KubeMQErrorCategory.Fatal,
+            ErrorCode.Internal,
+            ErrorCategory.Fatal,
             isRetryable: false)
     {
     }
@@ -20,8 +20,8 @@ public class KubeMQOperationException : KubeMQException
     public KubeMQOperationException(string message)
         : base(
             message,
-            KubeMQErrorCode.Internal,
-            KubeMQErrorCategory.Fatal,
+            ErrorCode.Internal,
+            ErrorCategory.Fatal,
             isRetryable: false)
     {
     }
@@ -32,8 +32,8 @@ public class KubeMQOperationException : KubeMQException
     public KubeMQOperationException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.Internal,
-            KubeMQErrorCategory.Fatal,
+            ErrorCode.Internal,
+            ErrorCategory.Fatal,
             isRetryable: false,
             innerException: innerException)
     {
@@ -47,8 +47,8 @@ public class KubeMQOperationException : KubeMQException
     /// <param name="innerException">Optional inner exception.</param>
     public KubeMQOperationException(
         string message,
-        KubeMQErrorCode errorCode,
-        KubeMQErrorCategory category,
+        ErrorCode errorCode,
+        ErrorCategory category,
         bool isRetryable,
         Exception? innerException = null)
         : base(message, errorCode, category, isRetryable, innerException)

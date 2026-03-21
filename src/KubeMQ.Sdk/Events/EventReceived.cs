@@ -16,7 +16,7 @@ namespace KubeMQ.Sdk.Events;
 public record EventReceived
 {
     /// <summary>Gets the server-assigned event identifier.</summary>
-    public string? EventId { get; init; }
+    public string? Id { get; init; }
 
     /// <summary>Gets the channel the event was published to.</summary>
     public required string Channel { get; init; }

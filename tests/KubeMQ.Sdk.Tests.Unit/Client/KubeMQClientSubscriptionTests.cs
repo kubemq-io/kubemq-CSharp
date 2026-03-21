@@ -149,10 +149,10 @@ public class KubeMQClientSubscriptionTests
             KubeMQ.Grpc.Subscribe.Types.SubscribeType.Events);
     }
 
-    // --- SubscribeToEventStoreAsync ---
+    // --- SubscribeToEventsStoreAsync ---
 
     [Fact]
-    public async Task SubscribeToEventStoreAsync_ValidSubscription_YieldsEvents()
+    public async Task SubscribeToEventsStoreAsync_ValidSubscription_YieldsEvents()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -166,11 +166,11 @@ public class KubeMQClientSubscriptionTests
         var subscription = new EventStoreSubscription
         {
             Channel = "store-ch",
-            StartPosition = EventStoreStartPosition.FromFirst,
+            StartPosition = EventStoreStartPosition.StartFromFirst,
         };
 
         var received = new List<EventStoreReceived>();
-        await foreach (var evt in client.SubscribeToEventStoreAsync(subscription))
+        await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription))
         {
             received.Add(evt);
         }
@@ -182,10 +182,10 @@ public class KubeMQClientSubscriptionTests
     }
 
     [Theory]
-    [InlineData(EventStoreStartPosition.FromNew, KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartNewOnly)]
-    [InlineData(EventStoreStartPosition.FromFirst, KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartFromFirst)]
-    [InlineData(EventStoreStartPosition.FromLast, KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartFromLast)]
-    public async Task SubscribeToEventStoreAsync_StartPosition_MapsCorrectly(
+    [InlineData(EventStoreStartPosition.StartFromNew, KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartNewOnly)]
+    [InlineData(EventStoreStartPosition.StartFromFirst, KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartFromFirst)]
+    [InlineData(EventStoreStartPosition.StartFromLast, KubeMQ.Grpc.Subscribe.Types.EventsStoreType.StartFromLast)]
+    public async Task SubscribeToEventsStoreAsync_StartPosition_MapsCorrectly(
         EventStoreStartPosition position,
         KubeMQ.Grpc.Subscribe.Types.EventsStoreType expectedGrpc)
     {
@@ -204,7 +204,7 @@ public class KubeMQClientSubscriptionTests
             StartPosition = position,
         };
 
-        await foreach (var _ in client.SubscribeToEventStoreAsync(subscription))
+        await foreach (var _ in client.SubscribeToEventsStoreAsync(subscription))
         {
         }
 
@@ -215,7 +215,7 @@ public class KubeMQClientSubscriptionTests
     }
 
     [Fact]
-    public async Task SubscribeToEventStoreAsync_FromSequence_SetsSequenceValue()
+    public async Task SubscribeToEventsStoreAsync_FromSequence_SetsSequenceValue()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -229,11 +229,11 @@ public class KubeMQClientSubscriptionTests
         var subscription = new EventStoreSubscription
         {
             Channel = "store-ch",
-            StartPosition = EventStoreStartPosition.FromSequence,
+            StartPosition = EventStoreStartPosition.StartAtSequence,
             StartSequence = 100,
         };
 
-        await foreach (var _ in client.SubscribeToEventStoreAsync(subscription))
+        await foreach (var _ in client.SubscribeToEventsStoreAsync(subscription))
         {
         }
 
@@ -244,7 +244,7 @@ public class KubeMQClientSubscriptionTests
     }
 
     [Fact]
-    public async Task SubscribeToEventStoreAsync_FromTimeDelta_SetsDeltaValue()
+    public async Task SubscribeToEventsStoreAsync_FromTimeDelta_SetsDeltaValue()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -258,11 +258,11 @@ public class KubeMQClientSubscriptionTests
         var subscription = new EventStoreSubscription
         {
             Channel = "store-ch",
-            StartPosition = EventStoreStartPosition.FromTimeDelta,
+            StartPosition = EventStoreStartPosition.StartAtTimeDelta,
             StartTimeDeltaSeconds = 3600,
         };
 
-        await foreach (var _ in client.SubscribeToEventStoreAsync(subscription))
+        await foreach (var _ in client.SubscribeToEventsStoreAsync(subscription))
         {
         }
 

@@ -19,6 +19,7 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
 {
     private readonly ICredentialProvider? _credentialProvider;
     private readonly string? _staticToken;
+    private readonly Metadata? _cachedStaticHeaders;
     private readonly ILogger? _logger;
     private readonly SemaphoreSlim _tokenLock = new(1, 1);
 
@@ -39,6 +40,11 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         _credentialProvider = credentialProvider;
         _staticToken = staticToken;
         _logger = logger;
+
+        if (_staticToken is not null)
+        {
+            _cachedStaticHeaders = new Metadata { { "authorization", _staticToken } };
+        }
     }
 
     /// <inheritdoc />
@@ -156,6 +162,13 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         where TRequest : class
         where TResponse : class
     {
+        if (_cachedStaticHeaders is not null)
+        {
+            var opts = context.Options.WithHeaders(_cachedStaticHeaders);
+            return new ClientInterceptorContext<TRequest, TResponse>(
+                context.Method, context.Host, opts);
+        }
+
         var token = GetCachedTokenSync();
         if (token is null)
         {

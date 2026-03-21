@@ -1,8 +1,8 @@
 // KubeMQ .NET SDK — QueuesStream: Stream Receive
 //
 // This example demonstrates receiving messages from a queue using the downstream
-// stream API with transactional semantics. Messages are received with a transaction ID
-// that can be used for subsequent ack/nack/requeue operations.
+// receiver API with manual acknowledgment. Messages are polled and then
+// acknowledged as a batch using batch.AckAllAsync().
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -33,24 +33,26 @@ for (var i = 1; i <= 3; i++)
 
 Console.WriteLine("Sent 3 messages");
 
-// Receive via downstream stream
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    channel: "csharp-queuesstream.stream-receive",
-    maxItems: 10,
-    waitTimeoutMs: 5000,
-    autoAck: false);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-Console.WriteLine($"Received {downstream.Messages.Count} messages, Transaction: {downstream.TransactionId}");
+var batch = await receiver.PollAsync(new QueuePollRequest
+{
+    Channel = "csharp-queuesstream.stream-receive",
+    MaxMessages = 10,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
 
-foreach (var msg in downstream.Messages)
+Console.WriteLine($"Received {batch.Messages.Count} messages");
+
+foreach (var msg in batch.Messages)
 {
     Console.WriteLine($"  {msg.MessageId}: {Encoding.UTF8.GetString(msg.Body.Span)}");
 }
 
-// Acknowledge all messages in the transaction
-if (downstream.Messages.Count > 0 && !string.IsNullOrEmpty(downstream.TransactionId))
+if (batch.HasMessages)
 {
-    await client.AckAllDownstreamAsync(downstream.TransactionId);
+    await batch.AckAllAsync();
     Console.WriteLine("All messages acknowledged.");
 }
 

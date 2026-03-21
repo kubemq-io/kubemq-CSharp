@@ -12,20 +12,20 @@ namespace KubeMQ.Sdk.EventsStore;
 public enum EventStoreStartPosition
 {
     /// <summary>Receive only new messages published after subscription starts.</summary>
-    FromNew = 0,
+    StartFromNew = 0,
 
     /// <summary>Replay from the first stored message.</summary>
-    FromFirst = 1,
+    StartFromFirst = 1,
 
     /// <summary>Start from the most recent stored message.</summary>
-    FromLast = 2,
+    StartFromLast = 2,
 
     /// <summary>Start from a specific sequence number (set <see cref="EventStoreSubscription.StartSequence"/>).</summary>
-    FromSequence = 3,
+    StartAtSequence = 3,
 
     /// <summary>Start from a specific point in time (set <see cref="EventStoreSubscription.StartTime"/>).</summary>
-    FromTime = 4,
+    StartAtTime = 4,
 
     /// <summary>Start from a relative time offset in seconds (set <see cref="EventStoreSubscription.StartTimeDeltaSeconds"/>).</summary>
-    FromTimeDelta = 5,
+    StartAtTimeDelta = 5,
 }

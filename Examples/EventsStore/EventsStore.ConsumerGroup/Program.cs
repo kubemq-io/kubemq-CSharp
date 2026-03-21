@@ -22,11 +22,11 @@ var subscription = new EventStoreSubscription
 {
     Channel = "csharp-eventsstore.consumer-group",
     Group = "my-consumer-group",
-    StartPosition = EventStoreStartPosition.FromFirst,
+    StartPosition = EventStoreStartPosition.StartFromFirst,
 };
 
 Console.WriteLine("Subscribed with consumer group 'my-consumer-group'. Waiting for events...");
-await foreach (var evt in client.SubscribeToEventStoreAsync(subscription))
+await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription))
 {
     Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
 }

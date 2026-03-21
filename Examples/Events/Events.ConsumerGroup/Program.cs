@@ -42,7 +42,7 @@ await Task.Delay(1000);
 
 for (var i = 1; i <= 5; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "csharp-events.consumer-group",
         Body = Encoding.UTF8.GetBytes($"Group Event #{i}"),

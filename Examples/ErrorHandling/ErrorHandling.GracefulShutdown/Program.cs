@@ -47,7 +47,7 @@ await Task.Delay(1000);
 // Publish a few events
 for (var i = 1; i <= 3; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "csharp-errorhandling.graceful-shutdown",
         Body = Encoding.UTF8.GetBytes($"Event #{i}"),

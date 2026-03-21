@@ -95,7 +95,7 @@ public class RetryHandlerTests : IDisposable
             CancellationToken.None);
 
         var ex = await act.Should().ThrowAsync<KubeMQRetryExhaustedException>();
-        ex.Which.ErrorCode.Should().Be(KubeMQErrorCode.RetryExhausted);
+        ex.Which.ErrorCode.Should().Be(ErrorCode.RetryExhausted);
         ex.Which.InnerException.Should().BeOfType<KubeMQConnectionException>();
         ex.Which.Operation.Should().Be("TestOp");
         ex.Which.Channel.Should().Be("test-channel");
@@ -400,8 +400,8 @@ public class RetryHandlerTests : IDisposable
                 calls++;
                 throw new KubeMQOperationException(
                     "unknown error",
-                    KubeMQErrorCode.Unknown,
-                    KubeMQErrorCategory.Transient,
+                    ErrorCode.Unknown,
+                    ErrorCategory.Transient,
                     isRetryable: true);
             },
             "TestOp",

@@ -10,8 +10,8 @@ public class KubeMQRetryExhaustedException : KubeMQException
     public KubeMQRetryExhaustedException()
         : base(
             "All retry attempts exhausted",
-            KubeMQErrorCode.RetryExhausted,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.RetryExhausted,
+            ErrorCategory.Transient,
             isRetryable: false)
     {
     }
@@ -21,8 +21,8 @@ public class KubeMQRetryExhaustedException : KubeMQException
     public KubeMQRetryExhaustedException(string message)
         : base(
             message,
-            KubeMQErrorCode.RetryExhausted,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.RetryExhausted,
+            ErrorCategory.Transient,
             isRetryable: false)
     {
     }
@@ -33,8 +33,8 @@ public class KubeMQRetryExhaustedException : KubeMQException
     public KubeMQRetryExhaustedException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.RetryExhausted,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.RetryExhausted,
+            ErrorCategory.Transient,
             isRetryable: false,
             innerException: innerException)
     {
@@ -52,8 +52,8 @@ public class KubeMQRetryExhaustedException : KubeMQException
         Exception lastException)
         : base(
             message,
-            KubeMQErrorCode.RetryExhausted,
-            KubeMQErrorCategory.Transient,
+            ErrorCode.RetryExhausted,
+            ErrorCategory.Transient,
             isRetryable: false,
             innerException: lastException)
     {

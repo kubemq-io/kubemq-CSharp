@@ -42,7 +42,7 @@ await Task.Delay(1000);
 // Publish 5 events
 for (var i = 1; i <= 5; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "csharp-events.basic-pubsub",
         Body = Encoding.UTF8.GetBytes($"Event #{i}"),

@@ -35,11 +35,13 @@ await foreach (var query in client.SubscribeToQueriesAsync(
     // Process query and respond with data
     var responseBody = Encoding.UTF8.GetBytes("{\"id\":42,\"name\":\"Alice\",\"email\":\"alice@example.com\"}");
 
-    await client.SendQueryResponseAsync(
-        requestId: query.RequestId,
-        replyChannel: query.ReplyChannel!,
-        body: responseBody,
-        executed: true);
+    await client.SendQueryResponseAsync(new QueryResponse
+    {
+        RequestId = query.RequestId,
+        ReplyChannel = query.ReplyChannel!,
+        Body = responseBody,
+        Executed = true,
+    });
 
     Console.WriteLine("  -> Responded with user data");
 }

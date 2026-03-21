@@ -18,7 +18,7 @@ internal sealed class StateMachine : IDisposable
 {
     private readonly SemaphoreSlim _transitionLock = new(1, 1);
     private readonly ILogger _logger;
-    private int _state = (int)ConnectionState.Disconnected;
+    private int _state = (int)ConnectionState.Idle;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StateMachine"/> class.
@@ -99,12 +99,12 @@ internal sealed class StateMachine : IDisposable
     }
 
     /// <summary>
-    /// Forces the state to <see cref="ConnectionState.Disposed"/> regardless of current state.
+    /// Forces the state to <see cref="ConnectionState.Closed"/> regardless of current state.
     /// </summary>
     /// <returns>The state before the forced transition.</returns>
     internal ConnectionState ForceDisposed()
     {
-        int previous = Interlocked.Exchange(ref _state, (int)ConnectionState.Disposed);
+        int previous = Interlocked.Exchange(ref _state, (int)ConnectionState.Closed);
         return (ConnectionState)previous;
     }
 }

@@ -21,11 +21,11 @@ await client.ConnectAsync();
 var subscription = new EventStoreSubscription
 {
     Channel = "csharp-eventsstore.start-from-last",
-    StartPosition = EventStoreStartPosition.FromLast,
+    StartPosition = EventStoreStartPosition.StartFromLast,
 };
 
-Console.WriteLine("Subscribed with FromLast. Replaying from most recent event...");
-await foreach (var evt in client.SubscribeToEventStoreAsync(subscription))
+Console.WriteLine("Subscribed with StartFromLast. Replaying from most recent event...");
+await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription))
 {
     Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
 }

@@ -42,7 +42,7 @@ await Task.Delay(1000);
 // Publish events — each subscriber receives all of them
 for (var i = 1; i <= 3; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "csharp-patterns.fan-out",
         Body = Encoding.UTF8.GetBytes($"Broadcast #{i}"),

@@ -2,7 +2,7 @@
 //
 // This example demonstrates sending a queue message and receiving it with acknowledgment.
 // Queue messages are pull-based and processed by exactly one consumer.
-// Uses ReceiveQueueDownstreamAsync for transactional message settlement.
+// Uses QueueDownstreamReceiver.PollAsync for transactional message settlement.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -31,16 +31,20 @@ var sendResult = await client.SendQueueMessageAsync(new QueueMessage
 
 Console.WriteLine($"Sent message: {sendResult.MessageId}");
 
-// Receive via downstream stream (supports manual settlement)
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    channel: "csharp-queues.send-receive",
-    maxItems: 1,
-    waitTimeoutMs: 10000,
-    autoAck: false);
+// Receive via downstream receiver (supports manual settlement)
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-if (downstream.Messages.Count > 0)
+var batch = await receiver.PollAsync(new QueuePollRequest
 {
-    foreach (var msg in downstream.Messages)
+    Channel = "csharp-queues.send-receive",
+    MaxMessages = 1,
+    WaitTimeoutSeconds = 10,
+    AutoAck = false,
+});
+
+if (batch.HasMessages)
+{
+    foreach (var msg in batch.Messages)
     {
         Console.WriteLine($"Received: {Encoding.UTF8.GetString(msg.Body.Span)}");
         await msg.AckAsync();

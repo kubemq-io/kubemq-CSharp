@@ -13,11 +13,11 @@ namespace KubeMQ.Sdk.EventsStore;
 /// from any thread via the <see cref="CancellationToken"/> passed to the subscribe method.
 /// </para>
 /// <para>
-/// Default start position is <see cref="EventStoreStartPosition.FromNew"/>,
+/// Default start position is <see cref="EventStoreStartPosition.StartFromNew"/>,
 /// which receives only events published after the subscription is established.
 /// To replay existing events, set <see cref="StartPosition"/> to
-/// <see cref="EventStoreStartPosition.FromFirst"/>, <see cref="EventStoreStartPosition.FromSequence"/>,
-/// <see cref="EventStoreStartPosition.FromTime"/>, or <see cref="EventStoreStartPosition.FromTimeDelta"/>.
+/// <see cref="EventStoreStartPosition.StartFromFirst"/>, <see cref="EventStoreStartPosition.StartAtSequence"/>,
+/// <see cref="EventStoreStartPosition.StartAtTime"/>, or <see cref="EventStoreStartPosition.StartAtTimeDelta"/>.
 /// </para>
 /// </remarks>
 /// <threadsafety static="true" instance="true"/>
@@ -29,24 +29,24 @@ public class EventStoreSubscription
     /// <summary>Gets or sets the optional consumer group for load-balanced consumption.</summary>
     public string? Group { get; set; }
 
-    /// <summary>Gets or sets where to begin reading from the store. Default: <see cref="EventStoreStartPosition.FromNew"/>.</summary>
-    public EventStoreStartPosition StartPosition { get; set; } = EventStoreStartPosition.FromNew;
+    /// <summary>Gets or sets where to begin reading from the store. Default: <see cref="EventStoreStartPosition.StartFromNew"/>.</summary>
+    public EventStoreStartPosition StartPosition { get; set; } = EventStoreStartPosition.StartFromNew;
 
     /// <summary>
     /// Gets or sets the sequence number to start from. Required when <see cref="StartPosition"/> is
-    /// <see cref="EventStoreStartPosition.FromSequence"/>.
+    /// <see cref="EventStoreStartPosition.StartAtSequence"/>.
     /// </summary>
     public long? StartSequence { get; set; }
 
     /// <summary>
     /// Gets or sets the point in time to start from. Required when <see cref="StartPosition"/> is
-    /// <see cref="EventStoreStartPosition.FromTime"/>.
+    /// <see cref="EventStoreStartPosition.StartAtTime"/>.
     /// </summary>
     public DateTimeOffset? StartTime { get; set; }
 
     /// <summary>
     /// Gets or sets the relative time offset in seconds from now. Required when <see cref="StartPosition"/> is
-    /// <see cref="EventStoreStartPosition.FromTimeDelta"/>.
+    /// <see cref="EventStoreStartPosition.StartAtTimeDelta"/>.
     /// Must be positive (e.g., 3600 means "start from 1 hour ago").
     /// </summary>
     public int? StartTimeDeltaSeconds { get; set; }
@@ -79,20 +79,20 @@ public class EventStoreSubscription
 
         switch (StartPosition)
         {
-            case EventStoreStartPosition.FromSequence:
+            case EventStoreStartPosition.StartAtSequence:
                 if (StartSequence is null or <= 0)
                 {
                     throw new KubeMQConfigurationException(
-                        "EventStoreSubscription: StartSequence must be a positive value (> 0) when StartPosition is FromSequence.");
+                        "EventStoreSubscription: StartSequence must be a positive value (> 0) when StartPosition is StartAtSequence.");
                 }
 
                 break;
 
-            case EventStoreStartPosition.FromTime:
+            case EventStoreStartPosition.StartAtTime:
                 if (StartTime is null)
                 {
                     throw new KubeMQConfigurationException(
-                        "EventStoreSubscription: StartTime is required when StartPosition is FromTime.");
+                        "EventStoreSubscription: StartTime is required when StartPosition is StartAtTime.");
                 }
 
                 if (StartTime.Value.ToUnixTimeSeconds() <= 0)
@@ -103,11 +103,11 @@ public class EventStoreSubscription
 
                 break;
 
-            case EventStoreStartPosition.FromTimeDelta:
+            case EventStoreStartPosition.StartAtTimeDelta:
                 if (StartTimeDeltaSeconds is null or <= 0)
                 {
                     throw new KubeMQConfigurationException(
-                        "EventStoreSubscription: StartTimeDeltaSeconds must be a positive value when StartPosition is FromTimeDelta.");
+                        "EventStoreSubscription: StartTimeDeltaSeconds must be a positive value when StartPosition is StartAtTimeDelta.");
                 }
 
                 break;

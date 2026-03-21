@@ -1,7 +1,7 @@
 // KubeMQ .NET SDK — Queues: Poll Mode
 //
 // This example demonstrates using the poll-based queue consumption pattern.
-// Messages are fetched on demand using PollQueueAsync, giving the consumer
+// Messages are fetched on demand using ReceiveQueueMessagesAsync, giving the consumer
 // full control over when to receive and process messages.
 //
 // Prerequisites:
@@ -34,7 +34,7 @@ Console.WriteLine("Sent 10 messages");
 var batch = 1;
 while (true)
 {
-    var response = await client.PollQueueAsync(new QueuePollRequest
+    var response = await client.ReceiveQueueMessagesAsync(new QueuePollRequest
     {
         Channel = "csharp-queues.poll-mode",
         MaxMessages = 3,

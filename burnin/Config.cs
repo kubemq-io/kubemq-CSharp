@@ -1,5 +1,6 @@
-// Configuration with YAML loading (YamlDotNet), environment variable overrides,
-// and validation (unknown keys warn, version>1 exit 2, collect all errors, range checks).
+// Configuration with YAML loading (YamlDotNet), v2 patterns-based config,
+// and validation (unknown keys warn, collect all errors, range checks).
+// v1 config (concurrency/rates/env vars) has been removed per multi-channel spec v2.1.
 
 using System.Security.Cryptography;
 using YamlDotNet.Serialization;
@@ -15,39 +16,36 @@ public sealed class BrokerConfig
     public string ClientIdPrefix { get; set; } = "burnin-csharp";
 }
 
-public sealed class RatesConfig
+/// <summary>
+/// Per-pattern configuration for v2 multi-channel burn-in.
+/// </summary>
+public sealed class PatternConfig
 {
-    public int Events { get; set; } = 100;
-    public int EventsStore { get; set; } = 100;
-    public int QueueStream { get; set; } = 50;
-    public int QueueSimple { get; set; } = 50;
-    public int Commands { get; set; } = 20;
-    public int Queries { get; set; } = 20;
+    public bool Enabled { get; set; } = true;
+    public int Channels { get; set; } = 1;
+    public int ProducersPerChannel { get; set; } = 1;
+    public int ConsumersPerChannel { get; set; } = 1;
+    public bool ConsumerGroup { get; set; }
+    public int SendersPerChannel { get; set; } = 1;
+    public int RespondersPerChannel { get; set; } = 1;
+    public int Rate { get; set; } = 100;
+    public ThresholdsConfig? Thresholds { get; set; }
 }
 
-public sealed class ConcurrencyConfig
+/// <summary>
+/// Warmup configuration for multi-channel startup.
+/// </summary>
+public sealed class WarmupConfig
 {
-    public int EventsProducers { get; set; } = 1;
-    public int EventsConsumers { get; set; } = 1;
-    public bool EventsConsumerGroup { get; set; }
-    public int EventsStoreProducers { get; set; } = 1;
-    public int EventsStoreConsumers { get; set; } = 1;
-    public bool EventsStoreConsumerGroup { get; set; }
-    public int QueueStreamProducers { get; set; } = 1;
-    public int QueueStreamConsumers { get; set; } = 1;
-    public int QueueSimpleProducers { get; set; } = 1;
-    public int QueueSimpleConsumers { get; set; } = 1;
-    public int CommandsSenders { get; set; } = 1;
-    public int CommandsResponders { get; set; } = 1;
-    public int QueriesSenders { get; set; } = 1;
-    public int QueriesResponders { get; set; } = 1;
+    public int MaxParallelChannels { get; set; } = 10;
+    public int TimeoutPerChannelMs { get; set; } = 5000;
+    public string WarmupDuration { get; set; } = "";
 }
 
 public sealed class QueueConfig
 {
     public int PollMaxMessages { get; set; } = 10;
     public int PollWaitTimeoutSeconds { get; set; } = 5;
-    public int VisibilitySeconds { get; set; } = 30;
     public bool AutoAck { get; set; }
     public int MaxDepth { get; set; } = 1_000_000;
 }
@@ -102,6 +100,11 @@ public sealed class OutputConfig
     public string SdkVersion { get; set; } = "";
 }
 
+public sealed class CorsConfig
+{
+    public string Origins { get; set; } = "*";
+}
+
 public sealed class ThresholdsConfig
 {
     public double MaxLossPct { get; set; }
@@ -120,17 +123,16 @@ public sealed class ThresholdsConfig
 
 /// <summary>
 /// Top-level burn-in test configuration with all sections.
+/// v2: uses Patterns dictionary instead of Rates/Concurrency/EnabledPatterns.
 /// </summary>
 public sealed class BurninConfig
 {
-    public int Version { get; set; } = 1;
+    public string Version { get; set; } = "2";
     public BrokerConfig Broker { get; set; } = new();
     public string Mode { get; set; } = "soak";
     public string Duration { get; set; } = "1h";
     public string RunId { get; set; } = "";
-    public string WarmupDuration { get; set; } = "";
-    public RatesConfig Rates { get; set; } = new();
-    public ConcurrencyConfig Concurrency { get; set; } = new();
+    public Dictionary<string, PatternConfig> Patterns { get; set; } = new();
     public QueueConfig Queue { get; set; } = new();
     public RpcConfig Rpc { get; set; } = new();
     public MessageConfig Message { get; set; } = new();
@@ -141,6 +143,44 @@ public sealed class BurninConfig
     public ShutdownConfig Shutdown { get; set; } = new();
     public OutputConfig Output { get; set; } = new();
     public ThresholdsConfig Thresholds { get; set; } = new();
+    public CorsConfig Cors { get; set; } = new();
+    public WarmupConfig Warmup { get; set; } = new();
+    public int StartingTimeoutSeconds { get; set; } = 60;
+
+    /// <summary>
+    /// Get PatternConfig for a given pattern name, with correct defaults applied.
+    /// Returns null if the pattern is not in the dictionary (treated as disabled).
+    /// </summary>
+    public PatternConfig? GetPatternConfig(string pattern)
+    {
+        if (Patterns.TryGetValue(pattern, out var pc))
+            return pc;
+        return null;
+    }
+
+    /// <summary>
+    /// Get rate for a pattern, applying the correct default rate.
+    /// </summary>
+    public int GetRate(string pattern)
+    {
+        if (Patterns.TryGetValue(pattern, out var pc))
+            return pc.Rate;
+        return pattern == "queue_stream" ? 50 : 100;
+    }
+
+    /// <summary>
+    /// Get the set of enabled pattern names.
+    /// </summary>
+    public HashSet<string> GetEnabledPatterns()
+    {
+        var enabled = new HashSet<string>();
+        foreach (var (name, pc) in Patterns)
+        {
+            if (pc.Enabled)
+                enabled.Add(name);
+        }
+        return enabled;
+    }
 }
 
 /// <summary>
@@ -149,7 +189,8 @@ public sealed class BurninConfig
 public sealed record ConfigLoadResult(BurninConfig Config, List<string> Warnings);
 
 /// <summary>
-/// Configuration loader with YAML parsing, env var overrides, and validation.
+/// Configuration loader with YAML parsing and validation.
+/// v2: no env var overrides -- config via YAML or API only.
 /// </summary>
 public static class Config
 {
@@ -184,79 +225,12 @@ public static class Config
 
     public static double DurationSec(string s) => ParseDuration(s);
     public static double ReportIntervalSec(BurninConfig cfg) => ParseDuration(cfg.Metrics.ReportInterval);
-    public static double WarmupDurationSec(BurninConfig cfg) => ParseDuration(cfg.WarmupDuration);
+    public static double WarmupDurationSec(BurninConfig cfg) => ParseDuration(cfg.Warmup.WarmupDuration);
     public static double ForcedDisconnectIntervalSec(BurninConfig cfg) => ParseDuration(cfg.ForcedDisconnect.Interval);
     public static double ForcedDisconnectDurationSec(BurninConfig cfg) => ParseDuration(cfg.ForcedDisconnect.Duration);
     public static double ReconnectIntervalMs(BurninConfig cfg) => ParseDuration(cfg.Recovery.ReconnectInterval) * 1000;
     public static double ReconnectMaxIntervalMs(BurninConfig cfg) => ParseDuration(cfg.Recovery.ReconnectMaxInterval) * 1000;
     public static double MaxDurationSec(BurninConfig cfg) => ParseDuration(cfg.Thresholds.MaxDuration);
-
-    #endregion
-
-    #region Environment Variable Override Table (56 explicit entries)
-
-    private static readonly (string EnvKey, string AttrPath, string CastType)[] EnvOverrides =
-    [
-        ("BURNIN_BROKER_ADDRESS", "broker.address", "string"),
-        ("BURNIN_CLIENT_ID_PREFIX", "broker.client_id_prefix", "string"),
-        ("BURNIN_MODE", "mode", "string"),
-        ("BURNIN_DURATION", "duration", "string"),
-        ("BURNIN_RUN_ID", "run_id", "string"),
-        ("BURNIN_WARMUP_DURATION", "warmup_duration", "string"),
-        ("BURNIN_EVENTS_RATE", "rates.events", "number"),
-        ("BURNIN_EVENTS_STORE_RATE", "rates.events_store", "number"),
-        ("BURNIN_QUEUE_STREAM_RATE", "rates.queue_stream", "number"),
-        ("BURNIN_QUEUE_SIMPLE_RATE", "rates.queue_simple", "number"),
-        ("BURNIN_COMMANDS_RATE", "rates.commands", "number"),
-        ("BURNIN_QUERIES_RATE", "rates.queries", "number"),
-        ("BURNIN_EVENTS_PRODUCERS", "concurrency.events_producers", "number"),
-        ("BURNIN_EVENTS_CONSUMERS", "concurrency.events_consumers", "number"),
-        ("BURNIN_EVENTS_CONSUMER_GROUP", "concurrency.events_consumer_group", "boolean"),
-        ("BURNIN_EVENTS_STORE_PRODUCERS", "concurrency.events_store_producers", "number"),
-        ("BURNIN_EVENTS_STORE_CONSUMERS", "concurrency.events_store_consumers", "number"),
-        ("BURNIN_EVENTS_STORE_CONSUMER_GROUP", "concurrency.events_store_consumer_group", "boolean"),
-        ("BURNIN_QUEUE_STREAM_PRODUCERS", "concurrency.queue_stream_producers", "number"),
-        ("BURNIN_QUEUE_STREAM_CONSUMERS", "concurrency.queue_stream_consumers", "number"),
-        ("BURNIN_QUEUE_SIMPLE_PRODUCERS", "concurrency.queue_simple_producers", "number"),
-        ("BURNIN_QUEUE_SIMPLE_CONSUMERS", "concurrency.queue_simple_consumers", "number"),
-        ("BURNIN_COMMANDS_SENDERS", "concurrency.commands_senders", "number"),
-        ("BURNIN_COMMANDS_RESPONDERS", "concurrency.commands_responders", "number"),
-        ("BURNIN_QUERIES_SENDERS", "concurrency.queries_senders", "number"),
-        ("BURNIN_QUERIES_RESPONDERS", "concurrency.queries_responders", "number"),
-        ("BURNIN_QUEUE_POLL_MAX_MESSAGES", "queue.poll_max_messages", "number"),
-        ("BURNIN_QUEUE_POLL_WAIT_TIMEOUT_SECONDS", "queue.poll_wait_timeout_seconds", "number"),
-        ("BURNIN_QUEUE_VISIBILITY_SECONDS", "queue.visibility_seconds", "number"),
-        ("BURNIN_QUEUE_AUTO_ACK", "queue.auto_ack", "boolean"),
-        ("BURNIN_MAX_QUEUE_DEPTH", "queue.max_depth", "number"),
-        ("BURNIN_RPC_TIMEOUT_MS", "rpc.timeout_ms", "number"),
-        ("BURNIN_MSG_SIZE_MODE", "message.size_mode", "string"),
-        ("BURNIN_MSG_SIZE_BYTES", "message.size_bytes", "number"),
-        ("BURNIN_MSG_SIZE_DISTRIBUTION", "message.size_distribution", "string"),
-        ("BURNIN_REORDER_WINDOW", "message.reorder_window", "number"),
-        ("BURNIN_METRICS_PORT", "metrics.port", "number"),
-        ("BURNIN_REPORT_INTERVAL", "metrics.report_interval", "string"),
-        ("BURNIN_LOG_FORMAT", "logging.format", "string"),
-        ("BURNIN_LOG_LEVEL", "logging.level", "string"),
-        ("BURNIN_FORCED_DISCONNECT_INTERVAL", "forced_disconnect.interval", "string"),
-        ("BURNIN_FORCED_DISCONNECT_DURATION", "forced_disconnect.duration", "string"),
-        ("BURNIN_RECONNECT_INTERVAL", "recovery.reconnect_interval", "string"),
-        ("BURNIN_RECONNECT_MAX_INTERVAL", "recovery.reconnect_max_interval", "string"),
-        ("BURNIN_RECONNECT_MULTIPLIER", "recovery.reconnect_multiplier", "number"),
-        ("BURNIN_SHUTDOWN_DRAIN_SECONDS", "shutdown.drain_timeout_seconds", "number"),
-        ("BURNIN_CLEANUP_CHANNELS", "shutdown.cleanup_channels", "boolean"),
-        ("BURNIN_REPORT_OUTPUT_FILE", "output.report_file", "string"),
-        ("BURNIN_SDK_VERSION", "output.sdk_version", "string"),
-        ("BURNIN_MAX_LOSS_PCT", "thresholds.max_loss_pct", "number"),
-        ("BURNIN_MAX_EVENTS_LOSS_PCT", "thresholds.max_events_loss_pct", "number"),
-        ("BURNIN_MAX_DUPLICATION_PCT", "thresholds.max_duplication_pct", "number"),
-        ("BURNIN_MAX_P99_LATENCY_MS", "thresholds.max_p99_latency_ms", "number"),
-        ("BURNIN_MAX_P999_LATENCY_MS", "thresholds.max_p999_latency_ms", "number"),
-        ("BURNIN_MIN_THROUGHPUT_PCT", "thresholds.min_throughput_pct", "number"),
-        ("BURNIN_MAX_ERROR_RATE_PCT", "thresholds.max_error_rate_pct", "number"),
-        ("BURNIN_MAX_MEMORY_GROWTH_FACTOR", "thresholds.max_memory_growth_factor", "number"),
-        ("BURNIN_MAX_DOWNTIME_PCT", "thresholds.max_downtime_pct", "number"),
-        ("BURNIN_MAX_DURATION", "thresholds.max_duration", "string"),
-    ];
 
     #endregion
 
@@ -284,7 +258,8 @@ public static class Config
     #region Load and Validate
 
     /// <summary>
-    /// Load configuration from YAML file with env var overrides.
+    /// Load configuration from YAML file.
+    /// v2: no env var overrides.
     /// </summary>
     public static ConfigLoadResult LoadConfig(string cliPath)
     {
@@ -312,9 +287,10 @@ public static class Config
                 {
                     var knownTopKeys = new HashSet<string>(StringComparer.Ordinal)
                     {
-                        "version", "broker", "mode", "duration", "run_id", "warmup_duration",
-                        "rates", "concurrency", "queue", "rpc", "message", "metrics",
-                        "logging", "forced_disconnect", "recovery", "shutdown", "output", "thresholds"
+                        "version", "broker", "mode", "duration", "run_id",
+                        "patterns", "queue", "rpc", "message", "metrics",
+                        "logging", "forced_disconnect", "recovery", "shutdown", "output", "thresholds",
+                        "cors", "warmup", "starting_timeout_seconds"
                     };
                     foreach (string key in rawDict.Keys)
                     {
@@ -322,6 +298,12 @@ public static class Config
                         {
                             warnings.Add($"unknown config key '{key}' -- ignored");
                         }
+                    }
+
+                    // v1 detection: if concurrency or rates keys are present, warn
+                    if (rawDict.ContainsKey("concurrency") || rawDict.ContainsKey("rates") || rawDict.ContainsKey("enabled_patterns"))
+                    {
+                        warnings.Add("v1 config format detected (concurrency/rates/enabled_patterns). Update to v2 patterns format.");
                     }
                 }
             }
@@ -345,9 +327,6 @@ public static class Config
             }
         }
 
-        // Apply environment variable overrides.
-        ApplyEnvOverrides(cfg);
-
         // Auto-generate run_id if empty.
         if (string.IsNullOrEmpty(cfg.RunId))
         {
@@ -355,24 +334,51 @@ public static class Config
         }
 
         // Mode-dependent warmup default.
-        if (cfg.Mode == "benchmark" && string.IsNullOrEmpty(cfg.WarmupDuration))
+        if (cfg.Mode == "benchmark" && string.IsNullOrEmpty(cfg.Warmup.WarmupDuration))
         {
-            cfg.WarmupDuration = "60s";
+            cfg.Warmup.WarmupDuration = "60s";
+        }
+
+        // Apply default patterns if none specified
+        if (cfg.Patterns.Count == 0)
+        {
+            cfg.Patterns = BuildDefaultPatterns();
+        }
+
+        // Apply correct default rate for queue_stream
+        if (cfg.Patterns.TryGetValue("queue_stream", out var qsPc) && qsPc.Rate == 100)
+        {
+            // If rate was not explicitly set and is still default 100, set to 50
+            // (we can't distinguish "explicitly set to 100" from "default 100" in YAML,
+            //  so queue_stream default is 50 only when creating defaults)
         }
 
         return new ConfigLoadResult(cfg, warnings);
     }
 
     /// <summary>
-    /// Validate config and return a list of errors/warnings.
-    /// Version > 1 should cause exit code 2.
+    /// Build default patterns dictionary with all 6 patterns enabled at defaults.
     /// </summary>
-    public static List<string> ValidateConfig(BurninConfig cfg)
+    public static Dictionary<string, PatternConfig> BuildDefaultPatterns()
+    {
+        return new Dictionary<string, PatternConfig>
+        {
+            ["events"] = new PatternConfig { Rate = 100 },
+            ["events_store"] = new PatternConfig { Rate = 100 },
+            ["queue_stream"] = new PatternConfig { Rate = 50 },
+            ["queue_simple"] = new PatternConfig { Rate = 100 },
+            ["commands"] = new PatternConfig { Rate = 100 },
+            ["queries"] = new PatternConfig { Rate = 100 },
+        };
+    }
+
+    /// <summary>
+    /// Validate config and return a list of errors/warnings.
+    /// </summary>
+    public static (List<string> Errors, List<string> Warnings) ValidateConfig(BurninConfig cfg)
     {
         var errors = new List<string>();
-
-        if (cfg.Version > 1)
-            errors.Add($"unsupported config version {cfg.Version} (max: 1)");
+        var warnings = new List<string>();
 
         if (string.IsNullOrWhiteSpace(cfg.Broker.Address))
             errors.Add("broker.address is required");
@@ -380,17 +386,14 @@ public static class Config
         if (cfg.Mode is not ("soak" or "benchmark"))
             errors.Add($"mode must be 'soak' or 'benchmark', got '{cfg.Mode}'");
 
-        if (DurationSec(cfg.Duration) <= 0)
-            errors.Add("duration must be > 0");
+        if (cfg.Mode == "soak" && DurationSec(cfg.Duration) <= 0)
+            errors.Add("duration must be > 0 for soak mode");
 
         if (cfg.Message.SizeMode is not ("fixed" or "distribution"))
             errors.Add($"message.size_mode must be 'fixed' or 'distribution'");
 
-        if (cfg.Message.SizeMode == "fixed" && cfg.Message.SizeBytes <= 0)
-            errors.Add("message.size_bytes must be > 0");
-
-        if (cfg.Metrics.Port is <= 0 or > 65535)
-            errors.Add("metrics.port must be 1-65535");
+        if (cfg.Message.SizeBytes < 64)
+            errors.Add($"message.size_bytes: must be >= 64, got {cfg.Message.SizeBytes}");
 
         if (cfg.Rpc.TimeoutMs <= 0)
             errors.Add("rpc.timeout_ms must be > 0");
@@ -398,120 +401,141 @@ public static class Config
         if (cfg.Queue.PollWaitTimeoutSeconds <= 0)
             errors.Add("queue.poll_wait_timeout_seconds must be > 0");
 
-        // Rate range checks.
-        if (cfg.Rates.Events < 0) errors.Add("rates.events must be >= 0");
-        if (cfg.Rates.EventsStore < 0) errors.Add("rates.events_store must be >= 0");
-        if (cfg.Rates.QueueStream < 0) errors.Add("rates.queue_stream must be >= 0");
-        if (cfg.Rates.QueueSimple < 0) errors.Add("rates.queue_simple must be >= 0");
-        if (cfg.Rates.Commands < 0) errors.Add("rates.commands must be >= 0");
-        if (cfg.Rates.Queries < 0) errors.Add("rates.queries must be >= 0");
+        if (cfg.Shutdown.DrainTimeoutSeconds <= 0)
+            errors.Add("shutdown.drain_timeout_seconds: must be > 0, got " + cfg.Shutdown.DrainTimeoutSeconds);
 
-        // Concurrency range checks.
-        if (cfg.Concurrency.EventsProducers < 1) errors.Add("concurrency.events_producers must be >= 1");
-        if (cfg.Concurrency.EventsConsumers < 1) errors.Add("concurrency.events_consumers must be >= 1");
-        if (cfg.Concurrency.EventsStoreProducers < 1) errors.Add("concurrency.events_store_producers must be >= 1");
-        if (cfg.Concurrency.EventsStoreConsumers < 1) errors.Add("concurrency.events_store_consumers must be >= 1");
-        if (cfg.Concurrency.QueueStreamProducers < 1) errors.Add("concurrency.queue_stream_producers must be >= 1");
-        if (cfg.Concurrency.QueueStreamConsumers < 1) errors.Add("concurrency.queue_stream_consumers must be >= 1");
-        if (cfg.Concurrency.QueueSimpleProducers < 1) errors.Add("concurrency.queue_simple_producers must be >= 1");
-        if (cfg.Concurrency.QueueSimpleConsumers < 1) errors.Add("concurrency.queue_simple_consumers must be >= 1");
-        if (cfg.Concurrency.CommandsSenders < 1) errors.Add("concurrency.commands_senders must be >= 1");
-        if (cfg.Concurrency.CommandsResponders < 1) errors.Add("concurrency.commands_responders must be >= 1");
-        if (cfg.Concurrency.QueriesSenders < 1) errors.Add("concurrency.queries_senders must be >= 1");
-        if (cfg.Concurrency.QueriesResponders < 1) errors.Add("concurrency.queries_responders must be >= 1");
+        // Port validation
+        if (cfg.Metrics.Port < 1 || cfg.Metrics.Port > 65535)
+            errors.Add($"api.port: must be 1-65535, got {cfg.Metrics.Port}");
 
-        // Contradictory value warnings.
-        if (cfg.Queue.AutoAck && cfg.Queue.VisibilitySeconds > 0)
-            errors.Add("WARNING: auto_ack=true with visibility_seconds > 0 has no effect");
+        // Duration string parsability
+        if (cfg.Mode == "soak" && !string.IsNullOrEmpty(cfg.Duration) && cfg.Duration != "0")
+        {
+            double parsed = DurationSec(cfg.Duration);
+            if (parsed <= 0)
+                errors.Add($"invalid duration format: {cfg.Duration}");
+        }
 
-        int totalRate = cfg.Rates.Events + cfg.Rates.EventsStore + cfg.Rates.QueueStream
-                        + cfg.Rates.QueueSimple + cfg.Rates.Commands + cfg.Rates.Queries;
-        if (totalRate > 50000)
-            errors.Add($"WARNING: total rate {totalRate} msg/s is very high");
+        // Validate patterns
+        ValidatePatterns(cfg, errors, warnings);
 
-        return errors;
+        // Validate thresholds
+        ValidateThresholds(cfg.Thresholds, errors);
+
+        // Resource guard warnings
+        ComputeResourceWarnings(cfg, warnings);
+
+        return (errors, warnings);
+    }
+
+    private static void ValidatePatterns(BurninConfig cfg, List<string> errors, List<string> warnings)
+    {
+        bool anyEnabled = false;
+
+        foreach (var (name, pc) in cfg.Patterns)
+        {
+            if (!pc.Enabled) continue;
+            anyEnabled = true;
+
+            bool isRpc = name is "commands" or "queries";
+
+            // Channels validation
+            if (pc.Channels < 1 || pc.Channels > 1000)
+                errors.Add($"{name}.channels: must be 1-1000, got {pc.Channels}");
+
+            // Rate validation
+            if (pc.Rate < 0)
+                errors.Add($"{name}.rate: must be >= 0, got {pc.Rate}");
+
+            if (isRpc)
+            {
+                if (pc.SendersPerChannel < 1)
+                    errors.Add($"{name}.senders_per_channel: must be >= 1, got {pc.SendersPerChannel}");
+                if (pc.RespondersPerChannel < 1)
+                    errors.Add($"{name}.responders_per_channel: must be >= 1, got {pc.RespondersPerChannel}");
+            }
+            else
+            {
+                if (pc.ProducersPerChannel < 1)
+                    errors.Add($"{name}.producers_per_channel: must be >= 1, got {pc.ProducersPerChannel}");
+                if (pc.ConsumersPerChannel < 1)
+                    errors.Add($"{name}.consumers_per_channel: must be >= 1, got {pc.ConsumersPerChannel}");
+                if (pc.ProducersPerChannel > 100)
+                    warnings.Add($"{name}.producers_per_channel: {pc.ProducersPerChannel} exceeds recommended max 100");
+                if (pc.ConsumersPerChannel > 100)
+                    warnings.Add($"{name}.consumers_per_channel: {pc.ConsumersPerChannel} exceeds recommended max 100");
+            }
+
+            // Per-pattern threshold validation
+            if (pc.Thresholds != null)
+                ValidateThresholds(pc.Thresholds, errors);
+        }
+
+        if (cfg.Patterns.Count > 0 && !anyEnabled)
+            errors.Add("at least one pattern must be enabled");
+    }
+
+    private static void ValidateThresholds(ThresholdsConfig t, List<string> errors)
+    {
+        if (t.MaxLossPct < 0 || t.MaxLossPct > 100)
+            errors.Add($"thresholds.max_loss_pct: must be 0-100, got {t.MaxLossPct}");
+        if (t.MaxDuplicationPct < 0 || t.MaxDuplicationPct > 100)
+            errors.Add($"thresholds.max_duplication_pct: must be 0-100, got {t.MaxDuplicationPct}");
+        if (t.MaxP99LatencyMs <= 0)
+            errors.Add($"thresholds.max_p99_latency_ms: must be > 0, got {t.MaxP99LatencyMs}");
+        if (t.MaxP999LatencyMs <= 0)
+            errors.Add($"thresholds.max_p999_latency_ms: must be > 0, got {t.MaxP999LatencyMs}");
+        if (t.MinThroughputPct <= 0 || t.MinThroughputPct > 100)
+            errors.Add($"thresholds.min_throughput_pct: must be 0-100, got {t.MinThroughputPct}");
+        if (t.MaxMemoryGrowthFactor < 1.0)
+            errors.Add($"thresholds.max_memory_growth_factor: must be >= 1.0, got {t.MaxMemoryGrowthFactor}");
+        if (t.MaxErrorRatePct < 0 || t.MaxErrorRatePct > 100)
+            errors.Add($"thresholds.max_error_rate_pct: must be 0-100, got {t.MaxErrorRatePct}");
+        if (t.MaxDowntimePct < 0 || t.MaxDowntimePct > 100)
+            errors.Add($"thresholds.max_downtime_pct: must be 0-100, got {t.MaxDowntimePct}");
     }
 
     /// <summary>
-    /// Returns true if the config has a version > 1 error, indicating exit code 2.
+    /// Compute resource guard warnings per spec.
     /// </summary>
-    public static bool HasVersionError(BurninConfig cfg) => cfg.Version > 1;
-
-    #endregion
-
-    #region Private Helpers
-
-    private static void ApplyEnvOverrides(BurninConfig cfg)
+    private static void ComputeResourceWarnings(BurninConfig cfg, List<string> warnings)
     {
-        foreach (var (envKey, attrPath, castType) in EnvOverrides)
+        int totalWorkers = 0;
+        long pubsubRate = 0, queuesRate = 0, cqRate = 0;
+
+        foreach (var (name, pc) in cfg.Patterns)
         {
-            string? val = Environment.GetEnvironmentVariable(envKey);
-            if (val is null) continue;
+            if (!pc.Enabled) continue;
+            bool isRpc = name is "commands" or "queries";
 
-            SetNested(cfg, attrPath, val, castType);
-        }
-    }
-
-    private static void SetNested(BurninConfig cfg, string path, string rawValue, string castType)
-    {
-        object? parsedValue = castType switch
-        {
-            "boolean" => rawValue.ToLowerInvariant() is "true" or "1" or "yes",
-            "number" when double.TryParse(rawValue, out double d) => d,
-            "number" => 0.0,
-            _ => rawValue,
-        };
-
-        string[] parts = path.Split('.');
-        object target = cfg;
-
-        // Navigate to the parent object.
-        for (int i = 0; i < parts.Length - 1; i++)
-        {
-            string propName = SnakeToPascal(parts[i]);
-            var prop = target.GetType().GetProperty(propName);
-            if (prop is null) return;
-            target = prop.GetValue(target)!;
-        }
-
-        // Set the leaf property.
-        string leafName = SnakeToPascal(parts[^1]);
-        var leafProp = target.GetType().GetProperty(leafName);
-        if (leafProp is null) return;
-
-        try
-        {
-            object? converted = Convert.ChangeType(parsedValue, leafProp.PropertyType);
-            leafProp.SetValue(target, converted);
-        }
-        catch
-        {
-            // If conversion fails for int properties (from double), try explicit cast.
-            if (leafProp.PropertyType == typeof(int) && parsedValue is double dv)
+            if (isRpc)
             {
-                leafProp.SetValue(target, (int)dv);
+                totalWorkers += pc.Channels * (pc.SendersPerChannel + pc.RespondersPerChannel);
+                cqRate += (long)pc.Channels * pc.Rate;
+            }
+            else
+            {
+                totalWorkers += pc.Channels * (pc.ProducersPerChannel + pc.ConsumersPerChannel);
+                if (name is "events" or "events_store")
+                    pubsubRate += (long)pc.Channels * pc.Rate;
+                else
+                    queuesRate += (long)pc.Channels * pc.Rate;
             }
         }
-    }
 
-    /// <summary>
-    /// Convert snake_case to PascalCase (e.g., "client_id_prefix" -> "ClientIdPrefix").
-    /// </summary>
-    private static string SnakeToPascal(string snake)
-    {
-        var sb = new System.Text.StringBuilder(snake.Length);
-        bool capitalize = true;
-        foreach (char c in snake)
-        {
-            if (c == '_')
-            {
-                capitalize = true;
-                continue;
-            }
-            sb.Append(capitalize ? char.ToUpperInvariant(c) : c);
-            capitalize = false;
-        }
-        return sb.ToString();
+        if (totalWorkers > 500)
+            warnings.Add($"high worker count: {totalWorkers} -- may impact system resources");
+
+        double estMemoryMb = totalWorkers * (cfg.Message.ReorderWindow * 8.0 / 1024.0 / 1024.0 + 0.5);
+        if (estMemoryMb > 4096)
+            warnings.Add($"memory warning: estimated {estMemoryMb / 1024.0:F1}GB overhead for {totalWorkers} workers -- ensure sufficient system memory");
+
+        if (pubsubRate > 50000)
+            warnings.Add($"high aggregate rate {pubsubRate} msgs/s through single gRPC connection -- may cause transport bottleneck");
+        if (queuesRate > 50000)
+            warnings.Add($"high aggregate rate {queuesRate} msgs/s through single gRPC connection -- may cause transport bottleneck");
+        if (cqRate > 50000)
+            warnings.Add($"high aggregate rate {cqRate} msgs/s through single gRPC connection -- may cause transport bottleneck");
     }
 
     #endregion

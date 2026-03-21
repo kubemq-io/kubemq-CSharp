@@ -16,17 +16,8 @@ public class QueuePollRequest
     /// <summary>Gets or sets how long to wait for messages in seconds. Default: 10.</summary>
     public int WaitTimeoutSeconds { get; set; } = 10;
 
-    /// <summary>
-    /// Gets or sets the optional visibility timeout in seconds. Messages not ack'd within this
-    /// window are automatically re-queued.
-    /// </summary>
-    public int? VisibilitySeconds { get; set; }
-
     /// <summary>Gets or sets a value indicating whether messages are automatically acknowledged upon receipt.</summary>
     public bool AutoAck { get; set; }
-
-    /// <summary>Gets or sets optional metadata to attach to the downstream request.</summary>
-    public IReadOnlyDictionary<string, string>? Metadata { get; set; }
 
     /// <summary>
     /// Validates that all required fields are set and values are within valid ranges.
@@ -57,11 +48,6 @@ public class QueuePollRequest
         if (WaitTimeoutSeconds > 3600)
         {
             throw new KubeMQConfigurationException("WaitTimeSeconds cannot exceed 3600.");
-        }
-
-        if (VisibilitySeconds is <= 0)
-        {
-            throw new KubeMQConfigurationException("QueuePollRequest: VisibilitySeconds must be positive when set.");
         }
     }
 }

@@ -5,7 +5,7 @@ namespace KubeMQ.Sdk.Exceptions;
 /// New codes may be added in minor versions.
 /// Existing codes are never removed or changed in meaning within a major version.
 /// </summary>
-public enum KubeMQErrorCode
+public enum ErrorCode
 {
     /// <summary>Unknown or unclassified error.</summary>
     Unknown = 0,

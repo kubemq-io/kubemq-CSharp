@@ -10,8 +10,8 @@ public class KubeMQAuthenticationException : KubeMQException
     public KubeMQAuthenticationException()
         : base(
             "Authentication failed",
-            KubeMQErrorCode.AuthenticationFailed,
-            KubeMQErrorCategory.Authentication,
+            ErrorCode.AuthenticationFailed,
+            ErrorCategory.Authentication,
             isRetryable: false)
     {
     }
@@ -21,8 +21,8 @@ public class KubeMQAuthenticationException : KubeMQException
     public KubeMQAuthenticationException(string message)
         : base(
             message,
-            KubeMQErrorCode.AuthenticationFailed,
-            KubeMQErrorCategory.Authentication,
+            ErrorCode.AuthenticationFailed,
+            ErrorCategory.Authentication,
             isRetryable: false)
     {
     }
@@ -33,8 +33,8 @@ public class KubeMQAuthenticationException : KubeMQException
     public KubeMQAuthenticationException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.AuthenticationFailed,
-            KubeMQErrorCategory.Authentication,
+            ErrorCode.AuthenticationFailed,
+            ErrorCategory.Authentication,
             isRetryable: false,
             innerException: innerException)
     {

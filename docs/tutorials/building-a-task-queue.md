@@ -70,7 +70,7 @@ We include `INVALID_FILE` deliberately — this lets us demonstrate rejection ha
 
 ## Step 3 — Receive and Process Messages
 
-The `ReceiveQueueDownstreamAsync` method performs a transactional pull: it fetches messages and holds them in a "visibility lock" until you explicitly acknowledge or reject each one.
+The `ReceiveQueueDownstreamAsync` method performs a transactional pull: it fetches messages and holds them in a transaction lock until you explicitly acknowledge or reject each one.
 
 ```csharp
 Console.WriteLine("\n--- Processing jobs ---");

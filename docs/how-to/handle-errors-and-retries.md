@@ -31,7 +31,7 @@ await client.ConnectAsync();
 
 try
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "demo.errors",
         Body = Encoding.UTF8.GetBytes("hello"),
@@ -79,7 +79,7 @@ await using var client = new KubeMQClient(new KubeMQClientOptions
 await client.ConnectAsync();
 
 // All operations automatically retry on transient failures
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "demo.retry",
     Body = Encoding.UTF8.GetBytes("auto-retried message"),
@@ -113,7 +113,7 @@ for (int attempt = 0; attempt < maxAttempts; attempt++)
 {
     try
     {
-        await client.PublishEventAsync(message);
+        await client.SendEventAsync(message);
         Console.WriteLine($"Sent on attempt {attempt + 1}");
         break;
     }

@@ -32,26 +32,26 @@ internal static class GrpcErrorMapper
 
         string message = FormatMessage(operation, channel, rpcEx.Status.Detail, suggestion, serverAddress);
 
-        if (category == KubeMQErrorCategory.Cancellation)
+        if (category == ErrorCategory.Cancellation)
         {
             throw new OperationCanceledException(message, rpcEx, callerToken);
         }
 
         KubeMQException mapped = category switch
         {
-            KubeMQErrorCategory.Transient or KubeMQErrorCategory.Throttling =>
+            ErrorCategory.Transient or ErrorCategory.Throttling =>
                 rpcEx.StatusCode == StatusCode.Unavailable
                     ? ClassifyTlsErrorOrConnection(rpcEx, message, errorCode, isRetryable)
                     : new KubeMQOperationException(message, errorCode, category, isRetryable, rpcEx),
 
-            KubeMQErrorCategory.Timeout =>
+            ErrorCategory.Timeout =>
                 new KubeMQTimeoutException(message, rpcEx),
 
-            KubeMQErrorCategory.Authentication =>
+            ErrorCategory.Authentication =>
                 new KubeMQAuthenticationException(message, rpcEx),
 
-            KubeMQErrorCategory.Authorization or KubeMQErrorCategory.Validation
-                or KubeMQErrorCategory.NotFound or KubeMQErrorCategory.Fatal =>
+            ErrorCategory.Authorization or ErrorCategory.Validation
+                or ErrorCategory.NotFound or ErrorCategory.Fatal =>
                 new KubeMQOperationException(message, errorCode, category, isRetryable, rpcEx),
 
             _ => new KubeMQOperationException(message, errorCode, category, isRetryable, rpcEx),
@@ -72,7 +72,7 @@ internal static class GrpcErrorMapper
     /// and StatusCode.Cancelled always indicates either client-initiated cancellation
     /// (callerToken.IsCancellationRequested) or server-initiated cancellation.
     /// </remarks>
-    private static (KubeMQErrorCode Code, KubeMQErrorCategory Category, bool Retryable, string Suggestion)
+    private static (ErrorCode Code, ErrorCategory Category, bool Retryable, string Suggestion)
         ClassifyStatus(StatusCode status, CancellationToken callerToken)
     {
         return status switch
@@ -81,75 +81,75 @@ internal static class GrpcErrorMapper
                 throw new InvalidOperationException("OK status should not produce an exception"),
 
             StatusCode.Cancelled when callerToken.IsCancellationRequested =>
-                (KubeMQErrorCode.Cancelled, KubeMQErrorCategory.Cancellation, false,
+                (ErrorCode.Cancelled, ErrorCategory.Cancellation, false,
                  "Operation was cancelled by the caller."),
 
             StatusCode.Cancelled =>
-                (KubeMQErrorCode.Cancelled, KubeMQErrorCategory.Transient, true,
+                (ErrorCode.Cancelled, ErrorCategory.Transient, true,
                  "Server cancelled the operation. The SDK will retry automatically."),
 
             StatusCode.Unknown =>
-                (KubeMQErrorCode.Unknown, KubeMQErrorCategory.Transient, true,
+                (ErrorCode.Unknown, ErrorCategory.Transient, true,
                  "Unknown error \u2014 may be transient. Will retry once."),
 
             StatusCode.InvalidArgument =>
-                (KubeMQErrorCode.InvalidArgument, KubeMQErrorCategory.Validation, false,
+                (ErrorCode.InvalidArgument, ErrorCategory.Validation, false,
                  "Check message format and field values."),
 
             StatusCode.DeadlineExceeded =>
-                (KubeMQErrorCode.DeadlineExceeded, KubeMQErrorCategory.Timeout, true,
+                (ErrorCode.DeadlineExceeded, ErrorCategory.Timeout, true,
                  "Increase timeout or check server load."),
 
             StatusCode.NotFound =>
-                (KubeMQErrorCode.NotFound, KubeMQErrorCategory.NotFound, false,
+                (ErrorCode.NotFound, ErrorCategory.NotFound, false,
                  "Verify the channel/queue exists. Create it first if needed."),
 
             StatusCode.AlreadyExists =>
-                (KubeMQErrorCode.AlreadyExists, KubeMQErrorCategory.Validation, false,
+                (ErrorCode.AlreadyExists, ErrorCategory.Validation, false,
                  "Resource already exists."),
 
             StatusCode.PermissionDenied =>
-                (KubeMQErrorCode.PermissionDenied, KubeMQErrorCategory.Authorization, false,
+                (ErrorCode.PermissionDenied, ErrorCategory.Authorization, false,
                  "Check ACL permissions for this channel."),
 
             StatusCode.ResourceExhausted =>
-                (KubeMQErrorCode.ResourceExhausted, KubeMQErrorCategory.Throttling, true,
+                (ErrorCode.ResourceExhausted, ErrorCategory.Throttling, true,
                  "Server is rate-limiting. The SDK will retry with extended backoff."),
 
             StatusCode.FailedPrecondition =>
-                (KubeMQErrorCode.FailedPrecondition, KubeMQErrorCategory.Validation, false,
+                (ErrorCode.FailedPrecondition, ErrorCategory.Validation, false,
                  "Operation precondition not met. Check server state."),
 
             StatusCode.Aborted =>
-                (KubeMQErrorCode.Aborted, KubeMQErrorCategory.Transient, true,
+                (ErrorCode.Aborted, ErrorCategory.Transient, true,
                  "Transient conflict. The SDK will retry automatically."),
 
             StatusCode.OutOfRange =>
-                (KubeMQErrorCode.OutOfRange, KubeMQErrorCategory.Validation, false,
+                (ErrorCode.OutOfRange, ErrorCategory.Validation, false,
                  "Value out of acceptable range."),
 
             StatusCode.Unimplemented =>
-                (KubeMQErrorCode.Unimplemented, KubeMQErrorCategory.Fatal, false,
+                (ErrorCode.Unimplemented, ErrorCategory.Fatal, false,
                  "This operation is not supported by the server. Upgrade the server or SDK."),
 
             StatusCode.Internal =>
-                (KubeMQErrorCode.Internal, KubeMQErrorCategory.Fatal, false,
+                (ErrorCode.Internal, ErrorCategory.Fatal, false,
                  "Internal server error. If persistent, contact KubeMQ support."),
 
             StatusCode.Unavailable =>
-                (KubeMQErrorCode.Unavailable, KubeMQErrorCategory.Transient, true,
+                (ErrorCode.Unavailable, ErrorCategory.Transient, true,
                  "Server is temporarily unavailable. Check connectivity and firewall rules."),
 
             StatusCode.DataLoss =>
-                (KubeMQErrorCode.DataLoss, KubeMQErrorCategory.Fatal, false,
+                (ErrorCode.DataLoss, ErrorCategory.Fatal, false,
                  "Unrecoverable data loss. Contact KubeMQ support."),
 
             StatusCode.Unauthenticated =>
-                (KubeMQErrorCode.AuthenticationFailed, KubeMQErrorCategory.Authentication, false,
+                (ErrorCode.AuthenticationFailed, ErrorCategory.Authentication, false,
                  "Verify auth token or TLS certificates."),
 
             _ =>
-                (KubeMQErrorCode.Unknown, KubeMQErrorCategory.Fatal, false,
+                (ErrorCode.Unknown, ErrorCategory.Fatal, false,
                  "Unexpected gRPC status code."),
         };
     }
@@ -171,7 +171,7 @@ internal static class GrpcErrorMapper
     private static KubeMQException ClassifyTlsErrorOrConnection(
         RpcException rpcEx,
         string fallbackMessage,
-        KubeMQErrorCode errorCode,
+        ErrorCode errorCode,
         bool isRetryable)
     {
         if (HasInnerException<AuthenticationException>(rpcEx))

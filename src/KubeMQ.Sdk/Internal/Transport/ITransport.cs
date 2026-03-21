@@ -73,7 +73,7 @@ internal interface ITransport : IAsyncDisposable
     /// <param name="request">The downstream poll request.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The downstream response containing polled messages.</returns>
-    Task<KubeMQ.Grpc.QueuesDownstreamResponse> PollQueueAsync(
+    Task<KubeMQ.Grpc.QueuesDownstreamResponse> ReceiveQueueMessagesAsync(
         KubeMQ.Grpc.QueuesDownstreamRequest request,
         CancellationToken cancellationToken = default);
 

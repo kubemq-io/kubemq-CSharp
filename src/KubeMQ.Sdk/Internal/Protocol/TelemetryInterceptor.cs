@@ -34,6 +34,11 @@ internal sealed class TelemetryInterceptor : Interceptor
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncUnaryCallContinuation<TRequest, TResponse> continuation)
     {
+        if (!KubeMQMetrics.OperationDuration.Enabled)
+        {
+            return continuation(request, context);
+        }
+
         string methodName = context.Method.Name;
         var sw = ValueStopwatch.StartNew();
 

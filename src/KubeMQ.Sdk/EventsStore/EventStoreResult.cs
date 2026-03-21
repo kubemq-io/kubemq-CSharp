@@ -1,10 +1,10 @@
-namespace KubeMQ.Sdk.Events;
+namespace KubeMQ.Sdk.EventsStore;
 
 /// <summary>Result of publishing an event.</summary>
-public sealed record EventSendResult
+public sealed record EventStoreResult
 {
     /// <summary>Gets the event ID.</summary>
-    public string EventId { get; init; } = string.Empty;
+    public string Id { get; init; } = string.Empty;
 
     /// <summary>Gets a value indicating whether the event was sent successfully.</summary>
     public bool Sent { get; init; }
