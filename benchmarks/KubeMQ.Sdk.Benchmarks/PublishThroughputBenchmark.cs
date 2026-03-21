@@ -50,7 +50,7 @@ public class PublishThroughputBenchmark
         for (var i = 0; i < MessageCount; i++)
         {
             var msg = ReuseMessage ? _message : _message with { Body = new byte[PayloadSize] };
-            await _client.PublishEventAsync(msg).ConfigureAwait(false);
+            await _client.SendEventAsync(msg).ConfigureAwait(false);
         }
     }
 

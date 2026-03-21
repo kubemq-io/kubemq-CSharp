@@ -41,7 +41,7 @@ public class PublishLatencyBenchmark
     [Benchmark]
     public async Task PublishSingleEvent()
     {
-        await _client.PublishEventAsync(_message).ConfigureAwait(false);
+        await _client.SendEventAsync(_message).ConfigureAwait(false);
     }
 
     [GlobalCleanup]
