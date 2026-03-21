@@ -10,8 +10,8 @@ public class KubeMQConfigurationException : KubeMQException
     public KubeMQConfigurationException()
         : base(
             "Configuration invalid",
-            KubeMQErrorCode.ConfigurationInvalid,
-            KubeMQErrorCategory.Validation,
+            ErrorCode.ConfigurationInvalid,
+            ErrorCategory.Validation,
             isRetryable: false)
     {
     }
@@ -21,8 +21,8 @@ public class KubeMQConfigurationException : KubeMQException
     public KubeMQConfigurationException(string message)
         : base(
             message,
-            KubeMQErrorCode.ConfigurationInvalid,
-            KubeMQErrorCategory.Validation,
+            ErrorCode.ConfigurationInvalid,
+            ErrorCategory.Validation,
             isRetryable: false)
     {
     }
@@ -33,8 +33,8 @@ public class KubeMQConfigurationException : KubeMQException
     public KubeMQConfigurationException(string message, Exception innerException)
         : base(
             message,
-            KubeMQErrorCode.ConfigurationInvalid,
-            KubeMQErrorCategory.Validation,
+            ErrorCode.ConfigurationInvalid,
+            ErrorCategory.Validation,
             isRetryable: false,
             innerException: innerException)
     {

@@ -1,5 +1,6 @@
-// Events Store worker: persistent pub/sub via CreateEventStoreStreamAsync + SubscribeToEventStoreAsync.
-// SendAsync returns EventSendResult — check .Sent before RecordSend. IncUnconfirmed on failure.
+// Events Store worker: persistent pub/sub via CreateEventStoreStreamAsync + SubscribeToEventsStoreAsync.
+// v2: accepts channelName, rate, channelIndex, patternLatencyAccum.
+// Worker IDs: {role}-{pattern}-{4-digit-channel}-{3-digit-worker}
 
 using KubeMQ.Sdk.Client;
 using KubeMQ.Sdk.Events;
@@ -9,8 +10,8 @@ namespace KubeMQ.Burnin.Workers;
 
 /// <summary>
 /// Events Store pattern worker: persistent publish/subscribe with delivery confirmation.
-/// Producer uses CreateEventStoreStreamAsync → EventStoreStream.SendAsync(message, clientId, ct).
-/// Consumer uses SubscribeToEventStoreAsync with EventStoreStartPosition.FromNew.
+/// Producer uses CreateEventStoreStreamAsync -> EventStoreStream.SendAsync(message, clientId, ct).
+/// Consumer uses SubscribeToEventsStoreAsync with EventStoreStartPosition.StartFromNew.
 /// </summary>
 public sealed class EventsStoreWorker : BaseWorker
 {
@@ -20,30 +21,37 @@ public sealed class EventsStoreWorker : BaseWorker
     private EventStoreStream? _storeStream;
     private readonly List<Task> _consumerTasks = new();
     private readonly List<Task> _producerTasks = new();
-    private long _unconfirmed;
+    private long _unconfirmedLocal;
+    private readonly int _numProducers;
+    private readonly int _numConsumers;
+    private readonly bool _useGroup;
+    private readonly string _runId;
 
-    public long Unconfirmed => Interlocked.Read(ref _unconfirmed);
+    public long UnconfirmedLocal => Interlocked.Read(ref _unconfirmedLocal);
 
-    public EventsStoreWorker(BurninConfig config, string runId)
-        : base(PatternName, config, $"csharp_burnin_{runId}_{PatternName}_001", config.Rates.EventsStore)
+    public EventsStoreWorker(BurninConfig config, string runId, string channelName, int channelIndex,
+        int producers, int consumers, bool consumerGroup, int rate,
+        LatencyAccumulator patternLatencyAccum)
+        : base(PatternName, config, channelName, rate, channelIndex, patternLatencyAccum)
     {
+        _numProducers = producers;
+        _numConsumers = consumers;
+        _useGroup = consumerGroup;
+        _runId = runId;
     }
 
     public override async Task StartConsumersAsync(KubeMQClient client)
     {
-        int nConsumers = Config.Concurrency.EventsStoreConsumers;
-        bool useGroup = Config.Concurrency.EventsStoreConsumerGroup;
-
-        for (int i = 0; i < nConsumers; i++)
+        for (int i = 0; i < _numConsumers; i++)
         {
-            string consumerId = $"c-{PatternName}-{i:D3}";
-            string? group = useGroup ? $"csharp_burnin_{PatternName}_group" : null;
+            string consumerId = $"c-{PatternName}-{ChannelIndex:D4}-{i:D3}";
+            string group = _useGroup ? $"csharp_burnin_{_runId}_{PatternName}_{ChannelIndex:D4}_group" : string.Empty;
 
             var subscription = new EventStoreSubscription
             {
                 Channel = ChannelName,
-                Group = group ?? string.Empty,
-                StartPosition = EventStoreStartPosition.FromNew,
+                Group = group,
+                StartPosition = EventStoreStartPosition.StartFromNew,
             };
 
             var task = Task.Run(async () =>
@@ -51,7 +59,7 @@ public sealed class EventsStoreWorker : BaseWorker
                 string cid = consumerId; // capture
                 try
                 {
-                    await foreach (var evt in client.SubscribeToEventStoreAsync(subscription, ConsumerCts.Token))
+                    await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription, ConsumerCts.Token))
                     {
                         if (ConsumerCts.IsCancellationRequested) break;
 
@@ -77,7 +85,7 @@ public sealed class EventsStoreWorker : BaseWorker
                 catch (OperationCanceledException) { /* normal shutdown */ }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"events_store subscription error: {ex.Message}");
+                    Console.Error.WriteLine($"events_store subscription error (ch{ChannelIndex:D4}): {ex.Message}");
                     RecordError("subscription_error");
                     IncReconnection();
                 }
@@ -86,7 +94,7 @@ public sealed class EventsStoreWorker : BaseWorker
             _consumerTasks.Add(task);
         }
 
-        Console.WriteLine($"events_store consumers started on {ChannelName}");
+        Console.WriteLine($"events_store consumers started on {ChannelName} ({_numConsumers} consumers)");
         await Task.CompletedTask;
     }
 
@@ -94,14 +102,13 @@ public sealed class EventsStoreWorker : BaseWorker
     {
         _storeStream = await client.CreateEventStoreStreamAsync(ProducerCts.Token);
 
-        int nProducers = Config.Concurrency.EventsStoreProducers;
-        for (int i = 0; i < nProducers; i++)
+        for (int i = 0; i < _numProducers; i++)
         {
-            string producerId = $"p-{PatternName}-{i:D3}";
+            string producerId = $"p-{PatternName}-{ChannelIndex:D4}-{i:D3}";
             _producerTasks.Add(Task.Run(() => RunProducerAsync(producerId)));
         }
 
-        Console.WriteLine($"events_store producers started on {ChannelName}");
+        Console.WriteLine($"events_store producers started on {ChannelName} ({_numProducers} producers)");
     }
 
     private async Task RunProducerAsync(string producerId)
@@ -132,25 +139,21 @@ public sealed class EventsStoreWorker : BaseWorker
                     Tags = new Dictionary<string, string> { ["content_hash"] = encoded.CrcHex },
                 };
 
-                // SendAsync returns EventSendResult — check .Sent for confirmation
-                EventSendResult result = await _storeStream!.SendAsync(message, clientId, ct);
-
+                var result = await _storeStream!.SendAsync(message, clientId, ct);
                 if (result.Sent)
                 {
-                    // Go#7: count only after confirmation
                     RecordSend(producerId, seq, encoded.Body.Length);
                 }
                 else
                 {
-                    // Unconfirmed: server did not confirm persistence
-                    Interlocked.Increment(ref _unconfirmed);
+                    Interlocked.Increment(ref _unconfirmedLocal);
                     RecordError("send_failure");
                 }
             }
             catch (OperationCanceledException) { break; }
             catch
             {
-                Interlocked.Increment(ref _unconfirmed);
+                Interlocked.Increment(ref _unconfirmedLocal);
                 RecordError("send_failure");
             }
         }

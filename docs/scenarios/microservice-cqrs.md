@@ -51,10 +51,12 @@ async Task RunWriteService(KubeMQClient client, CancellationToken ct)
 
         store[orderId] = body;
 
-        await client.SendCommandResponseAsync(
-            requestId: cmd.RequestId,
-            replyChannel: cmd.ReplyChannel!,
-            executed: true);
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = true,
+        });
 
         await eventStream.SendAsync(new EventMessage
         {
@@ -99,11 +101,13 @@ async Task RunQueryHandler(KubeMQClient client, CancellationToken ct)
 
         var result = JsonSerializer.Serialize(new { found, data = data ?? "" });
 
-        await client.SendQueryResponseAsync(
-            requestId: q.RequestId,
-            replyChannel: q.ReplyChannel!,
-            executed: true,
-            body: Encoding.UTF8.GetBytes(result));
+        await client.SendQueryResponseAsync(new QueryResponse
+        {
+            RequestId = q.RequestId,
+            ReplyChannel = q.ReplyChannel!,
+            Executed = true,
+            Body = Encoding.UTF8.GetBytes(result),
+        });
 
         Console.WriteLine($"[Read] Query served: key={key} found={found}");
     }

@@ -54,11 +54,13 @@ var handlerTask = Task.Run(async () =>
 
         var success = ExecuteCommand(body);
 
-        await client.SendCommandResponseAsync(
-            requestId: cmd.RequestId,
-            replyChannel: cmd.ReplyChannel!,
-            executed: success,
-            error: success ? null : $"Unknown command: {body}");
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = success,
+            Error = success ? null : $"Unknown command: {body}",
+        });
 
         Console.WriteLine($"  [Handler] Response sent: executed={success}");
     }
@@ -164,11 +166,13 @@ var handlerTask = Task.Run(async () =>
 
         var success = ExecuteCommand(body);
 
-        await client.SendCommandResponseAsync(
-            requestId: cmd.RequestId,
-            replyChannel: cmd.ReplyChannel!,
-            executed: success,
-            error: success ? null : $"Unknown command: {body}");
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = success,
+            Error = success ? null : $"Unknown command: {body}",
+        });
 
         Console.WriteLine($"  [Handler] Response sent: executed={success}");
     }
@@ -274,13 +278,22 @@ await foreach (var cmd in client.SubscribeToCommandsAsync(subscription, cts.Toke
     try
     {
         var result = await ProcessCommandAsync(cmd);
-        await client.SendCommandResponseAsync(
-            cmd.RequestId, cmd.ReplyChannel!, executed: result);
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = result,
+        });
     }
     catch (Exception ex)
     {
-        await client.SendCommandResponseAsync(
-            cmd.RequestId, cmd.ReplyChannel!, executed: false, error: ex.Message);
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = false,
+            Error = ex.Message,
+        });
     }
 }
 ```

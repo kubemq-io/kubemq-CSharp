@@ -48,7 +48,7 @@ await Task.Delay(1000);
 // Publish 6 events — each goes to exactly one worker
 for (int i = 1; i <= 6; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "orders.created",
         Body = Encoding.UTF8.GetBytes($"Order #{i}"),
@@ -76,12 +76,12 @@ using var cts = new CancellationTokenSource();
 
 var subscriber = Task.Run(async () =>
 {
-    await foreach (var msg in client.SubscribeToEventStoreAsync(
+    await foreach (var msg in client.SubscribeToEventsStoreAsync(
         new EventStoreSubscription
         {
             Channel = "audit.logs",
             Group = "log-indexers",
-            StartPosition = EventStoreStartPosition.FromFirst,
+            StartPosition = EventStoreStartPosition.StartFromFirst,
         },
         cts.Token))
     {
@@ -93,7 +93,7 @@ await Task.Delay(1000);
 
 for (int i = 1; i <= 5; i++)
 {
-    await client.PublishEventStoreAsync(new EventStoreMessage
+    await client.SendEventStoreAsync(new EventStoreMessage
     {
         Channel = "audit.logs",
         Body = Encoding.UTF8.GetBytes($"Log entry {i}"),
@@ -126,10 +126,12 @@ var handler = Task.Run(async () =>
         cts.Token))
     {
         Console.WriteLine($"[Handler] {Encoding.UTF8.GetString(cmd.Body.Span)}");
-        await client.SendCommandResponseAsync(
-            cmd.RequestId,
-            cmd.ReplyChannel!,
-            executed: true);
+        await client.SendCommandResponseAsync(new CommandResponse
+        {
+            RequestId = cmd.RequestId,
+            ReplyChannel = cmd.ReplyChannel!,
+            Executed = true,
+        });
     }
 });
 
@@ -168,10 +170,12 @@ var handler = Task.Run(async () =>
         cts.Token))
     {
         Console.WriteLine($"[Responder] {Encoding.UTF8.GetString(query.Body.Span)}");
-        await client.SendQueryResponseAsync(
-            query.RequestId,
-            query.ReplyChannel!,
-            body: Encoding.UTF8.GetBytes("{\"status\":\"ok\"}"));
+        await client.SendQueryResponseAsync(new QueryResponse
+        {
+            RequestId = query.RequestId,
+            ReplyChannel = query.ReplyChannel!,
+            Body = Encoding.UTF8.GetBytes("{\"status\":\"ok\"}"),
+        });
     }
 });
 

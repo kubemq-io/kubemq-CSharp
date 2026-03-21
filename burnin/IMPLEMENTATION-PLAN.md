@@ -13,13 +13,13 @@ Fourth and final SDK burn-in implementation after Go, Python, and JavaScript. Th
 3. **`IAsyncEnumerable<T>` subscriptions** — `await foreach` pattern with `CancellationToken` cancellation (not callbacks like JS, not blocking like Go)
 4. **Native stream APIs** — `EventStream`, `EventStoreStream` (with `SendAsync()` confirmation), `SendQueueMessagesUpstreamAsync()`, `ReceiveQueueDownstreamAsync()`
 5. **`ReadOnlyMemory<byte>` for bodies** — not `byte[]` or `Uint8Array`
-6. **`EventSendResult` with `.Sent` boolean** — must check before counting events_store sends
+6. **`EventStoreResult` with `.Sent` boolean** — must check before counting events_store sends
 7. **`QueueSendResult` with `.IsError` boolean** — must check for queue sends
 8. **`CommandResponse.Executed` boolean + `.Error` string** — for RPC response checking
 9. **`ReconnectOptions` with jitter** — `JitterMode.Full/Equal/None`, fully configurable from burn-in
 10. **`IAsyncDisposable`** — prefer `await using` for client lifecycle
 11. **`KubeMQClientOptions`** — constructor takes options object, then `ConnectAsync()` is called separately
-12. **`SendCommandResponseAsync(requestId, replyChannel, executed, errorMessage, body, ...)` — separate parameters, not a response object**
+12. **`SendCommandResponseAsync(CommandResponse response, CancellationToken ct = default)` — takes a response object**
 13. **.NET 8.0 target** — `System.Threading.Channels`, `System.IO.Hashing.Crc32`, `System.Diagnostics.Stopwatch`
 
 ---
@@ -48,7 +48,7 @@ kubemq-csharp/burnin/
   Workers/
     BaseWorker.cs               # CancellationTokenSource for 2-phase shutdown, dual tracking
     EventsWorker.cs             # CreateEventStreamAsync() + SubscribeToEventsAsync()
-    EventsStoreWorker.cs        # CreateEventStoreStreamAsync() + SubscribeToEventStoreAsync()
+    EventsStoreWorker.cs        # CreateEventStoreStreamAsync() + SubscribeToEventsStoreAsync()
     QueueStreamWorker.cs        # SendQueueMessagesUpstreamAsync() + ReceiveQueueDownstreamAsync()
     QueueSimpleWorker.cs        # SendQueueMessageAsync() + ReceiveQueueMessagesAsync()
     CommandsWorker.cs           # SendCommandAsync() + SubscribeToCommandsAsync() + SendCommandResponseAsync()
@@ -91,18 +91,18 @@ consumerCts.Cancel() ──→ stops all IAsyncEnumerable subscriptions
 |-------------|--------|--------|
 | Events send (stream) | `SendEventStream()` | `CreateEventStreamAsync()` → `stream.SendAsync()` |
 | Events subscribe | `SubscribeToEvents()` | `SubscribeToEventsAsync()` → `IAsyncEnumerable<EventReceived>` |
-| Events Store send (stream+confirm) | `SendEventStoreStream()` | `CreateEventStoreStreamAsync()` → `stream.SendAsync()` returns `EventSendResult` |
-| Events Store subscribe | `SubscribeToEventsStore()` | `SubscribeToEventStoreAsync()` → `IAsyncEnumerable<EventStoreReceived>` |
+| Events Store send (stream+confirm) | `SendEventStoreStream()` | `CreateEventStoreStreamAsync()` → `stream.SendAsync()` returns `EventStoreResult` |
+| Events Store subscribe | `SubscribeToEventsStore()` | `SubscribeToEventsStoreAsync()` → `IAsyncEnumerable<EventStoreReceived>` |
 | Queue Stream send (upstream) | `QueueUpstream()` | `SendQueueMessagesUpstreamAsync()` returns `QueueUpstreamResult` |
 | Queue Stream receive (downstream) | `QueueDownstream()` | `ReceiveQueueDownstreamAsync()` returns `QueueDownstreamResult` |
 | Queue Simple send | `SendQueueMessage()` | `SendQueueMessageAsync()` returns `QueueSendResult` |
 | Queue Simple receive | `ReceiveQueueMessages()` | `ReceiveQueueMessagesAsync()` returns `QueueReceiveResult` |
 | Commands send | `SendCommand()` | `SendCommandAsync()` returns `CommandResponse` |
 | Commands subscribe | `SubscribeToCommands()` | `SubscribeToCommandsAsync()` → `IAsyncEnumerable<CommandReceived>` |
-| Commands respond | `SendResponse()` | `SendCommandResponseAsync(requestId, replyChannel, executed, ...)` |
+| Commands respond | `SendResponse()` | `SendCommandResponseAsync(CommandResponse response)` |
 | Queries send | `SendQuery()` | `SendQueryAsync()` returns `QueryResponse` |
 | Queries subscribe | `SubscribeToQueries()` | `SubscribeToQueriesAsync()` → `IAsyncEnumerable<QueryReceived>` |
-| Queries respond | `SendResponse()` | `SendQueryResponseAsync(requestId, replyChannel, body, executed, ...)` |
+| Queries respond | `SendResponse()` | `SendQueryResponseAsync(QueryResponse response)` |
 | Ping | `Ping()` | `PingAsync()` returns `ServerInfo` |
 | Channel create | `CreateChannel()` | `CreateEventsChannelAsync()` etc. |
 | Channel delete | `DeleteChannel()` | `DeleteEventsChannelAsync()` etc. |

@@ -13,7 +13,7 @@ namespace KubeMQ.Sdk.Tests.Unit.Client;
 public class KubeMQClientPublishTests
 {
     [Fact]
-    public async Task PublishEventAsync_ValidMessage_CallsTransport()
+    public async Task SendEventAsync_ValidMessage_CallsTransport()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -29,7 +29,7 @@ public class KubeMQClientPublishTests
             Body = Encoding.UTF8.GetBytes("hello"),
         };
 
-        await client.PublishEventAsync(message);
+        await client.SendEventAsync(message);
 
         transport.Verify(
             t => t.SendEventAsync(It.IsAny<KubeMQ.Grpc.Event>(), It.IsAny<CancellationToken>()),
@@ -43,7 +43,7 @@ public class KubeMQClientPublishTests
     }
 
     [Fact]
-    public async Task PublishEventAsync_ConvenienceOverload_DelegatesToMain()
+    public async Task SendEventAsync_ConvenienceOverload_DelegatesToMain()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -56,7 +56,7 @@ public class KubeMQClientPublishTests
         var tags = new Dictionary<string, string> { ["key1"] = "val1" };
         var body = Encoding.UTF8.GetBytes("payload");
 
-        await client.PublishEventAsync("my-channel", body, tags);
+        await client.SendEventAsync("my-channel", body, tags);
 
         captured.Should().NotBeNull();
         captured!.Channel.Should().Be("my-channel");
@@ -65,17 +65,17 @@ public class KubeMQClientPublishTests
     }
 
     [Fact]
-    public async Task PublishEventAsync_NullMessage_ThrowsArgumentNullException()
+    public async Task SendEventAsync_NullMessage_ThrowsArgumentNullException()
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.PublishEventAsync((EventMessage)null!);
+        Func<Task> act = () => client.SendEventAsync((EventMessage)null!);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
-    public async Task PublishEventAsync_EmptyChannel_ThrowsValidationException()
+    public async Task SendEventAsync_EmptyChannel_ThrowsValidationException()
     {
         var (client, _) = TestClientFactory.Create();
 
@@ -85,13 +85,13 @@ public class KubeMQClientPublishTests
             Body = Encoding.UTF8.GetBytes("hello"),
         };
 
-        Func<Task> act = () => client.PublishEventAsync(message);
+        Func<Task> act = () => client.SendEventAsync(message);
 
         await act.Should().ThrowAsync<KubeMQConfigurationException>();
     }
 
     [Fact]
-    public async Task PublishEventAsync_TransportThrows_PropagatesException()
+    public async Task SendEventAsync_TransportThrows_PropagatesException()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -105,14 +105,14 @@ public class KubeMQClientPublishTests
             Body = Encoding.UTF8.GetBytes("hello"),
         };
 
-        Func<Task> act = () => client.PublishEventAsync(message);
+        Func<Task> act = () => client.SendEventAsync(message);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("transport failure");
     }
 
     [Fact]
-    public async Task PublishEventAsync_Cancelled_ThrowsOperationCanceledException()
+    public async Task SendEventAsync_Cancelled_ThrowsOperationCanceledException()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -129,13 +129,13 @@ public class KubeMQClientPublishTests
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        Func<Task> act = () => client.PublishEventAsync(message, cts.Token);
+        Func<Task> act = () => client.SendEventAsync(message, cts.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_ValidMessage_CallsTransportWithStoreTrue()
+    public async Task SendEventStoreAsync_ValidMessage_CallsTransportWithStoreTrue()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -151,7 +151,7 @@ public class KubeMQClientPublishTests
             Body = Encoding.UTF8.GetBytes("persisted"),
         };
 
-        await client.PublishEventStoreAsync(message);
+        await client.SendEventStoreAsync(message);
 
         transport.Verify(
             t => t.SendEventAsync(It.IsAny<KubeMQ.Grpc.Event>(), It.IsAny<CancellationToken>()),
@@ -164,17 +164,17 @@ public class KubeMQClientPublishTests
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_NullMessage_ThrowsArgumentNullException()
+    public async Task SendEventStoreAsync_NullMessage_ThrowsArgumentNullException()
     {
         var (client, _) = TestClientFactory.Create();
 
-        Func<Task> act = () => client.PublishEventStoreAsync(null!);
+        Func<Task> act = () => client.SendEventStoreAsync(null!);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_TransportThrows_PropagatesException()
+    public async Task SendEventStoreAsync_TransportThrows_PropagatesException()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -188,14 +188,14 @@ public class KubeMQClientPublishTests
             Body = Encoding.UTF8.GetBytes("data"),
         };
 
-        Func<Task> act = () => client.PublishEventStoreAsync(message);
+        Func<Task> act = () => client.SendEventStoreAsync(message);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("store failure");
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_EmptyChannel_ThrowsValidationException()
+    public async Task SendEventStoreAsync_EmptyChannel_ThrowsValidationException()
     {
         var (client, _) = TestClientFactory.Create();
 
@@ -205,13 +205,13 @@ public class KubeMQClientPublishTests
             Body = Encoding.UTF8.GetBytes("data"),
         };
 
-        Func<Task> act = () => client.PublishEventStoreAsync(message);
+        Func<Task> act = () => client.SendEventStoreAsync(message);
 
         await act.Should().ThrowAsync<KubeMQConfigurationException>();
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_Cancellation_ThrowsOperationCanceled()
+    public async Task SendEventStoreAsync_Cancellation_ThrowsOperationCanceled()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -228,13 +228,13 @@ public class KubeMQClientPublishTests
         using var cts = new CancellationTokenSource();
         await cts.CancelAsync();
 
-        Func<Task> act = () => client.PublishEventStoreAsync(message, cts.Token);
+        Func<Task> act = () => client.SendEventStoreAsync(message, cts.Token);
 
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
-    public async Task PublishEventAsync_WithTags_MapsTagsToGrpc()
+    public async Task SendEventAsync_WithTags_MapsTagsToGrpc()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -258,7 +258,7 @@ public class KubeMQClientPublishTests
             Tags = tags,
         };
 
-        await client.PublishEventAsync(message);
+        await client.SendEventAsync(message);
 
         captured.Should().NotBeNull();
         captured!.Tags.Should().HaveCount(3);
@@ -268,7 +268,7 @@ public class KubeMQClientPublishTests
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_ConvenienceOverload_NotAvailable_UsesMainOverload()
+    public async Task SendEventStoreAsync_ConvenienceOverload_NotAvailable_UsesMainOverload()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -285,7 +285,7 @@ public class KubeMQClientPublishTests
             Tags = new Dictionary<string, string> { ["k"] = "v" },
         };
 
-        await client.PublishEventStoreAsync(message);
+        await client.SendEventStoreAsync(message);
 
         captured.Should().NotBeNull();
         captured!.Channel.Should().Be("store-ch");
@@ -295,7 +295,7 @@ public class KubeMQClientPublishTests
     }
 
     [Fact]
-    public async Task PublishEventAsync_AutoGeneratesEventId_WhenNotProvided()
+    public async Task SendEventAsync_AutoGeneratesEventId_WhenNotProvided()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -305,14 +305,14 @@ public class KubeMQClientPublishTests
             .Callback<KubeMQ.Grpc.Event, CancellationToken>((e, _) => captured = e)
             .ReturnsAsync(new KubeMQ.Grpc.Result { EventID = "auto", Sent = true });
 
-        await client.PublishEventAsync(new EventMessage { Channel = "ch", Body = new byte[] { 1 } });
+        await client.SendEventAsync(new EventMessage { Channel = "ch", Body = new byte[] { 1 } });
 
         captured.Should().NotBeNull();
         captured!.EventID.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
-    public async Task PublishEventAsync_ReturnsEventSendResult()
+    public async Task SendEventAsync_CompletesSuccessfully()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -320,15 +320,15 @@ public class KubeMQClientPublishTests
             .Setup(t => t.SendEventAsync(It.IsAny<KubeMQ.Grpc.Event>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new KubeMQ.Grpc.Result { EventID = "evt-1", Sent = true, Error = "" });
 
-        var result = await client.PublishEventAsync(new EventMessage { Channel = "ch", Body = new byte[] { 1 } });
+        await client.SendEventAsync(new EventMessage { Channel = "ch", Body = new byte[] { 1 } });
 
-        result.EventId.Should().Be("evt-1");
-        result.Sent.Should().BeTrue();
-        result.Error.Should().BeEmpty();
+        transport.Verify(
+            t => t.SendEventAsync(It.IsAny<KubeMQ.Grpc.Event>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task PublishEventStoreAsync_AutoGeneratesEventId_WhenNotProvided()
+    public async Task SendEventStoreAsync_AutoGeneratesEventId_WhenNotProvided()
     {
         var (client, transport) = TestClientFactory.Create();
 
@@ -338,7 +338,7 @@ public class KubeMQClientPublishTests
             .Callback<KubeMQ.Grpc.Event, CancellationToken>((e, _) => captured = e)
             .ReturnsAsync(new KubeMQ.Grpc.Result { EventID = "auto", Sent = true });
 
-        await client.PublishEventStoreAsync(new EventStoreMessage { Channel = "ch", Body = new byte[] { 1 } });
+        await client.SendEventStoreAsync(new EventStoreMessage { Channel = "ch", Body = new byte[] { 1 } });
 
         captured.Should().NotBeNull();
         captured!.EventID.Should().NotBeNullOrEmpty();

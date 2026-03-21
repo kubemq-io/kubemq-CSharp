@@ -21,11 +21,11 @@ await client.ConnectAsync();
 var subscription = new EventStoreSubscription
 {
     Channel = "csharp-eventsstore.start-at-time-delta",
-    StartPosition = EventStoreStartPosition.FromTimeDelta,
+    StartPosition = EventStoreStartPosition.StartAtTimeDelta,
     StartTimeDeltaSeconds = 60,
 };
 
-Console.WriteLine("Subscribed with FromTimeDelta (60 seconds ago). Replaying stored events...");
+Console.WriteLine("Subscribed with StartAtTimeDelta (60 seconds ago). Replaying stored events...");
 
 var cts = new CancellationTokenSource();
 Console.CancelKeyPress += (_, e) =>
@@ -34,7 +34,7 @@ Console.CancelKeyPress += (_, e) =>
     cts.Cancel();
 };
 
-await foreach (var evt in client.SubscribeToEventStoreAsync(subscription, cts.Token))
+await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription, cts.Token))
 {
     Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
 }

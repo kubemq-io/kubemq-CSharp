@@ -22,7 +22,7 @@ Console.WriteLine("Connected to KubeMQ server");
 // Publish some events
 for (var i = 1; i <= 10; i++)
 {
-    await client.PublishEventStoreAsync(new EventStoreMessage
+    await client.SendEventStoreAsync(new EventStoreMessage
     {
         Channel = "csharp-eventsstore.replay-from-sequence",
         Body = Encoding.UTF8.GetBytes($"Event #{i}")
@@ -35,11 +35,11 @@ Console.WriteLine("Published 10 events. Replaying from sequence 5...");
 var cts = new CancellationTokenSource();
 var subscribeTask = Task.Run(async () =>
 {
-    await foreach (var msg in client.SubscribeToEventStoreAsync(
+    await foreach (var msg in client.SubscribeToEventsStoreAsync(
         new EventStoreSubscription
         {
             Channel = "csharp-eventsstore.replay-from-sequence",
-            StartPosition = EventStoreStartPosition.FromSequence,
+            StartPosition = EventStoreStartPosition.StartAtSequence,
             StartSequence = 5
         }, cts.Token))
     {

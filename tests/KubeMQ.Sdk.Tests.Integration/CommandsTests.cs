@@ -30,10 +30,12 @@ public class CommandsTests : IntegrationTestBase
             var subscription = new CommandsSubscription { Channel = channel };
             await foreach (var cmd in handler.SubscribeToCommandsAsync(subscription, cts.Token))
             {
-                await handler.SendCommandResponseAsync(
-                    cmd.RequestId,
-                    cmd.ReplyChannel!,
-                    executed: true);
+                await handler.SendCommandResponseAsync(new CommandResponse
+                {
+                    RequestId = cmd.RequestId,
+                    ReplyChannel = cmd.ReplyChannel!,
+                    Executed = true,
+                });
                 tcs.TrySetResult(true);
                 break;
             }
@@ -75,11 +77,13 @@ public class CommandsTests : IntegrationTestBase
             var subscription = new CommandsSubscription { Channel = channel };
             await foreach (var cmd in handler.SubscribeToCommandsAsync(subscription, cts.Token))
             {
-                await handler.SendCommandResponseAsync(
-                    cmd.RequestId,
-                    cmd.ReplyChannel!,
-                    executed: false,
-                    errorMessage: "command-failed");
+                await handler.SendCommandResponseAsync(new CommandResponse
+                {
+                    RequestId = cmd.RequestId,
+                    ReplyChannel = cmd.ReplyChannel!,
+                    Executed = false,
+                    Error = "command-failed",
+                });
                 tcs.TrySetResult(true);
                 break;
             }
@@ -153,10 +157,12 @@ public class CommandsTests : IntegrationTestBase
             {
                 receivedBody = cmd.Body.ToArray();
                 receivedTags = cmd.Tags;
-                await handler.SendCommandResponseAsync(
-                    cmd.RequestId,
-                    cmd.ReplyChannel!,
-                    executed: true);
+                await handler.SendCommandResponseAsync(new CommandResponse
+                {
+                    RequestId = cmd.RequestId,
+                    ReplyChannel = cmd.ReplyChannel!,
+                    Executed = true,
+                });
                 tcs.TrySetResult(true);
                 break;
             }

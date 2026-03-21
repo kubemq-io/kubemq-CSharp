@@ -23,13 +23,13 @@ using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 var subscription = new EventStoreSubscription
 {
     Channel = "csharp-eventsstore.cancel-subscription",
-    StartPosition = EventStoreStartPosition.FromNew,
+    StartPosition = EventStoreStartPosition.StartFromNew,
 };
 
 Console.WriteLine("Subscribing for 10 seconds...");
 try
 {
-    await foreach (var evt in client.SubscribeToEventStoreAsync(subscription, cts.Token))
+    await foreach (var evt in client.SubscribeToEventsStoreAsync(subscription, cts.Token))
     {
         Console.WriteLine($"[Seq {evt.Sequence}] {Encoding.UTF8.GetString(evt.Body.Span)}");
     }

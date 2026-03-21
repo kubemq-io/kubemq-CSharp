@@ -44,7 +44,7 @@ dotnet run
 | [Queues.DeadLetterQueue](Queues/Queues.DeadLetterQueue/) | Configure dead letter queue for failed messages |
 | [Queues.DelayedMessages](Queues/Queues.DelayedMessages/) | Send messages with delivery delay |
 | [Queues.Batch](Queues/Queues.Batch/) | Send and receive batches of queue messages |
-| [Queues.VisibilityTimeout](Queues/Queues.VisibilityTimeout/) | Visibility timeout with auto-extend |
+
 
 ### Commands (RPC)
 

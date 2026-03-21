@@ -94,7 +94,7 @@ internal sealed partial class RetryHandler : IDisposable
                         break;
                     }
 
-                    if (ex.ErrorCode == KubeMQErrorCode.Unknown && attempt > 1)
+                    if (ex.ErrorCode == ErrorCode.Unknown && attempt > 1)
                     {
                         break;
                     }
@@ -198,7 +198,7 @@ internal sealed partial class RetryHandler : IDisposable
         string operation,
         string? channel,
         double delayMs,
-        KubeMQErrorCode errorCode);
+        ErrorCode errorCode);
 
     private static bool ShouldRetry(KubeMQException ex, bool isSafeToRetryOnTimeout)
     {
@@ -207,7 +207,7 @@ internal sealed partial class RetryHandler : IDisposable
             return false;
         }
 
-        if (ex.Category == KubeMQErrorCategory.Timeout && !isSafeToRetryOnTimeout)
+        if (ex.Category == ErrorCategory.Timeout && !isSafeToRetryOnTimeout)
         {
             return false;
         }

@@ -55,12 +55,12 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <summary>Establishes the gRPC connection to the KubeMQ server.</summary>
     /// <param name="cancellationToken">Optional token to cancel the connection attempt. When triggered,
     /// the method throws <see cref="OperationCanceledException"/> and the client remains in
-    /// <see cref="ConnectionState.Disconnected"/> state.</param>
+    /// <see cref="ConnectionState.Idle"/> state.</param>
     /// <returns>A task that completes when the connection is established and the client transitions to
-    /// <see cref="ConnectionState.Connected"/>.</returns>
+    /// <see cref="ConnectionState.Ready"/>.</returns>
     /// <remarks>
     /// <para>Must be called exactly once before any messaging operation. Calling
-    /// <see cref="PingAsync"/>, <see cref="PublishEventAsync(EventMessage, CancellationToken)"/>,
+    /// <see cref="PingAsync"/>, <see cref="SendEventAsync(EventMessage, CancellationToken)"/>,
     /// or any other operation before connecting will block until the connection is ready
     /// (or fail if not connected).</para>
     /// </remarks>
@@ -102,10 +102,10 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <param name="message">The <see cref="EventMessage"/> to publish. Must have a non-empty
     /// <see cref="EventMessage.Channel"/>. The <see cref="EventMessage.Body"/> may be empty.</param>
     /// <param name="cancellationToken">Optional token to cancel the publish operation.</param>
-    /// <returns>An <see cref="EventSendResult"/> containing the server-assigned event ID and delivery status.</returns>
+    /// <returns>A task that completes when the event has been sent (fire-and-forget).</returns>
     /// <remarks>
     /// <para>Events are fire-and-forget: they are delivered to all active subscribers but are
-    /// not persisted. Use <see cref="PublishEventStoreAsync"/> for persistent events.</para>
+    /// not persisted. Use <see cref="SendEventStoreAsync"/> for persistent events.</para>
     /// <para><b>Related types:</b> Build messages with <see cref="EventMessage"/>, receive events
     /// with <see cref="SubscribeToEventsAsync"/>, or use <see cref="CreateEventStreamAsync"/>
     /// for high-throughput streaming.</para>
@@ -121,27 +121,26 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
     /// <example>
     /// <code>
-    /// var result = await client.PublishEventAsync(new EventMessage
+    /// await client.SendEventAsync(new EventMessage
     /// {
     ///     Channel = "events.notifications",
     ///     Body = System.Text.Encoding.UTF8.GetBytes("Hello, KubeMQ!"),
     ///     Tags = new Dictionary&lt;string, string&gt; { ["source"] = "demo" }
     /// }, cancellationToken);
-    /// Console.WriteLine($"Event sent: {result.EventId}");
     /// </code>
     /// </example>
-    Task<EventSendResult> PublishEventAsync(EventMessage message, CancellationToken cancellationToken = default);
+    Task SendEventAsync(EventMessage message, CancellationToken cancellationToken = default);
 
     /// <summary>Publishes an event message with a byte payload (convenience overload).</summary>
     /// <param name="channel">Target channel name. Must be non-empty, without whitespace or wildcard characters.</param>
     /// <param name="body">Message payload as a byte buffer. May be empty for signal-only events.</param>
     /// <param name="tags">Optional key-value metadata attached to the event. Pass <see langword="null"/> to omit.</param>
     /// <param name="cancellationToken">Optional token to cancel the publish operation.</param>
-    /// <returns>An <see cref="EventSendResult"/> containing the server-assigned event ID and delivery status.</returns>
+    /// <returns>A task that completes when the event has been sent (fire-and-forget).</returns>
     /// <remarks>
     /// <para>Convenience overload that constructs an <see cref="EventMessage"/> internally.
     /// For full control over event ID and client ID, use
-    /// <see cref="PublishEventAsync(EventMessage, CancellationToken)"/>.</para>
+    /// <see cref="SendEventAsync(EventMessage, CancellationToken)"/>.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="channel"/> is <see langword="null"/>.</exception>
     /// <exception cref="KubeMQConfigurationException"><paramref name="channel"/> is invalid
@@ -152,7 +151,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
     /// <exception cref="KubeMQRetryExhaustedException">All retry attempts were exhausted.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task<EventSendResult> PublishEventAsync(
+    Task SendEventAsync(
         string channel,
         ReadOnlyMemory<byte> body,
         IReadOnlyDictionary<string, string>? tags = null,
@@ -167,9 +166,9 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// they arrive. The stream automatically reconnects on transient failures.</returns>
     /// <remarks>
     /// <para><b>Related types:</b> Publish events with
-    /// <see cref="PublishEventAsync(EventMessage, CancellationToken)"/> or
+    /// <see cref="SendEventAsync(EventMessage, CancellationToken)"/> or
     /// <see cref="CreateEventStreamAsync"/>. For persistent events, use
-    /// <see cref="SubscribeToEventStoreAsync"/>.</para>
+    /// <see cref="SubscribeToEventsStoreAsync"/>.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="subscription"/> is <see langword="null"/>.</exception>
     /// <exception cref="KubeMQConfigurationException"><paramref name="subscription"/> has invalid configuration
@@ -199,7 +198,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// Dispose the stream when publishing is complete.</returns>
     /// <remarks>
     /// <para>Use this for high-throughput scenarios where the overhead of individual
-    /// <see cref="PublishEventAsync(EventMessage, CancellationToken)"/> calls is too high.
+    /// <see cref="SendEventAsync(EventMessage, CancellationToken)"/> calls is too high.
     /// The stream multiplexes writes over a single gRPC duplex call.</para>
     /// </remarks>
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
@@ -216,7 +215,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <remarks>
     /// <para>Use this for high-throughput persistent event publishing where each event must be
     /// confirmed as stored before proceeding. For single-event publishing, use
-    /// <see cref="PublishEventStoreAsync"/>.</para>
+    /// <see cref="SendEventStoreAsync"/>.</para>
     /// </remarks>
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
     /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
@@ -228,13 +227,13 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <param name="message">The <see cref="EventStoreMessage"/> to publish. Must have a non-empty
     /// <see cref="EventStoreMessage.Channel"/>. Events are persisted and assigned a sequence number.</param>
     /// <param name="cancellationToken">Optional token to cancel the publish operation.</param>
-    /// <returns>An <see cref="EventSendResult"/> containing the event ID and delivery status.</returns>
+    /// <returns>An <see cref="EventStoreResult"/> containing the event ID and delivery status.</returns>
     /// <remarks>
-    /// <para>Unlike <see cref="PublishEventAsync(EventMessage, CancellationToken)"/>, event store messages
+    /// <para>Unlike <see cref="SendEventAsync(EventMessage, CancellationToken)"/>, event store messages
     /// are persisted on the server and can be replayed by subscribers using
-    /// <see cref="SubscribeToEventStoreAsync"/>.</para>
+    /// <see cref="SubscribeToEventsStoreAsync"/>.</para>
     /// <para><b>Related types:</b> Build messages with <see cref="EventStoreMessage"/>,
-    /// subscribe with <see cref="SubscribeToEventStoreAsync"/>, or use
+    /// subscribe with <see cref="SubscribeToEventsStoreAsync"/>, or use
     /// <see cref="CreateEventStoreStreamAsync"/> for high-throughput streaming.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="message"/> is <see langword="null"/>.</exception>
@@ -246,7 +245,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
     /// <exception cref="KubeMQRetryExhaustedException">All retry attempts were exhausted.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task<EventSendResult> PublishEventStoreAsync(EventStoreMessage message, CancellationToken cancellationToken = default);
+    Task<EventStoreResult> SendEventStoreAsync(EventStoreMessage message, CancellationToken cancellationToken = default);
 
     /// <summary>Subscribes to event store messages on a channel.</summary>
     /// <param name="subscription">Subscription configuration specifying the channel, optional consumer group,
@@ -258,7 +257,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// events. The stream automatically reconnects on transient failures and resumes from the last received
     /// sequence.</returns>
     /// <remarks>
-    /// <para><b>Related types:</b> Publish persistent events with <see cref="PublishEventStoreAsync"/>
+    /// <para><b>Related types:</b> Publish persistent events with <see cref="SendEventStoreAsync"/>
     /// or <see cref="CreateEventStoreStreamAsync"/>. For non-persistent events, use
     /// <see cref="SubscribeToEventsAsync"/>.</para>
     /// </remarks>
@@ -268,7 +267,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
     /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    IAsyncEnumerable<EventStoreReceived> SubscribeToEventStoreAsync(
+    IAsyncEnumerable<EventStoreReceived> SubscribeToEventsStoreAsync(
         EventStoreSubscription subscription,
         CancellationToken cancellationToken = default);
 
@@ -281,9 +280,9 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <returns>A <see cref="QueueSendResult"/> containing the message ID, send timestamp, and error status.</returns>
     /// <remarks>
     /// <para>Queue messages are point-to-point: each message is delivered to exactly one consumer.
-    /// Use <see cref="PollQueueAsync"/> or <see cref="ReceiveQueueMessagesAsync"/> to consume messages.</para>
+    /// Use <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/> or <see cref="ReceiveQueueMessagesAsync(string, int, int, CancellationToken)"/> to consume messages.</para>
     /// <para><b>Related types:</b> Build messages with <see cref="QueueMessage"/>,
-    /// poll with <see cref="PollQueueAsync"/>, or send batches with
+    /// poll with <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/>, or send batches with
     /// <see cref="SendQueueMessagesAsync"/>.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="message"/> is <see langword="null"/>.</exception>
@@ -372,8 +371,8 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <remarks>
     /// <para><b>Related types:</b> Send messages with
     /// <see cref="SendQueueMessageAsync(QueueMessage, CancellationToken)"/>, peek without consuming
-    /// with <see cref="PeekQueueAsync"/>, or use the legacy pull API via
-    /// <see cref="ReceiveQueueMessagesAsync"/>.</para>
+    /// with <see cref="PeekQueueMessagesAsync"/>, or use the legacy pull API via
+    /// <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/>.</para>
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
     /// <exception cref="KubeMQConfigurationException"><paramref name="request"/> has invalid values
@@ -387,7 +386,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
     /// <example>
     /// <code>
-    /// var response = await client.PollQueueAsync(new QueuePollRequest
+    /// var response = await client.ReceiveQueueMessagesAsync(new QueuePollRequest
     /// {
     ///     Channel = "queues.orders",
     ///     MaxMessages = 10,
@@ -401,7 +400,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// }
     /// </code>
     /// </example>
-    Task<QueuePollResponse> PollQueueAsync(QueuePollRequest request, CancellationToken cancellationToken = default);
+    Task<QueuePollResponse> ReceiveQueueMessagesAsync(QueuePollRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Peeks at queue messages without consuming them.
@@ -409,15 +408,15 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <remarks>
     /// <para>Uses the <c>ReceiveQueueMessages</c> gRPC call with <c>IsPeak=true</c>.
     /// Messages remain in the queue and are not acknowledged.</para>
-    /// <para><b>Related types:</b> To consume messages, use <see cref="PollQueueAsync"/> or
-    /// <see cref="ReceiveQueueMessagesAsync"/>. To send messages, use
+    /// <para><b>Related types:</b> To consume messages, use <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/> or
+    /// <see cref="ReceiveQueueMessagesAsync(string, int, int, CancellationToken)"/>. To send messages, use
     /// <see cref="SendQueueMessageAsync(QueueMessage, CancellationToken)"/>.</para>
     /// </remarks>
     /// <param name="request">Poll configuration specifying the channel and message count.
     /// See <see cref="QueuePollRequest"/> for available options.</param>
     /// <param name="cancellationToken">Optional token to cancel the peek operation.</param>
     /// <returns>A <see cref="QueuePollResponse"/> containing zero or more messages. The messages
-    /// remain in the queue and can be consumed by a subsequent <see cref="PollQueueAsync"/> call.</returns>
+    /// remain in the queue and can be consumed by a subsequent <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/> call.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
     /// <exception cref="KubeMQConfigurationException"><paramref name="request"/> has invalid values
     /// (empty channel, non-positive MaxMessages or WaitTimeoutSeconds).</exception>
@@ -427,7 +426,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
     /// <exception cref="KubeMQRetryExhaustedException">All retry attempts were exhausted.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task<QueuePollResponse> PeekQueueAsync(QueuePollRequest request, CancellationToken cancellationToken = default);
+    Task<QueuePollResponse> PeekQueueMessagesAsync(QueuePollRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>Receives messages from a queue via the simple pull API (consumes messages).</summary>
     /// <param name="channel">Queue channel name to receive from. Must be non-empty.</param>
@@ -437,8 +436,8 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <param name="cancellationToken">Optional token to cancel the receive operation.</param>
     /// <returns>A <see cref="QueueReceiveResult"/> containing received messages, counts, and error status.</returns>
     /// <remarks>
-    /// <para>This is the legacy pull API. Prefer <see cref="PollQueueAsync"/> for new code, which
-    /// supports auto-ack, visibility timeout, and per-message settlement.</para>
+    /// <para>This is the legacy pull API. Prefer <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/> for new code, which
+    /// supports auto-ack and per-message settlement.</para>
     /// </remarks>
     /// <exception cref="ArgumentException"><paramref name="channel"/> is <see langword="null"/>, empty,
     /// or whitespace.</exception>
@@ -475,140 +474,19 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
         IEnumerable<QueueMessage> messages,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Receives messages from a queue using the downstream stream API with transactional semantics.</summary>
-    /// <param name="channel">Queue channel name to receive from. Must be non-empty.</param>
-    /// <param name="maxItems">Maximum number of messages to receive. Defaults to 1.</param>
-    /// <param name="waitTimeoutMs">Wait timeout in milliseconds for messages to become available.
-    /// Defaults to 10000 (10 seconds).</param>
-    /// <param name="autoAck">When <see langword="true"/>, messages are automatically acknowledged upon receipt.
-    /// When <see langword="false"/>, you must call settlement methods (e.g.,
-    /// <see cref="AckAllDownstreamAsync"/>, <see cref="NAckAllDownstreamAsync"/>) using the returned
-    /// <see cref="QueueDownstreamResult.TransactionId"/>. Defaults to <see langword="false"/>.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A <see cref="QueueDownstreamResult"/> containing messages, transaction ID for settlement,
-    /// active offsets, and error status.</returns>
+    /// <summary>Creates a persistent downstream receiver for queue polling with manual settlement.</summary>
+    /// <param name="cancellationToken">Optional token to cancel the stream creation.</param>
+    /// <returns>A <see cref="QueueDownstreamReceiver"/> that can be used to poll and settle messages.
+    /// Dispose the receiver when done.</returns>
     /// <remarks>
-    /// <para><b>Related types:</b> Settle transactions with <see cref="AckAllDownstreamAsync"/>,
-    /// <see cref="AckRangeDownstreamAsync"/>, <see cref="NAckAllDownstreamAsync"/>,
-    /// <see cref="NAckRangeDownstreamAsync"/>, <see cref="ReQueueAllDownstreamAsync"/>,
-    /// or <see cref="ReQueueRangeDownstreamAsync"/>. Query transaction state with
-    /// <see cref="GetActiveOffsetsAsync"/> and <see cref="IsTransactionActiveAsync"/>.</para>
+    /// <para>Each receiver owns a dedicated gRPC stream. For high-throughput scenarios, create one
+    /// receiver and call <see cref="QueueDownstreamReceiver.PollAsync"/> in a loop. For one-shot
+    /// auto-ack polling, use <see cref="ReceiveQueueMessagesAsync(QueuePollRequest, CancellationToken)"/> instead.</para>
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="channel"/> is <see langword="null"/>, empty,
-    /// or whitespace.</exception>
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
-    /// <exception cref="KubeMQOperationException">The server closed the stream, returned no response, or failed
-    /// after retries.</exception>
-    /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task<QueueDownstreamResult> ReceiveQueueDownstreamAsync(
-        string channel,
-        int maxItems = 1,
-        int waitTimeoutMs = 10000,
-        bool autoAck = false,
+    Task<QueueDownstreamReceiver> CreateQueueDownstreamReceiverAsync(
         CancellationToken cancellationToken = default);
-
-    /// <summary>Acknowledges all messages in a downstream transaction.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/> or empty.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous acknowledge operation.</returns>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task AckAllDownstreamAsync(string transactionId, CancellationToken cancellationToken = default);
-
-    /// <summary>Acknowledges specific messages by sequence range in a downstream transaction.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/> or empty.</param>
-    /// <param name="sequenceRange">Sequence numbers of the messages to acknowledge. Obtain from
-    /// <see cref="QueueMessageReceived.Sequence"/> or <see cref="GetActiveOffsetsAsync"/>.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous acknowledge operation.</returns>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task AckRangeDownstreamAsync(string transactionId, IEnumerable<long> sequenceRange, CancellationToken cancellationToken = default);
-
-    /// <summary>Rejects all messages in a downstream transaction.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/> or empty.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous reject operation.</returns>
-    /// <remarks>
-    /// <para>Rejected messages are returned to the queue and can be redelivered to another consumer.
-    /// Use <see cref="ReQueueAllDownstreamAsync"/> to move messages to a different queue instead.</para>
-    /// </remarks>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task NAckAllDownstreamAsync(string transactionId, CancellationToken cancellationToken = default);
-
-    /// <summary>Rejects specific messages by sequence range in a downstream transaction.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/> or empty.</param>
-    /// <param name="sequenceRange">Sequence numbers of the messages to reject. Obtain from
-    /// <see cref="QueueMessageReceived.Sequence"/> or <see cref="GetActiveOffsetsAsync"/>.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous reject operation.</returns>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task NAckRangeDownstreamAsync(string transactionId, IEnumerable<long> sequenceRange, CancellationToken cancellationToken = default);
-
-    /// <summary>Requeues all messages in a downstream transaction to another queue.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/> or empty.</param>
-    /// <param name="reQueueChannel">Target queue channel for the requeued messages. Must be a valid,
-    /// non-empty channel name.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous requeue operation.</returns>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task ReQueueAllDownstreamAsync(string transactionId, string reQueueChannel, CancellationToken cancellationToken = default);
-
-    /// <summary>Requeues specific messages by sequence range to another queue.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/> or empty.</param>
-    /// <param name="reQueueChannel">Target queue channel for the requeued messages. Must be a valid,
-    /// non-empty channel name.</param>
-    /// <param name="sequenceRange">Sequence numbers of the messages to requeue. Obtain from
-    /// <see cref="QueueMessageReceived.Sequence"/> or <see cref="GetActiveOffsetsAsync"/>.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A task representing the asynchronous requeue operation.</returns>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task ReQueueRangeDownstreamAsync(string transactionId, string reQueueChannel, IEnumerable<long> sequenceRange, CancellationToken cancellationToken = default);
-
-    /// <summary>Gets the list of active (unacknowledged) sequence numbers for a downstream transaction.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/>, empty,
-    /// or whitespace.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns>A read-only list of sequence numbers for messages that have not yet been acknowledged
-    /// or rejected.</returns>
-    /// <exception cref="ArgumentException"><paramref name="transactionId"/> is <see langword="null"/>, empty,
-    /// or whitespace.</exception>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>, or the server returned an error.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task<IReadOnlyList<long>> GetActiveOffsetsAsync(string transactionId, CancellationToken cancellationToken = default);
-
-    /// <summary>Checks whether a downstream transaction is still active.</summary>
-    /// <param name="transactionId">The <see cref="QueueDownstreamResult.TransactionId"/> from
-    /// <see cref="ReceiveQueueDownstreamAsync"/>. Must not be <see langword="null"/>, empty,
-    /// or whitespace.</param>
-    /// <param name="cancellationToken">Optional token to cancel the operation.</param>
-    /// <returns><see langword="true"/> if the transaction is still active and messages can be settled;
-    /// <see langword="false"/> if the transaction has completed or expired.</returns>
-    /// <exception cref="ArgumentException"><paramref name="transactionId"/> is <see langword="null"/>, empty,
-    /// or whitespace.</exception>
-    /// <exception cref="KubeMQOperationException">No active downstream stream exists for the specified
-    /// <paramref name="transactionId"/>, or the server returned an error.</exception>
-    /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
-    Task<bool> IsTransactionActiveAsync(string transactionId, CancellationToken cancellationToken = default);
 
     /// <summary>Sends a command to a channel and waits for acknowledgment.</summary>
     /// <param name="message">The <see cref="CommandMessage"/> to send. Must have a non-empty
@@ -821,22 +699,18 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <summary>
     /// Sends a response to a received command.
     /// </summary>
-    /// <param name="requestId">The <see cref="CommandReceived.RequestId"/> of the command being responded to.</param>
-    /// <param name="replyChannel">The <see cref="CommandReceived.ReplyChannel"/> from the received command.</param>
-    /// <param name="executed">Whether the command was executed successfully.</param>
-    /// <param name="errorMessage">Optional error description when <paramref name="executed"/> is
-    /// <see langword="false"/>. Pass <see langword="null"/> on success.</param>
-    /// <param name="body">Optional response payload. Defaults to empty.</param>
-    /// <param name="metadata">Optional response metadata string. Defaults to <see langword="null"/>.</param>
-    /// <param name="tags">Optional response key-value tags. Defaults to <see langword="null"/>.</param>
+    /// <param name="response">The <see cref="CommandResponse"/> containing the response data.
+    /// Must have a non-empty <see cref="CommandResponse.RequestId"/> and
+    /// <see cref="CommandResponse.ReplyChannel"/>.</param>
     /// <param name="cancellationToken">Optional token to cancel the operation.</param>
     /// <returns>A task that completes when the response is sent to the command sender.</returns>
     /// <remarks>
     /// <para><b>Related types:</b> Subscribe to commands with <see cref="SubscribeToCommandsAsync"/>,
     /// send commands with <see cref="SendCommandAsync"/>.</para>
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="requestId"/> or <paramref name="replyChannel"/>
-    /// is <see langword="null"/>, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="response"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><see cref="CommandResponse.RequestId"/> or
+    /// <see cref="CommandResponse.ReplyChannel"/> is <see langword="null"/>, empty, or whitespace.</exception>
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
     /// <exception cref="KubeMQOperationException">The server returned an error.</exception>
     /// <exception cref="KubeMQTimeoutException">The response send exceeded the server deadline.</exception>
@@ -844,33 +718,24 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQRetryExhaustedException">All retry attempts were exhausted.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
     Task SendCommandResponseAsync(
-        string requestId,
-        string replyChannel,
-        bool executed,
-        string? errorMessage = null,
-        ReadOnlyMemory<byte> body = default,
-        string? metadata = null,
-        IReadOnlyDictionary<string, string>? tags = null,
+        CommandResponse response,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a response to a received query, including optional response data.
     /// </summary>
-    /// <param name="requestId">The <see cref="QueryReceived.RequestId"/> of the query being responded to.</param>
-    /// <param name="replyChannel">The <see cref="QueryReceived.ReplyChannel"/> from the received query.</param>
-    /// <param name="body">Response payload. Defaults to empty. Typically contains the query result data.</param>
-    /// <param name="executed">Whether the query was executed successfully. Defaults to <see langword="true"/>.</param>
-    /// <param name="tags">Optional response key-value metadata. Defaults to <see langword="null"/>.</param>
-    /// <param name="errorMessage">Optional error description when <paramref name="executed"/> is
-    /// <see langword="false"/>. Pass <see langword="null"/> on success.</param>
+    /// <param name="response">The <see cref="QueryResponse"/> containing the response data.
+    /// Must have a non-empty <see cref="QueryResponse.RequestId"/> and
+    /// <see cref="QueryResponse.ReplyChannel"/>.</param>
     /// <param name="cancellationToken">Optional token to cancel the operation.</param>
     /// <returns>A task that completes when the response is sent to the query sender.</returns>
     /// <remarks>
     /// <para><b>Related types:</b> Subscribe to queries with <see cref="SubscribeToQueriesAsync"/>,
     /// send queries with <see cref="SendQueryAsync"/>.</para>
     /// </remarks>
-    /// <exception cref="ArgumentException"><paramref name="requestId"/> or <paramref name="replyChannel"/>
-    /// is <see langword="null"/>, empty, or whitespace.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="response"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><see cref="QueryResponse.RequestId"/> or
+    /// <see cref="QueryResponse.ReplyChannel"/> is <see langword="null"/>, empty, or whitespace.</exception>
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
     /// <exception cref="KubeMQOperationException">The server returned an error.</exception>
     /// <exception cref="KubeMQTimeoutException">The response send exceeded the server deadline.</exception>
@@ -878,12 +743,7 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQRetryExhaustedException">All retry attempts were exhausted.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
     Task SendQueryResponseAsync(
-        string requestId,
-        string replyChannel,
-        ReadOnlyMemory<byte> body = default,
-        bool executed = true,
-        IReadOnlyDictionary<string, string>? tags = null,
-        string? errorMessage = null,
+        QueryResponse response,
         CancellationToken cancellationToken = default);
 
     /// <summary>Creates an events channel.</summary>

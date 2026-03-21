@@ -14,17 +14,17 @@ public sealed class StateMachineTests : IDisposable
     [Fact]
     public void Current_InitialState_IsDisconnected()
     {
-        _sut.Current.Should().Be(ConnectionState.Disconnected);
+        _sut.Current.Should().Be(ConnectionState.Idle);
     }
 
     [Theory]
-    [InlineData(ConnectionState.Disconnected, ConnectionState.Connecting)]
-    [InlineData(ConnectionState.Connecting, ConnectionState.Connected)]
-    [InlineData(ConnectionState.Connected, ConnectionState.Reconnecting)]
-    [InlineData(ConnectionState.Reconnecting, ConnectionState.Connected)]
-    [InlineData(ConnectionState.Connected, ConnectionState.Disposed)]
-    [InlineData(ConnectionState.Reconnecting, ConnectionState.Disposed)]
-    [InlineData(ConnectionState.Disconnected, ConnectionState.Disposed)]
+    [InlineData(ConnectionState.Idle, ConnectionState.Connecting)]
+    [InlineData(ConnectionState.Connecting, ConnectionState.Ready)]
+    [InlineData(ConnectionState.Ready, ConnectionState.Reconnecting)]
+    [InlineData(ConnectionState.Reconnecting, ConnectionState.Ready)]
+    [InlineData(ConnectionState.Ready, ConnectionState.Closed)]
+    [InlineData(ConnectionState.Reconnecting, ConnectionState.Closed)]
+    [InlineData(ConnectionState.Idle, ConnectionState.Closed)]
     public void TryTransition_ValidTransition_ReturnsTrueAndUpdatesState(
         ConnectionState from, ConnectionState to)
     {
@@ -39,19 +39,19 @@ public sealed class StateMachineTests : IDisposable
     [Fact]
     public void TryTransition_WrongCurrentState_ReturnsFalseAndStateUnchanged()
     {
-        _sut.Current.Should().Be(ConnectionState.Disconnected);
+        _sut.Current.Should().Be(ConnectionState.Idle);
 
-        bool result = _sut.TryTransition(ConnectionState.Connected, ConnectionState.Reconnecting);
+        bool result = _sut.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
 
         result.Should().BeFalse();
-        _sut.Current.Should().Be(ConnectionState.Disconnected);
+        _sut.Current.Should().Be(ConnectionState.Idle);
     }
 
     [Fact]
     public async Task TransitionAsync_ValidTransition_ReturnsTrueAndUpdatesState()
     {
         bool result = await _sut.TransitionAsync(
-            ConnectionState.Disconnected,
+            ConnectionState.Idle,
             ConnectionState.Connecting,
             onTransition: null,
             CancellationToken.None);
@@ -64,22 +64,22 @@ public sealed class StateMachineTests : IDisposable
     public async Task TransitionAsync_WrongCurrentState_ReturnsFalse()
     {
         bool result = await _sut.TransitionAsync(
-            ConnectionState.Connected,
+            ConnectionState.Ready,
             ConnectionState.Reconnecting,
             onTransition: null,
             CancellationToken.None);
 
         result.Should().BeFalse();
-        _sut.Current.Should().Be(ConnectionState.Disconnected);
+        _sut.Current.Should().Be(ConnectionState.Idle);
     }
 
     [Fact]
     public async Task TransitionAsync_InvokesCallbackBeforeStateChange()
     {
-        ConnectionState capturedDuringCallback = ConnectionState.Disposed;
+        ConnectionState capturedDuringCallback = ConnectionState.Closed;
 
         bool result = await _sut.TransitionAsync(
-            ConnectionState.Disconnected,
+            ConnectionState.Idle,
             ConnectionState.Connecting,
             onTransition: () =>
             {
@@ -89,7 +89,7 @@ public sealed class StateMachineTests : IDisposable
             CancellationToken.None);
 
         result.Should().BeTrue();
-        capturedDuringCallback.Should().Be(ConnectionState.Disconnected,
+        capturedDuringCallback.Should().Be(ConnectionState.Idle,
             "callback runs before state is updated");
         _sut.Current.Should().Be(ConnectionState.Connecting);
     }
@@ -98,7 +98,7 @@ public sealed class StateMachineTests : IDisposable
     public async Task TransitionAsync_NullCallback_SucceedsWithoutError()
     {
         bool result = await _sut.TransitionAsync(
-            ConnectionState.Disconnected,
+            ConnectionState.Idle,
             ConnectionState.Connecting,
             onTransition: null,
             CancellationToken.None);
@@ -113,7 +113,7 @@ public sealed class StateMachineTests : IDisposable
         await cts.CancelAsync();
 
         Func<Task> act = () => _sut.TransitionAsync(
-            ConnectionState.Disconnected,
+            ConnectionState.Idle,
             ConnectionState.Connecting,
             onTransition: null,
             cts.Token);
@@ -125,7 +125,7 @@ public sealed class StateMachineTests : IDisposable
     public async Task TransitionAsync_CallbackThrows_PropagatesException()
     {
         Func<Task> act = () => _sut.TransitionAsync(
-            ConnectionState.Disconnected,
+            ConnectionState.Idle,
             ConnectionState.Connecting,
             onTransition: () => throw new InvalidOperationException("boom"),
             CancellationToken.None);
@@ -135,11 +135,11 @@ public sealed class StateMachineTests : IDisposable
     }
 
     [Theory]
-    [InlineData(ConnectionState.Disconnected)]
+    [InlineData(ConnectionState.Idle)]
     [InlineData(ConnectionState.Connecting)]
-    [InlineData(ConnectionState.Connected)]
+    [InlineData(ConnectionState.Ready)]
     [InlineData(ConnectionState.Reconnecting)]
-    [InlineData(ConnectionState.Disposed)]
+    [InlineData(ConnectionState.Closed)]
     public void ForceDisposed_FromAnyState_TransitionsToDisposedAndReturnsPrevious(
         ConnectionState initial)
     {
@@ -148,7 +148,7 @@ public sealed class StateMachineTests : IDisposable
         ConnectionState previous = _sut.ForceDisposed();
 
         previous.Should().Be(initial);
-        _sut.Current.Should().Be(ConnectionState.Disposed);
+        _sut.Current.Should().Be(ConnectionState.Closed);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class StateMachineTests : IDisposable
         var barrier = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var task1 = _sut.TransitionAsync(
-            ConnectionState.Disconnected,
+            ConnectionState.Idle,
             ConnectionState.Connecting,
             onTransition: async () => await barrier.Task,
             CancellationToken.None);
@@ -165,8 +165,8 @@ public sealed class StateMachineTests : IDisposable
         await Task.Delay(50);
 
         var task2 = Task.Run(() => _sut.TransitionAsync(
-            ConnectionState.Disconnected,
-            ConnectionState.Connected,
+            ConnectionState.Idle,
+            ConnectionState.Ready,
             onTransition: null,
             CancellationToken.None));
 
@@ -191,7 +191,7 @@ public sealed class StateMachineTests : IDisposable
         var tasks = Enumerable.Range(0, 10).Select(_ => Task.Run(() =>
         {
             barrier.Wait();
-            if (_sut.TryTransition(ConnectionState.Disconnected, ConnectionState.Connecting))
+            if (_sut.TryTransition(ConnectionState.Idle, ConnectionState.Connecting))
             {
                 Interlocked.Increment(ref successCount);
             }
@@ -206,7 +206,7 @@ public sealed class StateMachineTests : IDisposable
 
     private void SetState(ConnectionState target)
     {
-        if (target == ConnectionState.Disconnected)
+        if (target == ConnectionState.Idle)
         {
             return;
         }
@@ -214,18 +214,18 @@ public sealed class StateMachineTests : IDisposable
         ConnectionState[] path = target switch
         {
             ConnectionState.Connecting => [ConnectionState.Connecting],
-            ConnectionState.Connected =>
-                [ConnectionState.Connecting, ConnectionState.Connected],
+            ConnectionState.Ready =>
+                [ConnectionState.Connecting, ConnectionState.Ready],
             ConnectionState.Reconnecting =>
-                [ConnectionState.Connecting, ConnectionState.Connected, ConnectionState.Reconnecting],
-            ConnectionState.Disposed => [ConnectionState.Disposed],
+                [ConnectionState.Connecting, ConnectionState.Ready, ConnectionState.Reconnecting],
+            ConnectionState.Closed => [ConnectionState.Closed],
             _ => throw new ArgumentOutOfRangeException(nameof(target)),
         };
 
-        ConnectionState current = ConnectionState.Disconnected;
+        ConnectionState current = ConnectionState.Idle;
         foreach (ConnectionState next in path)
         {
-            if (next == ConnectionState.Disposed)
+            if (next == ConnectionState.Closed)
             {
                 _sut.ForceDisposed();
                 return;

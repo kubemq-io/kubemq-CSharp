@@ -52,7 +52,7 @@ Console.WriteLine("\nPublishing events (traces will be logged above)...\n");
 
 for (var i = 1; i <= 3; i++)
 {
-    await client.PublishEventAsync(new EventMessage
+    await client.SendEventAsync(new EventMessage
     {
         Channel = "csharp-observability.open-telemetry",
         Body = Encoding.UTF8.GetBytes($"Traced event #{i}")

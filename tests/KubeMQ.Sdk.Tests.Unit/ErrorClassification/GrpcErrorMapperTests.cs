@@ -43,8 +43,8 @@ public class GrpcErrorMapperTests
             rpcException, "TestOp", "test-ch", CancellationToken.None);
 
         result.Should().BeOfType<KubeMQConnectionException>();
-        result.ErrorCode.Should().Be(KubeMQErrorCode.Unavailable);
-        result.Category.Should().Be(KubeMQErrorCategory.Transient);
+        result.ErrorCode.Should().Be(ErrorCode.Unavailable);
+        result.Category.Should().Be(ErrorCategory.Transient);
         result.InnerException.Should().BeSameAs(rpcException);
     }
 
@@ -57,8 +57,8 @@ public class GrpcErrorMapperTests
             rpcException, "TestOp", null, CancellationToken.None);
 
         result.Should().BeOfType<KubeMQAuthenticationException>();
-        result.ErrorCode.Should().Be(KubeMQErrorCode.AuthenticationFailed);
-        result.Category.Should().Be(KubeMQErrorCategory.Authentication);
+        result.ErrorCode.Should().Be(ErrorCode.AuthenticationFailed);
+        result.Category.Should().Be(ErrorCategory.Authentication);
         result.IsRetryable.Should().BeFalse();
     }
 
@@ -71,8 +71,8 @@ public class GrpcErrorMapperTests
             rpcException, "TestOp", "ch", CancellationToken.None);
 
         result.Should().BeOfType<KubeMQTimeoutException>();
-        result.ErrorCode.Should().Be(KubeMQErrorCode.DeadlineExceeded);
-        result.Category.Should().Be(KubeMQErrorCategory.Timeout);
+        result.ErrorCode.Should().Be(ErrorCode.DeadlineExceeded);
+        result.Category.Should().Be(ErrorCategory.Timeout);
     }
 
     [Fact]
@@ -141,27 +141,27 @@ public class GrpcErrorMapperTests
         var result = GrpcErrorMapper.MapException(
             rpcException, "TestOp", null, CancellationToken.None);
 
-        result.Category.Should().Be(KubeMQErrorCategory.Transient);
+        result.Category.Should().Be(ErrorCategory.Transient);
         result.IsRetryable.Should().BeTrue();
     }
 
     [Theory]
-    [InlineData(StatusCode.InvalidArgument, KubeMQErrorCategory.Validation)]
-    [InlineData(StatusCode.AlreadyExists, KubeMQErrorCategory.Validation)]
-    [InlineData(StatusCode.FailedPrecondition, KubeMQErrorCategory.Validation)]
-    [InlineData(StatusCode.OutOfRange, KubeMQErrorCategory.Validation)]
-    [InlineData(StatusCode.NotFound, KubeMQErrorCategory.NotFound)]
-    [InlineData(StatusCode.PermissionDenied, KubeMQErrorCategory.Authorization)]
-    [InlineData(StatusCode.Unauthenticated, KubeMQErrorCategory.Authentication)]
-    [InlineData(StatusCode.DeadlineExceeded, KubeMQErrorCategory.Timeout)]
-    [InlineData(StatusCode.Unavailable, KubeMQErrorCategory.Transient)]
-    [InlineData(StatusCode.Aborted, KubeMQErrorCategory.Transient)]
-    [InlineData(StatusCode.ResourceExhausted, KubeMQErrorCategory.Throttling)]
-    [InlineData(StatusCode.Unimplemented, KubeMQErrorCategory.Fatal)]
-    [InlineData(StatusCode.Internal, KubeMQErrorCategory.Fatal)]
-    [InlineData(StatusCode.DataLoss, KubeMQErrorCategory.Fatal)]
+    [InlineData(StatusCode.InvalidArgument, ErrorCategory.Validation)]
+    [InlineData(StatusCode.AlreadyExists, ErrorCategory.Validation)]
+    [InlineData(StatusCode.FailedPrecondition, ErrorCategory.Validation)]
+    [InlineData(StatusCode.OutOfRange, ErrorCategory.Validation)]
+    [InlineData(StatusCode.NotFound, ErrorCategory.NotFound)]
+    [InlineData(StatusCode.PermissionDenied, ErrorCategory.Authorization)]
+    [InlineData(StatusCode.Unauthenticated, ErrorCategory.Authentication)]
+    [InlineData(StatusCode.DeadlineExceeded, ErrorCategory.Timeout)]
+    [InlineData(StatusCode.Unavailable, ErrorCategory.Transient)]
+    [InlineData(StatusCode.Aborted, ErrorCategory.Transient)]
+    [InlineData(StatusCode.ResourceExhausted, ErrorCategory.Throttling)]
+    [InlineData(StatusCode.Unimplemented, ErrorCategory.Fatal)]
+    [InlineData(StatusCode.Internal, ErrorCategory.Fatal)]
+    [InlineData(StatusCode.DataLoss, ErrorCategory.Fatal)]
     public void MapException_ReturnsCorrectCategory(
-        StatusCode grpcCode, KubeMQErrorCategory expectedCategory)
+        StatusCode grpcCode, ErrorCategory expectedCategory)
     {
         var rpcException = new RpcException(new Status(grpcCode, "test"));
 

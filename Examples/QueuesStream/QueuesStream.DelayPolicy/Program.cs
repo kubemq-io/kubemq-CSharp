@@ -1,7 +1,7 @@
 // KubeMQ .NET SDK — QueuesStream: Delay Policy
 //
 // This example demonstrates sending a queue message with a delivery delay
-// and receiving via the downstream stream API. The message becomes visible
+// and receiving via the downstream receiver API. The message becomes visible
 // to consumers only after the delay expires.
 //
 // Prerequisites:
@@ -30,30 +30,35 @@ var sendResult = await client.SendQueueMessageAsync(new QueueMessage
 
 Console.WriteLine($"Sent delayed message (5s delay): {sendResult.MessageId}");
 
-// Immediate receive — should not find the message yet
-var immediate = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queuesstream.delay-policy",
-    maxItems: 1,
-    waitTimeoutMs: 1000);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-Console.WriteLine($"Immediate receive: {(immediate.Messages.Count > 0 ? "found" : "empty (expected)")}");
+// Immediate receive — should not find the message yet
+var immediate = await receiver.PollAsync(new QueuePollRequest
+{
+    Channel = "csharp-queuesstream.delay-policy",
+    MaxMessages = 1,
+    WaitTimeoutSeconds = 1,
+    AutoAck = true,
+});
+
+Console.WriteLine($"Immediate receive: {(immediate.HasMessages ? "found" : "empty (expected)")}");
 
 // Wait for delay to expire, then receive again
 Console.WriteLine("Waiting 6 seconds for delay to expire...");
 await Task.Delay(6000);
 
-var delayed = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queuesstream.delay-policy",
-    maxItems: 1,
-    waitTimeoutMs: 5000);
+var delayed = await receiver.PollAsync(new QueuePollRequest
+{
+    Channel = "csharp-queuesstream.delay-policy",
+    MaxMessages = 1,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
 
-if (delayed.Messages.Count > 0)
+if (delayed.HasMessages)
 {
     Console.WriteLine($"Delayed receive: {Encoding.UTF8.GetString(delayed.Messages[0].Body.Span)}");
-    if (!string.IsNullOrEmpty(delayed.TransactionId))
-    {
-        await client.AckAllDownstreamAsync(delayed.TransactionId);
-    }
+    await delayed.AckAllAsync();
 }
 
 Console.WriteLine("Done.");

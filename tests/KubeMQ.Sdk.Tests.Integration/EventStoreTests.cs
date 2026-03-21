@@ -24,7 +24,7 @@ public class EventStoreTests : IntegrationTestBase
             Body = Encoding.UTF8.GetBytes("hello-event-store"),
         };
 
-        var act = () => client.PublishEventStoreAsync(message);
+        var act = () => client.SendEventStoreAsync(message);
 
         await act.Should().NotThrowAsync();
     }
@@ -50,9 +50,9 @@ public class EventStoreTests : IntegrationTestBase
             var subscription = new EventStoreSubscription
             {
                 Channel = channel,
-                StartPosition = EventStoreStartPosition.FromNew,
+                StartPosition = EventStoreStartPosition.StartFromNew,
             };
-            await foreach (var evt in subscriber.SubscribeToEventStoreAsync(subscription, cts.Token))
+            await foreach (var evt in subscriber.SubscribeToEventsStoreAsync(subscription, cts.Token))
             {
                 tcs.TrySetResult(evt);
                 break;
@@ -61,7 +61,7 @@ public class EventStoreTests : IntegrationTestBase
 
         await Task.Delay(1000);
 
-        await publisher.PublishEventStoreAsync(new EventStoreMessage
+        await publisher.SendEventStoreAsync(new EventStoreMessage
         {
             Channel = channel,
             Body = payload,
@@ -86,7 +86,7 @@ public class EventStoreTests : IntegrationTestBase
         // Publish 3 events first
         for (var i = 0; i < 3; i++)
         {
-            await publisher.PublishEventStoreAsync(new EventStoreMessage
+            await publisher.SendEventStoreAsync(new EventStoreMessage
             {
                 Channel = channel,
                 Body = Encoding.UTF8.GetBytes($"event-{i}"),
@@ -109,9 +109,9 @@ public class EventStoreTests : IntegrationTestBase
             var subscription = new EventStoreSubscription
             {
                 Channel = channel,
-                StartPosition = EventStoreStartPosition.FromFirst,
+                StartPosition = EventStoreStartPosition.StartFromFirst,
             };
-            await foreach (var evt in subscriber.SubscribeToEventStoreAsync(subscription, cts.Token))
+            await foreach (var evt in subscriber.SubscribeToEventsStoreAsync(subscription, cts.Token))
             {
                 received.Add(evt);
                 if (received.Count >= 3)
@@ -141,7 +141,7 @@ public class EventStoreTests : IntegrationTestBase
         // Publish 3 events first
         for (var i = 0; i < 3; i++)
         {
-            await publisher.PublishEventStoreAsync(new EventStoreMessage
+            await publisher.SendEventStoreAsync(new EventStoreMessage
             {
                 Channel = channel,
                 Body = Encoding.UTF8.GetBytes($"event-{i}"),
@@ -163,9 +163,9 @@ public class EventStoreTests : IntegrationTestBase
             var subscription = new EventStoreSubscription
             {
                 Channel = channel,
-                StartPosition = EventStoreStartPosition.FromLast,
+                StartPosition = EventStoreStartPosition.StartFromLast,
             };
-            await foreach (var evt in subscriber.SubscribeToEventStoreAsync(subscription, cts.Token))
+            await foreach (var evt in subscriber.SubscribeToEventsStoreAsync(subscription, cts.Token))
             {
                 tcs.TrySetResult(evt);
                 break;
@@ -189,7 +189,7 @@ public class EventStoreTests : IntegrationTestBase
         // Publish 5 events
         for (var i = 0; i < 5; i++)
         {
-            await publisher.PublishEventStoreAsync(new EventStoreMessage
+            await publisher.SendEventStoreAsync(new EventStoreMessage
             {
                 Channel = channel,
                 Body = Encoding.UTF8.GetBytes($"seq-event-{i}"),
@@ -212,10 +212,10 @@ public class EventStoreTests : IntegrationTestBase
             var subscription = new EventStoreSubscription
             {
                 Channel = channel,
-                StartPosition = EventStoreStartPosition.FromSequence,
+                StartPosition = EventStoreStartPosition.StartAtSequence,
                 StartSequence = 3,
             };
-            await foreach (var evt in subscriber.SubscribeToEventStoreAsync(subscription, cts.Token))
+            await foreach (var evt in subscriber.SubscribeToEventsStoreAsync(subscription, cts.Token))
             {
                 received.Add(evt);
                 if (received.Count >= 3)
@@ -241,7 +241,7 @@ public class EventStoreTests : IntegrationTestBase
         var channel = UniqueChannel("es-from-delta");
 
         // Publish an event
-        await publisher.PublishEventStoreAsync(new EventStoreMessage
+        await publisher.SendEventStoreAsync(new EventStoreMessage
         {
             Channel = channel,
             Body = Encoding.UTF8.GetBytes("recent-event"),
@@ -262,10 +262,10 @@ public class EventStoreTests : IntegrationTestBase
             var subscription = new EventStoreSubscription
             {
                 Channel = channel,
-                StartPosition = EventStoreStartPosition.FromTimeDelta,
+                StartPosition = EventStoreStartPosition.StartAtTimeDelta,
                 StartTimeDeltaSeconds = 60,
             };
-            await foreach (var evt in subscriber.SubscribeToEventStoreAsync(subscription, cts.Token))
+            await foreach (var evt in subscriber.SubscribeToEventsStoreAsync(subscription, cts.Token))
             {
                 tcs.TrySetResult(evt);
                 break;
@@ -299,9 +299,9 @@ public class EventStoreTests : IntegrationTestBase
             var subscription = new EventStoreSubscription
             {
                 Channel = channel,
-                StartPosition = EventStoreStartPosition.FromNew,
+                StartPosition = EventStoreStartPosition.StartFromNew,
             };
-            await foreach (var evt in subscriber.SubscribeToEventStoreAsync(subscription, cts.Token))
+            await foreach (var evt in subscriber.SubscribeToEventsStoreAsync(subscription, cts.Token))
             {
                 tcs.TrySetResult(evt);
                 break;
@@ -310,7 +310,7 @@ public class EventStoreTests : IntegrationTestBase
 
         await Task.Delay(1000);
 
-        await publisher.PublishEventStoreAsync(new EventStoreMessage
+        await publisher.SendEventStoreAsync(new EventStoreMessage
         {
             Channel = channel,
             Body = Encoding.UTF8.GetBytes("tagged-es-event"),
@@ -335,7 +335,7 @@ public class EventStoreTests : IntegrationTestBase
 
         try
         {
-            var results = new List<EventSendResult>();
+            var results = new List<EventStoreResult>();
             for (var i = 0; i < 5; i++)
             {
                 var result = await stream.SendAsync(
@@ -352,7 +352,7 @@ public class EventStoreTests : IntegrationTestBase
             results.Should().AllSatisfy(r =>
             {
                 r.Sent.Should().BeTrue();
-                r.EventId.Should().NotBeNullOrWhiteSpace();
+                r.Id.Should().NotBeNullOrWhiteSpace();
             });
         }
         finally

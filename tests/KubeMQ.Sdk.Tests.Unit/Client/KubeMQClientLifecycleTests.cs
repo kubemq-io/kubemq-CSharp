@@ -42,7 +42,7 @@ public class KubeMQClientLifecycleTests
 
         await client.DisposeAsync();
 
-        var act = () => client.PublishEventAsync(
+        var act = () => client.SendEventAsync(
             new EventMessage { Channel = "ch", Body = new byte[] { 1 } });
 
         await act.Should().ThrowAsync<ObjectDisposedException>();
@@ -83,7 +83,7 @@ public class KubeMQClientLifecycleTests
 
         using (client)
         {
-            client.State.Should().Be(ConnectionState.Disconnected);
+            client.State.Should().Be(ConnectionState.Idle);
         }
     }
 }

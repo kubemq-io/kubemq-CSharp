@@ -1,7 +1,7 @@
 // KubeMQ .NET SDK — Queues: Auto-Ack on Downstream Receive
 //
-// This example demonstrates receiving messages via the downstream stream API
-// with autoAck enabled. Messages are automatically acknowledged upon receipt,
+// This example demonstrates receiving messages via the downstream receiver
+// with AutoAck enabled. Messages are automatically acknowledged upon receipt,
 // so no manual ack/nack is needed.
 //
 // Prerequisites:
@@ -10,6 +10,7 @@
 //   - dotnet run
 
 using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.Queues;
 using System.Text;
 
 await using var client = new KubeMQClient(new KubeMQClientOptions
@@ -20,13 +21,17 @@ await client.ConnectAsync();
 
 Console.WriteLine("Connected to KubeMQ server");
 
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queues.auto-ack",
-    maxItems: 5,
-    waitTimeoutMs: 5000,
-    autoAck: true);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-foreach (var msg in downstream.Messages)
+var batch = await receiver.PollAsync(new QueuePollRequest
+{
+    Channel = "csharp-queues.auto-ack",
+    MaxMessages = 5,
+    WaitTimeoutSeconds = 5,
+    AutoAck = true,
+});
+
+foreach (var msg in batch.Messages)
 {
     Console.WriteLine($"Auto-acked: {msg.MessageId} — {Encoding.UTF8.GetString(msg.Body.Span)}");
 }

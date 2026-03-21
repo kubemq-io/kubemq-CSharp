@@ -99,7 +99,7 @@ builder.Services.AddKubeMQ(opts => opts.Address = "server:50000");
 app.MapPost("/send", async () =>
 {
     await using var client = new KubeMQClient(options); // Expensive!
-    await client.PublishEventAsync(msg);
+    await client.SendEventAsync(msg);
 });
 ```
 

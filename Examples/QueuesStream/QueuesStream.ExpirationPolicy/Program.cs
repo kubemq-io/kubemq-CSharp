@@ -1,7 +1,7 @@
 // KubeMQ .NET SDK — QueuesStream: Message Expiration Policy
 //
 // This example demonstrates sending a queue message with an expiration policy
-// and receiving it via the downstream stream API. Messages that are not consumed
+// and receiving it via the downstream receiver API. Messages that are not consumed
 // within the expiration window are automatically discarded.
 //
 // Prerequisites:
@@ -30,19 +30,21 @@ var msg = new QueueMessage
 var sendResult = await client.SendQueueMessageAsync(msg);
 Console.WriteLine($"Sent: {sendResult.MessageId}, IsError={sendResult.IsError}");
 
-// Receive via downstream stream before expiration
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queuesstream.expiration-policy",
-    maxItems: 1,
-    waitTimeoutMs: 5000);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-if (downstream.Messages.Count > 0)
+// Receive via downstream receiver before expiration
+var batch = await receiver.PollAsync(new QueuePollRequest
 {
-    Console.WriteLine($"Received before expiration: {Encoding.UTF8.GetString(downstream.Messages[0].Body.Span)}");
-    if (!string.IsNullOrEmpty(downstream.TransactionId))
-    {
-        await client.AckAllDownstreamAsync(downstream.TransactionId);
-    }
+    Channel = "csharp-queuesstream.expiration-policy",
+    MaxMessages = 1,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
+
+if (batch.HasMessages)
+{
+    Console.WriteLine($"Received before expiration: {Encoding.UTF8.GetString(batch.Messages[0].Body.Span)}");
+    await batch.AckAllAsync();
 }
 else
 {

@@ -1,8 +1,8 @@
 // KubeMQ .NET SDK — QueuesStream: Dead Letter Policy
 //
-// This example demonstrates configuring a dead letter queue (DLQ) with the stream API.
-// After MaxReceiveCount failed attempts, the message moves to the DLQ channel.
-// The downstream stream API is used to receive and inspect DLQ messages.
+// This example demonstrates configuring a dead letter queue (DLQ) with the downstream
+// receiver API. After MaxReceiveCount failed attempts, the message moves to the DLQ
+// channel. The receiver is used to poll and inspect DLQ messages.
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -32,23 +32,24 @@ await client.SendQueueMessageAsync(new QueueMessage
 Console.WriteLine("Sent message with MaxReceiveCount=3 and DLQ configured");
 Console.WriteLine("After 3 failed receive attempts, the message moves to 'csharp-queuesstream.dlp-destination'");
 
-// Check the DLQ via downstream stream
-var dlqDownstream = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queuesstream.dlp-destination",
-    maxItems: 10,
-    waitTimeoutMs: 5000);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-if (dlqDownstream.Messages.Count > 0)
+// Check the DLQ via downstream receiver
+var batch = await receiver.PollAsync(new QueuePollRequest
 {
-    Console.WriteLine($"DLQ contains {dlqDownstream.Messages.Count} message(s):");
-    foreach (var msg in dlqDownstream.Messages)
+    Channel = "csharp-queuesstream.dlp-destination",
+    MaxMessages = 10,
+    WaitTimeoutSeconds = 5,
+});
+
+if (batch.HasMessages)
+{
+    Console.WriteLine($"DLQ contains {batch.Messages.Count} message(s):");
+    foreach (var msg in batch.Messages)
     {
         Console.WriteLine($"  {Encoding.UTF8.GetString(msg.Body.Span)}");
     }
-    if (!string.IsNullOrEmpty(dlqDownstream.TransactionId))
-    {
-        await client.AckAllDownstreamAsync(dlqDownstream.TransactionId);
-    }
+    await batch.AckAllAsync();
 }
 else
 {

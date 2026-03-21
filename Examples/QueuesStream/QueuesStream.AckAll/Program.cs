@@ -1,7 +1,7 @@
-// KubeMQ .NET SDK — QueuesStream: AckAll via Stream
+// KubeMQ .NET SDK — QueuesStream: AckAll via Batch
 //
-// This example demonstrates receiving messages via the downstream stream API
-// and acknowledging all messages in a single transaction using AckAllDownstreamAsync.
+// This example demonstrates receiving messages via the downstream receiver API
+// and acknowledging all messages in a single batch using batch.AckAllAsync().
 //
 // Prerequisites:
 //   - KubeMQ server running on localhost:50000
@@ -9,6 +9,7 @@
 //   - dotnet run
 
 using KubeMQ.Sdk.Client;
+using KubeMQ.Sdk.Queues;
 
 await using var client = new KubeMQClient(new KubeMQClientOptions
 {
@@ -18,16 +19,21 @@ await client.ConnectAsync();
 
 Console.WriteLine("Connected to KubeMQ server");
 
-var downstream = await client.ReceiveQueueDownstreamAsync(
-    "csharp-queuesstream.ack-all",
-    maxItems: 10,
-    waitTimeoutMs: 5000);
+await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
 
-Console.WriteLine($"Received {downstream.Messages.Count} messages, Transaction: {downstream.TransactionId}");
-
-if (downstream.Messages.Count > 0 && !string.IsNullOrEmpty(downstream.TransactionId))
+var batch = await receiver.PollAsync(new QueuePollRequest
 {
-    await client.AckAllDownstreamAsync(downstream.TransactionId);
+    Channel = "csharp-queuesstream.ack-all",
+    MaxMessages = 10,
+    WaitTimeoutSeconds = 5,
+    AutoAck = false,
+});
+
+Console.WriteLine($"Received {batch.Messages.Count} messages");
+
+if (batch.HasMessages)
+{
+    await batch.AckAllAsync();
     Console.WriteLine("All messages acknowledged.");
 }
 

@@ -41,9 +41,12 @@ public class KubeMQClientOptions
     /// <summary>Gets or sets the maximum gRPC send message size in bytes. Default: 104,857,600 (100 MB).</summary>
     public int MaxSendSize { get; set; } = 100 * 1024 * 1024;
 
-    /// <summary>Gets or sets the maximum gRPC receive message size in bytes. Default: 4,194,304 (4 MB).
-    /// Matches the server's default TOML config. Override to 100 MB (104857600) if needed for large messages.</summary>
-    public int MaxReceiveSize { get; set; } = 4 * 1024 * 1024;
+    /// <summary>Gets or sets the maximum gRPC receive message size in bytes. Default: 104,857,600 (100 MB).
+    /// Matches the Go SDK default for large-message parity.</summary>
+    public int MaxReceiveSize { get; set; } = 100 * 1024 * 1024;
+
+    /// <summary>Gets or sets the number of underlying gRPC channels to pool. Default: 2.</summary>
+    public int GrpcChannelCount { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets a value indicating whether operations block until the connection is ready.
@@ -122,6 +125,12 @@ public class KubeMQClientOptions
         {
             throw new KubeMQConfigurationException(
                 $"MaxReceiveSize must be positive, got {MaxReceiveSize}.");
+        }
+
+        if (GrpcChannelCount < 1 || GrpcChannelCount > 16)
+        {
+            throw new KubeMQConfigurationException(
+                "GrpcChannelCount must be between 1 and 16.");
         }
 
         if (Reconnect.BackoffMultiplier < 1.0)

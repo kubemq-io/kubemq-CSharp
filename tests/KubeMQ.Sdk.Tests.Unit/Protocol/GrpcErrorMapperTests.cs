@@ -34,9 +34,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Transient);
+        mapped.Category.Should().Be(ErrorCategory.Transient);
         mapped.IsRetryable.Should().BeTrue();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.Cancelled);
+        mapped.ErrorCode.Should().Be(ErrorCode.Cancelled);
         mapped.Operation.Should().Be(Operation);
         mapped.Channel.Should().Be(Channel);
         mapped.ServerAddress.Should().Be(ServerAddr);
@@ -51,9 +51,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Validation);
+        mapped.Category.Should().Be(ErrorCategory.Validation);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.InvalidArgument);
+        mapped.ErrorCode.Should().Be(ErrorCode.InvalidArgument);
     }
 
     [Fact]
@@ -64,9 +64,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQTimeoutException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Timeout);
+        mapped.Category.Should().Be(ErrorCategory.Timeout);
         mapped.IsRetryable.Should().BeTrue();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.DeadlineExceeded);
+        mapped.ErrorCode.Should().Be(ErrorCode.DeadlineExceeded);
     }
 
     [Fact]
@@ -77,9 +77,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.NotFound);
+        mapped.Category.Should().Be(ErrorCategory.NotFound);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.NotFound);
+        mapped.ErrorCode.Should().Be(ErrorCode.NotFound);
     }
 
     [Fact]
@@ -90,9 +90,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Authorization);
+        mapped.Category.Should().Be(ErrorCategory.Authorization);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.PermissionDenied);
+        mapped.ErrorCode.Should().Be(ErrorCode.PermissionDenied);
     }
 
     [Fact]
@@ -103,9 +103,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Throttling);
+        mapped.Category.Should().Be(ErrorCategory.Throttling);
         mapped.IsRetryable.Should().BeTrue();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.ResourceExhausted);
+        mapped.ErrorCode.Should().Be(ErrorCode.ResourceExhausted);
     }
 
     [Fact]
@@ -116,9 +116,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQAuthenticationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Authentication);
+        mapped.Category.Should().Be(ErrorCategory.Authentication);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.AuthenticationFailed);
+        mapped.ErrorCode.Should().Be(ErrorCode.AuthenticationFailed);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQConnectionException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Transient);
+        mapped.Category.Should().Be(ErrorCategory.Transient);
         mapped.IsRetryable.Should().BeTrue();
     }
 
@@ -266,9 +266,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Fatal);
+        mapped.Category.Should().Be(ErrorCategory.Fatal);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.Internal);
+        mapped.ErrorCode.Should().Be(ErrorCode.Internal);
     }
 
     [Fact]
@@ -279,9 +279,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Transient);
+        mapped.Category.Should().Be(ErrorCategory.Transient);
         mapped.IsRetryable.Should().BeTrue();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.Unknown);
+        mapped.ErrorCode.Should().Be(ErrorCode.Unknown);
     }
 
     [Fact]
@@ -303,9 +303,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Validation);
+        mapped.Category.Should().Be(ErrorCategory.Validation);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.AlreadyExists);
+        mapped.ErrorCode.Should().Be(ErrorCode.AlreadyExists);
     }
 
     [Fact]
@@ -316,9 +316,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Validation);
+        mapped.Category.Should().Be(ErrorCategory.Validation);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.FailedPrecondition);
+        mapped.ErrorCode.Should().Be(ErrorCode.FailedPrecondition);
     }
 
     [Fact]
@@ -329,9 +329,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Transient);
+        mapped.Category.Should().Be(ErrorCategory.Transient);
         mapped.IsRetryable.Should().BeTrue();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.Aborted);
+        mapped.ErrorCode.Should().Be(ErrorCode.Aborted);
     }
 
     [Fact]
@@ -342,9 +342,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Validation);
+        mapped.Category.Should().Be(ErrorCategory.Validation);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.OutOfRange);
+        mapped.ErrorCode.Should().Be(ErrorCode.OutOfRange);
     }
 
     [Fact]
@@ -355,9 +355,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Fatal);
+        mapped.Category.Should().Be(ErrorCategory.Fatal);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.Unimplemented);
+        mapped.ErrorCode.Should().Be(ErrorCode.Unimplemented);
     }
 
     [Fact]
@@ -368,9 +368,9 @@ public class GrpcErrorMapperTests
         var mapped = GrpcErrorMapper.MapException(rpcEx, Operation, Channel, CancellationToken.None, ServerAddr);
 
         mapped.Should().BeOfType<KubeMQOperationException>();
-        mapped.Category.Should().Be(KubeMQErrorCategory.Fatal);
+        mapped.Category.Should().Be(ErrorCategory.Fatal);
         mapped.IsRetryable.Should().BeFalse();
-        mapped.ErrorCode.Should().Be(KubeMQErrorCode.DataLoss);
+        mapped.ErrorCode.Should().Be(ErrorCode.DataLoss);
     }
 
     [Fact]

@@ -4,7 +4,7 @@ namespace KubeMQ.Sdk.Exceptions;
 /// Classification of errors into semantic categories.
 /// Determines retryability and recommended caller action.
 /// </summary>
-public enum KubeMQErrorCategory
+public enum ErrorCategory
 {
     /// <summary>Server temporarily unavailable or conflict. Auto-retry with backoff.</summary>
     Transient,

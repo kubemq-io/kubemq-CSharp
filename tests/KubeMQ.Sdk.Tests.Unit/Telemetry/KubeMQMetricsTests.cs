@@ -90,17 +90,17 @@ public class KubeMQMetricsTests
     }
 
     [Theory]
-    [InlineData(KubeMQErrorCategory.Transient, "transient")]
-    [InlineData(KubeMQErrorCategory.Timeout, "timeout")]
-    [InlineData(KubeMQErrorCategory.Throttling, "throttling")]
-    [InlineData(KubeMQErrorCategory.Authentication, "authentication")]
-    [InlineData(KubeMQErrorCategory.Authorization, "authorization")]
-    [InlineData(KubeMQErrorCategory.Validation, "validation")]
-    [InlineData(KubeMQErrorCategory.NotFound, "not_found")]
-    [InlineData(KubeMQErrorCategory.Fatal, "fatal")]
-    [InlineData(KubeMQErrorCategory.Cancellation, "cancellation")]
-    [InlineData(KubeMQErrorCategory.Backpressure, "backpressure")]
-    public void MapErrorType_ReturnsExpectedString(KubeMQErrorCategory category, string expected)
+    [InlineData(ErrorCategory.Transient, "transient")]
+    [InlineData(ErrorCategory.Timeout, "timeout")]
+    [InlineData(ErrorCategory.Throttling, "throttling")]
+    [InlineData(ErrorCategory.Authentication, "authentication")]
+    [InlineData(ErrorCategory.Authorization, "authorization")]
+    [InlineData(ErrorCategory.Validation, "validation")]
+    [InlineData(ErrorCategory.NotFound, "not_found")]
+    [InlineData(ErrorCategory.Fatal, "fatal")]
+    [InlineData(ErrorCategory.Cancellation, "cancellation")]
+    [InlineData(ErrorCategory.Backpressure, "backpressure")]
+    public void MapErrorType_ReturnsExpectedString(ErrorCategory category, string expected)
     {
         KubeMQMetrics.MapErrorType(category).Should().Be(expected);
     }
@@ -108,7 +108,7 @@ public class KubeMQMetricsTests
     [Fact]
     public void MapErrorType_UnknownCategory_ReturnsUnknown()
     {
-        KubeMQMetrics.MapErrorType((KubeMQErrorCategory)999).Should().Be("unknown");
+        KubeMQMetrics.MapErrorType((ErrorCategory)999).Should().Be("unknown");
     }
 
     [Fact]

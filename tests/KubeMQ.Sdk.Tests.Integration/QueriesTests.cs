@@ -31,11 +31,13 @@ public class QueriesTests : IntegrationTestBase
             var subscription = new QueriesSubscription { Channel = channel };
             await foreach (var qry in handler.SubscribeToQueriesAsync(subscription, cts.Token))
             {
-                await handler.SendQueryResponseAsync(
-                    qry.RequestId,
-                    qry.ReplyChannel!,
-                    body: responseBody,
-                    executed: true);
+                await handler.SendQueryResponseAsync(new QueryResponse
+                {
+                    RequestId = qry.RequestId,
+                    ReplyChannel = qry.ReplyChannel!,
+                    Body = responseBody,
+                    Executed = true,
+                });
                 tcs.TrySetResult(true);
                 break;
             }
@@ -78,11 +80,13 @@ public class QueriesTests : IntegrationTestBase
             var subscription = new QueriesSubscription { Channel = channel };
             await foreach (var qry in handler.SubscribeToQueriesAsync(subscription, cts.Token))
             {
-                await handler.SendQueryResponseAsync(
-                    qry.RequestId,
-                    qry.ReplyChannel!,
-                    executed: false,
-                    errorMessage: "query-failed");
+                await handler.SendQueryResponseAsync(new QueryResponse
+                {
+                    RequestId = qry.RequestId,
+                    ReplyChannel = qry.ReplyChannel!,
+                    Executed = false,
+                    Error = "query-failed",
+                });
                 tcs.TrySetResult(true);
                 break;
             }
@@ -158,11 +162,13 @@ public class QueriesTests : IntegrationTestBase
                 receivedBody = qry.Body.ToArray();
                 receivedTags = qry.Tags;
                 receivedMetadata = qry.Metadata;
-                await handler.SendQueryResponseAsync(
-                    qry.RequestId,
-                    qry.ReplyChannel!,
-                    body: Encoding.UTF8.GetBytes("response"),
-                    executed: true);
+                await handler.SendQueryResponseAsync(new QueryResponse
+                {
+                    RequestId = qry.RequestId,
+                    ReplyChannel = qry.ReplyChannel!,
+                    Body = Encoding.UTF8.GetBytes("response"),
+                    Executed = true,
+                });
                 tcs.TrySetResult(true);
                 break;
             }

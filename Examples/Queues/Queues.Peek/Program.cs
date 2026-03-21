@@ -20,7 +20,7 @@ await client.ConnectAsync();
 
 Console.WriteLine("Connected to KubeMQ server");
 
-var response = await client.PeekQueueAsync(new QueuePollRequest
+var response = await client.PeekQueueMessagesAsync(new QueuePollRequest
 {
     Channel = "csharp-queues.peek",
     MaxMessages = 5,

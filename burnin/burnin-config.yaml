@@ -1,4 +1,4 @@
-version: 1
+version: "2"
 
 broker:
   address: "localhost:50000"
@@ -7,36 +7,54 @@ broker:
 mode: soak
 duration: 1h
 run_id: ""
-warmup_duration: ""
 
-rates:
-  events: 100
-  events_store: 100
-  queue_stream: 50
-  queue_simple: 50
-  commands: 20
-  queries: 20
+patterns:
+  events:
+    enabled: true
+    channels: 1
+    producers_per_channel: 1
+    consumers_per_channel: 1
+    consumer_group: false
+    rate: 100
+  events_store:
+    enabled: true
+    channels: 1
+    producers_per_channel: 1
+    consumers_per_channel: 1
+    consumer_group: false
+    rate: 100
+  queue_stream:
+    enabled: true
+    channels: 1
+    producers_per_channel: 1
+    consumers_per_channel: 1
+    rate: 50
+  queue_simple:
+    enabled: true
+    channels: 1
+    producers_per_channel: 1
+    consumers_per_channel: 1
+    rate: 100
+  commands:
+    enabled: true
+    channels: 1
+    senders_per_channel: 1
+    responders_per_channel: 1
+    rate: 100
+  queries:
+    enabled: true
+    channels: 1
+    senders_per_channel: 1
+    responders_per_channel: 1
+    rate: 100
 
-concurrency:
-  events_producers: 1
-  events_consumers: 1
-  events_consumer_group: false
-  events_store_producers: 1
-  events_store_consumers: 1
-  events_store_consumer_group: false
-  queue_stream_producers: 1
-  queue_stream_consumers: 1
-  queue_simple_producers: 1
-  queue_simple_consumers: 1
-  commands_senders: 1
-  commands_responders: 1
-  queries_senders: 1
-  queries_responders: 1
+api:
+  port: 8888
+  enabled: true
 
 queue:
   poll_max_messages: 10
   poll_wait_timeout_seconds: 5
-  visibility_seconds: 30
   auto_ack: false
   max_depth: 1000000
 
@@ -85,3 +103,11 @@ thresholds:
   max_memory_growth_factor: 2.0
   max_downtime_pct: 10
   max_duration: 168h
+
+warmup:
+  max_parallel_channels: 10
+  timeout_per_channel_ms: 5000
+  warmup_duration: ""
+
+cors:
+  origins: "*"
