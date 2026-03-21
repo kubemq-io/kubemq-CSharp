@@ -53,7 +53,7 @@ public class QueueRoundtripBenchmark
 
         for (var attempt = 0; attempt < 3; attempt++)
         {
-            var response = await _client.PollQueueAsync(poll).ConfigureAwait(false);
+            var response = await _client.ReceiveQueueMessagesAsync(poll).ConfigureAwait(false);
             if (response.HasMessages)
                 return;
 
