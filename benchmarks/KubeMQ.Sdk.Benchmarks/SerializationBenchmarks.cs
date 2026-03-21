@@ -73,7 +73,7 @@ public class SerializationBenchmarks
     }
 
     /// <summary>
-    /// Mirrors the encoding logic in KubeMQClient.PublishEventAsync to measure
+    /// Mirrors the encoding logic in KubeMQClient.SendEventAsync to measure
     /// the exact allocation overhead of proto message construction.
     /// </summary>
     private static KubeMQ.Grpc.Event EncodeEvent(EventMessage message, string clientId)
