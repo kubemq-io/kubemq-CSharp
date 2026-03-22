@@ -16,6 +16,18 @@ namespace KubeMQ.Sdk.Commands;
 /// identity, not byte content. See <see cref="Events.EventMessage"/> remarks for details.</para>
 /// </remarks>
 /// <threadsafety static="true" instance="true"/>
+/// <example>
+/// <code>
+/// var command = new CommandMessage
+/// {
+///     Channel = "device.reboot",
+///     Body = Encoding.UTF8.GetBytes("{\"deviceId\":\"sensor-1\"}"),
+///     TimeoutInSeconds = 10,
+/// };
+/// var response = await client.SendCommandAsync(command);
+/// Console.WriteLine($"Executed: {response.Executed}");
+/// </code>
+/// </example>
 public record CommandMessage
 {
     /// <summary>Gets the target channel name.</summary>

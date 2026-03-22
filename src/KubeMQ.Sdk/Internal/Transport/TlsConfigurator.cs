@@ -73,6 +73,11 @@ internal static class TlsConfigurator
 
         if (tls.InsecureSkipVerify)
         {
+            if (tls.HasCaCertificate && logger is not null)
+            {
+                Log.InsecureOverridesCa(logger, address ?? "unknown");
+            }
+
             if (logger is not null)
             {
                 Log.InsecureConnection(logger, address ?? "unknown");

@@ -7,12 +7,15 @@
 
 | Scenario | Payload | Metric | Baseline |
 |----------|---------|--------|----------|
-| Event publish throughput | 1KB | msg/sec | TBD |
-| Event publish latency | 1KB | p50 / p99 | TBD |
-| Queue roundtrip (send→poll→ack) | 1KB | p50 / p99 | TBD |
-| Connection setup (cold start) | N/A | ms | TBD |
+| Event stream publish throughput | 1KB | msg/sec | ~75,000/s |
+| Event store stream publish throughput | 1KB | msg/sec | ~37,000/s |
+| Command roundtrip (send→handle→respond) | 1KB | msg/sec | ~37,000/s |
+| Query roundtrip (send→handle→respond) | 1KB | msg/sec | ~23,000/s |
 
-> **Note:** Update these numbers after running benchmarks on your target hardware.
+> **Environment:** .NET 8.0, macOS ARM64, loopback localhost, single KubeMQ node.
+> Numbers will vary by hardware, network, and payload size. Run the performance
+> integration tests (`dotnet test --filter PerformanceTests`) on your target
+> hardware for representative baselines.
 
 ## Tuning Guidance
 
