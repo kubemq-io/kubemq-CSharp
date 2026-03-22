@@ -26,11 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`IAsyncEnumerable<T>` subscriptions:** `await foreach` pattern for all message streams
 - **`CancellationToken` on all async methods**
 - **Dependency Injection:** `services.AddKubeMQ()` extension methods with hosted service
-- **Events Store `FromTimeDelta`:** Subscribe from a relative time offset
+- **Events Store `StartAtTimeDelta`:** Subscribe from a relative time offset
 - **Connection state events:** `StateChanged` event with `ConnectionState` enum
 - **Keepalive configuration:** `KeepaliveOptions` for gRPC ping settings
 - **Channel management:** `ListChannelsAsync`, `CreateChannelAsync`, `DeleteChannelAsync`
-- **Queue message operations:** `AckAsync`, `RejectAsync`, `RequeueAsync`, `ExtendVisibilityAsync`
+- **Queue message operations:** `AckAsync`, `NackAsync`, `RequeueAsync`
 - **SourceLink and symbol package (`.snupkg`) support** for debugger source stepping
 - **Runtime version query** via `KubeMQSdkInfo.Version`
 - **GitHub Actions release pipeline** triggered by `v*` git tags

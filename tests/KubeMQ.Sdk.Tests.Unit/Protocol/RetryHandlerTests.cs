@@ -652,4 +652,202 @@ public class RetryHandlerTests : IDisposable
 
         await act.Should().ThrowAsync<ObjectDisposedException>();
     }
+
+    // ──────────────── Additional coverage tests ────────────────
+
+    [Fact]
+    public async Task EqualJitterMode_ProducesDelayInCorrectRange()
+    {
+        var policy = new RetryPolicy
+        {
+            Enabled = true,
+            MaxRetries = 3,
+            InitialBackoff = TimeSpan.FromMilliseconds(100),
+            MaxBackoff = TimeSpan.FromSeconds(5),
+            BackoffMultiplier = 2.0,
+            JitterMode = JitterMode.Equal,
+            MaxConcurrentRetries = 0,
+        };
+        using var handler = new RetryHandler(policy, NullLogger.Instance);
+
+        var timestamps = new List<DateTimeOffset>();
+
+        var act = () => handler.ExecuteWithRetryAsync<string>(
+            _ =>
+            {
+                timestamps.Add(DateTimeOffset.UtcNow);
+                throw new KubeMQConnectionException("transient");
+            },
+            "TestOp",
+            "test-channel",
+            true,
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<KubeMQRetryExhaustedException>();
+
+        // Equal jitter: delay = (exponential/2) + random*(exponential/2)
+        // So delay should be at least half of InitialBackoff
+        timestamps.Count.Should().Be(1 + policy.MaxRetries);
+        var firstDelay = (timestamps[1] - timestamps[0]).TotalMilliseconds;
+        firstDelay.Should().BeGreaterOrEqualTo(40, "equal jitter should produce at least half of InitialBackoff");
+    }
+
+    [Fact]
+    public async Task FullJitterMode_ProducesDelayInCorrectRange()
+    {
+        var policy = new RetryPolicy
+        {
+            Enabled = true,
+            MaxRetries = 2,
+            InitialBackoff = TimeSpan.FromMilliseconds(100),
+            MaxBackoff = TimeSpan.FromSeconds(5),
+            BackoffMultiplier = 2.0,
+            JitterMode = JitterMode.Full,
+            MaxConcurrentRetries = 0,
+        };
+        using var handler = new RetryHandler(policy, NullLogger.Instance);
+
+        var timestamps = new List<DateTimeOffset>();
+
+        var act = () => handler.ExecuteWithRetryAsync<string>(
+            _ =>
+            {
+                timestamps.Add(DateTimeOffset.UtcNow);
+                throw new KubeMQConnectionException("transient");
+            },
+            "TestOp",
+            "test-channel",
+            true,
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<KubeMQRetryExhaustedException>();
+
+        timestamps.Count.Should().Be(1 + policy.MaxRetries);
+    }
+
+    [Fact]
+    public async Task NonRetryableKubeMQException_RethrowsImmediately()
+    {
+        int calls = 0;
+
+        var act = () => _handler.ExecuteWithRetryAsync<string>(
+            _ =>
+            {
+                calls++;
+                throw new KubeMQConfigurationException("bad config");
+            },
+            "TestOp",
+            "test-channel",
+            true,
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<KubeMQConfigurationException>()
+            .WithMessage("bad config");
+        calls.Should().Be(1, "non-retryable exception should not trigger retries");
+    }
+
+    [Fact]
+    public async Task ThrottleLimit_ReleasesAfterCompletion()
+    {
+        var policy = new RetryPolicy
+        {
+            Enabled = true,
+            MaxRetries = 3,
+            InitialBackoff = TimeSpan.FromMilliseconds(10),
+            MaxBackoff = TimeSpan.FromSeconds(1),
+            BackoffMultiplier = 1.5,
+            JitterMode = JitterMode.None,
+            MaxConcurrentRetries = 2,
+        };
+        using var handler = new RetryHandler(policy, NullLogger.Instance);
+
+        // This should succeed and release the throttle
+        int calls = 0;
+        var result = await handler.ExecuteWithRetryAsync<string>(
+            _ =>
+            {
+                calls++;
+                if (calls == 1)
+                {
+                    throw new KubeMQConnectionException("transient");
+                }
+
+                return Task.FromResult("ok");
+            },
+            "TestOp",
+            "test-channel",
+            true,
+            CancellationToken.None);
+
+        result.Should().Be("ok");
+
+        // Should be able to do another retry operation (throttle was released)
+        calls = 0;
+        var result2 = await handler.ExecuteWithRetryAsync<string>(
+            _ =>
+            {
+                calls++;
+                if (calls == 1)
+                {
+                    throw new KubeMQConnectionException("transient again");
+                }
+
+                return Task.FromResult("ok2");
+            },
+            "TestOp2",
+            "test-channel",
+            true,
+            CancellationToken.None);
+
+        result2.Should().Be("ok2");
+    }
+
+    [Fact]
+    public void Dispose_CalledTwice_DoesNotThrow()
+    {
+        var policy = new RetryPolicy
+        {
+            Enabled = true,
+            MaxRetries = 1,
+            InitialBackoff = TimeSpan.FromMilliseconds(10),
+            MaxBackoff = TimeSpan.FromSeconds(1),
+            BackoffMultiplier = 1.0,
+            MaxConcurrentRetries = 5,
+        };
+        var handler = new RetryHandler(policy, NullLogger.Instance);
+
+        handler.Dispose();
+
+        Action act = () => handler.Dispose();
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public async Task Dispose_WithNoThrottle_DoesNotThrow()
+    {
+        var policy = new RetryPolicy
+        {
+            Enabled = true,
+            MaxRetries = 1,
+            InitialBackoff = TimeSpan.FromMilliseconds(10),
+            MaxBackoff = TimeSpan.FromSeconds(1),
+            BackoffMultiplier = 1.0,
+            MaxConcurrentRetries = 0,
+        };
+        var handler = new RetryHandler(policy, NullLogger.Instance);
+
+        var result = await handler.ExecuteWithRetryAsync<string>(
+            _ => Task.FromResult("ok"),
+            "TestOp",
+            "test-channel",
+            true,
+            CancellationToken.None);
+
+        result.Should().Be("ok");
+
+        Action act = () => handler.Dispose();
+
+        act.Should().NotThrow();
+    }
 }

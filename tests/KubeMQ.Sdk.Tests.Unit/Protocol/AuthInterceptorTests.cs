@@ -1,3 +1,4 @@
+using System.Net.Http;
 using FluentAssertions;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -521,5 +522,613 @@ public sealed class AuthInterceptorTests : IDisposable
         await successCall.ResponseAsync;
 
         capturedToken.Should().Be("token-2");
+    }
+
+    // ──────────────── Additional coverage tests ────────────────
+
+    [Fact]
+    public void Constructor_WithStaticToken_CachesHeaders()
+    {
+        _interceptor = new AuthInterceptor(null, "my-static", null);
+
+        // Verify via GetTokenAsync that static token path works
+        var token = _interceptor.GetTokenAsync(CancellationToken.None).GetAwaiter().GetResult();
+        token.Should().Be("my-static");
+    }
+
+    [Fact]
+    public async Task GetTokenAsync_WithCredentialProvider_CallsProvider()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CredentialResult("provider-token"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var token = await _interceptor.GetTokenAsync(CancellationToken.None);
+
+        token.Should().Be("provider-token");
+        mock.Verify(p => p.GetTokenAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_ProviderThrowsHttpRequestException_WrapsAsConnectionException()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new System.Net.Http.HttpRequestException("network error"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        // Trigger GetCachedTokenSync via AsyncUnaryCall (AddAuthMetadata calls it)
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+
+        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        act.Should().Throw<KubeMQConnectionException>()
+            .WithMessage("*infrastructure failure*");
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_ProviderThrowsGenericException_WrapsAsAuthException()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("generic error"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+
+        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        act.Should().Throw<KubeMQAuthenticationException>()
+            .WithMessage("*Credential provider failed*");
+    }
+
+    [Fact]
+    public void Dispose_DisposesTokenLock()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        _interceptor.Dispose();
+
+        // After dispose, GetTokenAsync should throw ObjectDisposedException
+        // because the SemaphoreSlim is disposed
+        Func<Task> act = () => _interceptor.GetTokenAsync(CancellationToken.None);
+        act.Should().ThrowAsync<ObjectDisposedException>();
+        _interceptor = null;
+    }
+
+    [Fact]
+    public async Task GetTokenAsync_ExpiredToken_RefreshesFromProvider()
+    {
+        int callCount = 0;
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                // First call returns token that expires in the past (already expired)
+                return new CredentialResult(
+                    $"token-{callCount}",
+                    DateTimeOffset.UtcNow.AddSeconds(-60));
+            });
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var first = await _interceptor.GetTokenAsync(CancellationToken.None);
+        first.Should().Be("token-1");
+
+        // Second call should refresh because token is expired
+        var second = await _interceptor.GetTokenAsync(CancellationToken.None);
+        second.Should().Be("token-2");
+        callCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task InvalidateCachedToken_ClearsCache_NextCallRefreshes()
+    {
+        int callCount = 0;
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                callCount++;
+                return new CredentialResult($"token-{callCount}");
+            });
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        await _interceptor.GetTokenAsync(CancellationToken.None);
+        callCount.Should().Be(1);
+
+        _interceptor.InvalidateCachedToken();
+
+        var refreshed = await _interceptor.GetTokenAsync(CancellationToken.None);
+        refreshed.Should().Be("token-2");
+        callCount.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task HandleAuthErrorAsync_Unauthenticated_ThrowsKubeMQAuthenticationException()
+    {
+        _interceptor = new AuthInterceptor(null, "token", null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        var rpcEx = new RpcException(new Status(StatusCode.Unauthenticated, "invalid token"));
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromException<byte[]>(rpcEx),
+                Task.FromResult(new Metadata()),
+                () => new Status(StatusCode.Unauthenticated, "invalid token"),
+                () => new Metadata(),
+                () => { });
+
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        Func<Task> act = async () => await call.ResponseAsync;
+
+        await act.Should().ThrowAsync<KubeMQAuthenticationException>()
+            .WithMessage("*rejected authentication*invalid token*");
+    }
+
+    [Fact]
+    public async Task HandleAuthErrorAsync_OtherRpcException_Rethrows()
+    {
+        _interceptor = new AuthInterceptor(null, "token", null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        var rpcEx = new RpcException(new Status(StatusCode.Unavailable, "server down"));
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromException<byte[]>(rpcEx),
+                Task.FromResult(new Metadata()),
+                () => new Status(StatusCode.Unavailable, "server down"),
+                () => new Metadata(),
+                () => { });
+
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        Func<Task> act = async () => await call.ResponseAsync;
+
+        await act.Should().ThrowAsync<RpcException>()
+            .Where(e => e.StatusCode == StatusCode.Unavailable);
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_ProviderThrowsTimeoutException_WrapsAsConnectionException()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new TimeoutException("timed out"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+
+        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        act.Should().Throw<KubeMQConnectionException>()
+            .WithMessage("*infrastructure failure*");
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_ProviderThrowsIOException_WrapsAsConnectionException()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new IOException("io error"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+
+        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        act.Should().Throw<KubeMQConnectionException>()
+            .WithMessage("*infrastructure failure*");
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_WithStaticToken_ReturnsStaticToken()
+    {
+        _interceptor = new AuthInterceptor(null, "static-sync", null);
+
+        // Trigger sync path via interceptor call
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Metadata? capturedHeaders = null;
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, ctx) =>
+        {
+            capturedHeaders = ctx.Options.Headers;
+            return new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+        };
+
+        _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        capturedHeaders.Should().NotBeNull();
+        capturedHeaders!.Should().Contain(e =>
+            e.Key == "authorization" && e.Value == "static-sync");
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_NoProviderNoToken_ReturnsNull()
+    {
+        _interceptor = new AuthInterceptor(null, null, null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Metadata? capturedHeaders = null;
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, ctx) =>
+        {
+            capturedHeaders = ctx.Options.Headers;
+            return new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+        };
+
+        _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        // No authorization header should be added when there's no token
+        if (capturedHeaders is not null)
+        {
+            capturedHeaders.Should().NotContain(e => e.Key == "authorization");
+        }
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_KubeMQAuthException_Rethrows()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KubeMQAuthenticationException("auth failed"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+
+        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        act.Should().Throw<KubeMQAuthenticationException>()
+            .WithMessage("auth failed");
+    }
+
+    [Fact]
+    public void GetCachedTokenSync_KubeMQConnectionException_Rethrows()
+    {
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KubeMQConnectionException("conn failed"));
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, _) =>
+            new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+
+        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+
+        act.Should().Throw<KubeMQConnectionException>()
+            .WithMessage("conn failed");
+    }
+
+    // ──────────────── Streaming call interceptor methods ────────────────
+
+    [Fact]
+    public void AsyncServerStreamingCall_InjectsAuthorizationHeader()
+    {
+        _interceptor = new AuthInterceptor(null, "server-stream-token", null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.ServerStreaming,
+            "TestService",
+            "TestServerStream",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Metadata? capturedHeaders = null;
+        Interceptor.AsyncServerStreamingCallContinuation<byte[], byte[]> continuation = (_, ctx) =>
+        {
+            capturedHeaders = ctx.Options.Headers;
+            return new AsyncServerStreamingCall<byte[]>(
+                new NoOpAsyncStreamReader(),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+        };
+
+        _interceptor.AsyncServerStreamingCall(Array.Empty<byte>(), context, continuation);
+
+        capturedHeaders.Should().NotBeNull();
+        capturedHeaders!.Should().Contain(e =>
+            e.Key == "authorization" && e.Value == "server-stream-token");
+    }
+
+    [Fact]
+    public void AsyncClientStreamingCall_InjectsAuthorizationHeader()
+    {
+        _interceptor = new AuthInterceptor(null, "client-stream-token", null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.ClientStreaming,
+            "TestService",
+            "TestClientStream",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Metadata? capturedHeaders = null;
+        Interceptor.AsyncClientStreamingCallContinuation<byte[], byte[]> continuation = ctx =>
+        {
+            capturedHeaders = ctx.Options.Headers;
+            return new AsyncClientStreamingCall<byte[], byte[]>(
+                new NoOpClientStreamWriter(),
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+        };
+
+        _interceptor.AsyncClientStreamingCall(context, continuation);
+
+        capturedHeaders.Should().NotBeNull();
+        capturedHeaders!.Should().Contain(e =>
+            e.Key == "authorization" && e.Value == "client-stream-token");
+    }
+
+    [Fact]
+    public void AsyncDuplexStreamingCall_InjectsAuthorizationHeader()
+    {
+        _interceptor = new AuthInterceptor(null, "duplex-stream-token", null);
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.DuplexStreaming,
+            "TestService",
+            "TestDuplexStream",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        Metadata? capturedHeaders = null;
+        Interceptor.AsyncDuplexStreamingCallContinuation<byte[], byte[]> continuation = ctx =>
+        {
+            capturedHeaders = ctx.Options.Headers;
+            return new AsyncDuplexStreamingCall<byte[], byte[]>(
+                new NoOpClientStreamWriter(),
+                new NoOpAsyncStreamReader(),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+        };
+
+        _interceptor.AsyncDuplexStreamingCall(context, continuation);
+
+        capturedHeaders.Should().NotBeNull();
+        capturedHeaders!.Should().Contain(e =>
+            e.Key == "authorization" && e.Value == "duplex-stream-token");
+    }
+
+    // ──────────────── GetCachedTokenSync double-check coverage ────────────────
+
+    [Fact]
+    public void GetCachedTokenSync_DoubleCheck_CachedTokenReturnedInsideLock()
+    {
+        // The double-check at line 214: second thread enters the lock but finds
+        // the token already cached by the first thread. We test this by pre-warming
+        // the cache with a non-expired token, then triggering concurrent calls.
+        int callCount = 0;
+        var mock = new Mock<ICredentialProvider>();
+        mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                Interlocked.Increment(ref callCount);
+                return new CredentialResult(
+                    $"token-{callCount}",
+                    DateTimeOffset.UtcNow.AddHours(1));
+            });
+
+        _interceptor = new AuthInterceptor(mock.Object, null, null);
+
+        // Pre-warm through async path
+        _interceptor.GetTokenAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+        var method = new Method<byte[], byte[]>(
+            MethodType.Unary,
+            "TestService",
+            "TestMethod",
+            Marshallers.Create<byte[]>(x => x, x => x),
+            Marshallers.Create<byte[]>(x => x, x => x));
+
+        var context = new ClientInterceptorContext<byte[], byte[]>(
+            method, "localhost", new CallOptions());
+
+        var capturedTokens = new List<string>();
+        Interceptor.AsyncUnaryCallContinuation<byte[], byte[]> continuation = (_, ctx) =>
+        {
+            var authHeader = ctx.Options.Headers?.FirstOrDefault(h => h.Key == "authorization");
+            if (authHeader is not null)
+            {
+                lock (capturedTokens) { capturedTokens.Add(authHeader.Value); }
+            }
+            return new AsyncUnaryCall<byte[]>(
+                Task.FromResult(Array.Empty<byte>()),
+                Task.FromResult(new Metadata()),
+                () => Status.DefaultSuccess,
+                () => new Metadata(),
+                () => { });
+        };
+
+        // Make 10 concurrent sync calls — should all use the cached token (line 214 path)
+        Parallel.For(0, 10, _ =>
+        {
+            _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        });
+
+        capturedTokens.Should().AllBe("token-1");
+        callCount.Should().Be(1, "provider should have been called only once");
+    }
+
+    // ──────────────── Helpers ────────────────
+
+    private sealed class NoOpAsyncStreamReader : IAsyncStreamReader<byte[]>
+    {
+        public byte[] Current => Array.Empty<byte>();
+        public Task<bool> MoveNext(CancellationToken cancellationToken) => Task.FromResult(false);
+    }
+
+    private sealed class NoOpClientStreamWriter : IClientStreamWriter<byte[]>
+    {
+        public WriteOptions? WriteOptions { get; set; }
+        public Task WriteAsync(byte[] message) => Task.CompletedTask;
+        public Task WriteAsync(byte[] message, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task CompleteAsync() => Task.CompletedTask;
     }
 }

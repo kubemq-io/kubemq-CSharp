@@ -83,7 +83,7 @@ if (!result.IsSuccess)
 ```csharp
 try
 {
-    await client.PublishEventAsync(myEvent);
+    await client.SendEventAsync(myEvent);
 }
 catch (KubeMQTimeoutException ex)
 {
@@ -121,7 +121,7 @@ var result = await client.Send(myEvent);
 ### After (v3):
 
 ```csharp
-await client.PublishEventAsync(new EventMessage
+await client.SendEventAsync(new EventMessage
 {
     Channel = "events",
     Body = Encoding.UTF8.GetBytes("hello"),
@@ -133,7 +133,7 @@ await client.PublishEventAsync(new EventMessage
 - Fluent `SetX()` builders replaced by `init` property initializers
 - `Metadata` string replaced by `Tags` dictionary
 - `Body` is `ReadOnlyMemory<byte>` (accepts `byte[]` implicitly)
-- `Send()` renamed to `PublishEventAsync()`
+- `Send()` renamed to `SendEventAsync()`
 
 ## Step 6: Update Subscriptions
 
@@ -199,12 +199,12 @@ var result = await client.SendQueueMessageAsync(new QueueMessage
 ### Receiving Queue Messages (v3):
 
 ```csharp
-var response = await client.PollQueueAsync(new QueuePollRequest
+var response = await client.ReceiveQueueMessagesAsync(new QueuePollRequest
 {
     Channel = "tasks",
     MaxMessages = 10,
     WaitTimeoutSeconds = 10,
-    VisibilitySeconds = 30
+    AutoAck = false
 });
 
 foreach (var msg in response.Messages)

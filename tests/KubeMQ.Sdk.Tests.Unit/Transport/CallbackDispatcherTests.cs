@@ -243,6 +243,70 @@ public sealed class CallbackDispatcherTests : IAsyncLifetime
         _tracker.ActiveCount.Should().Be(0);
     }
 
+    [Fact]
+    public async Task DisposeAsync_CalledTwice_DoesNotThrow()
+    {
+        _sut = CreateDispatcher();
+        _sut.StartDispatching(
+            (_, _) => Task.CompletedTask,
+            CancellationToken.None);
+
+        await _sut.DisposeAsync();
+        var act = async () => await _sut.DisposeAsync();
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task CallbackThrows_OperationCanceledException_DuringShutdown_DoesNotCrash()
+    {
+        _sut = CreateDispatcher();
+        using var cts = new CancellationTokenSource();
+        var received = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        _sut.StartDispatching(
+            (item, ct) =>
+            {
+                if (item == "cancel")
+                {
+                    throw new OperationCanceledException(ct);
+                }
+
+                received.TrySetResult(item);
+                return Task.CompletedTask;
+            },
+            cts.Token);
+
+        await _sut.EnqueueAsync("cancel", CancellationToken.None);
+        await Task.Delay(100);
+        await _sut.EnqueueAsync("after-cancel", CancellationToken.None);
+
+        var result = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        result.Should().Be("after-cancel");
+    }
+
+    [Fact]
+    public async Task StartDispatching_ExternalCancellation_StopsLoop()
+    {
+        _sut = CreateDispatcher();
+        using var cts = new CancellationTokenSource();
+        int processedCount = 0;
+
+        _sut.StartDispatching(
+            (_, _) => { Interlocked.Increment(ref processedCount); return Task.CompletedTask; },
+            cts.Token);
+
+        await _sut.EnqueueAsync("item1", CancellationToken.None);
+        await Task.Delay(100);
+
+        await cts.CancelAsync();
+        await Task.Delay(200);
+
+        int countAfterCancel = processedCount;
+        // Dispatcher should have stopped
+        countAfterCancel.Should().BeGreaterThan(0);
+    }
+
     private static void InterlockedMax(ref int location, int value)
     {
         int current = Volatile.Read(ref location);

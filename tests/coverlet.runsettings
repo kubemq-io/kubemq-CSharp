@@ -12,6 +12,7 @@
           <ExcludeByFile>
             **/obj/**
             **/Grpc/**/*.cs
+            **/Microsoft.Extensions.Logging.Generators/**
           </ExcludeByFile>
           <ExcludeByAttribute>
             System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute

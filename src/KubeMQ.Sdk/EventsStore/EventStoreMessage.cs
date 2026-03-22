@@ -17,6 +17,18 @@ namespace KubeMQ.Sdk.EventsStore;
 /// identity, not byte content. See <see cref="Events.EventMessage"/> remarks for details.</para>
 /// </remarks>
 /// <threadsafety static="true" instance="true"/>
+/// <example>
+/// <code>
+/// var message = new EventStoreMessage
+/// {
+///     Channel = "audit.logs",
+///     Body = Encoding.UTF8.GetBytes("{\"action\":\"login\"}"),
+///     Tags = new Dictionary&lt;string, string&gt; { ["userId"] = "42" },
+/// };
+/// var result = await client.SendEventStoreAsync(message);
+/// Console.WriteLine($"Stored: {result.Sent}");
+/// </code>
+/// </example>
 public record EventStoreMessage
 {
     /// <summary>Gets the optional event ID. Auto-generated UUID if not provided.</summary>

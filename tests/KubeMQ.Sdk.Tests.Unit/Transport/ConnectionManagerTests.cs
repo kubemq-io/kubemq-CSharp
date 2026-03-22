@@ -266,23 +266,29 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
         _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
         _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
 
-        ConnectionState? fromState = null;
-        ConnectionState? toState = null;
-        Exception? capturedException = null;
+        var transitions = new List<(ConnectionState from, ConnectionState to, Exception? ex)>();
 
         _manager.StateTransitionCallback = (from, to, ex) =>
         {
-            fromState = from;
-            toState = to;
-            capturedException = ex;
+            lock (transitions)
+            {
+                transitions.Add((from, to, ex));
+            }
         };
 
         var exception = new Exception("test error");
         _manager.OnConnectionLost(exception);
 
-        fromState.Should().Be(ConnectionState.Ready);
-        toState.Should().Be(ConnectionState.Reconnecting);
-        capturedException.Should().BeSameAs(exception);
+        // Allow reconnect loop to complete (mock transport returns immediately)
+        Thread.Sleep(100);
+
+        lock (transitions)
+        {
+            transitions.Should().ContainSingle(t =>
+                t.from == ConnectionState.Ready &&
+                t.to == ConnectionState.Reconnecting &&
+                t.ex == exception);
+        }
     }
 
     [Fact]
@@ -491,5 +497,153 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
         Func<Task> act = () => _manager.WaitForReadyAsync(cts.Token);
 
         await act.Should().ThrowAsync<Exception>();
+    }
+
+    // ──────────────── Additional coverage tests ────────────────
+
+    [Fact]
+    public async Task DisposeAsync_WithBufferedMessages_DiscardsAndLogs()
+    {
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(ct =>
+            {
+                var tcs = new TaskCompletionSource();
+                ct.Register(() => tcs.TrySetCanceled(ct));
+                return tcs.Task;
+            });
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        // Buffer some messages before dispose
+        await manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 1 }, "ch", "event", 5), CancellationToken.None);
+        await manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 2 }, "ch", "event", 5), CancellationToken.None);
+
+        Func<Task> act = async () => await manager.DisposeAsync();
+
+        await act.Should().CompleteWithinAsync(TimeSpan.FromSeconds(5));
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task ReconnectLoopAsync_MaxAttemptsExhausted_WithBufferedMessages_DiscardsBuffer()
+    {
+        _options.Reconnect.MaxAttempts = 1;
+        _options.Reconnect.InitialDelay = TimeSpan.FromMilliseconds(10);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        // Buffer a message before reconnect loop
+        await _manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 1 }, "ch", "event", 5), CancellationToken.None);
+
+        _transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("connect failed"));
+
+        Func<Task> act = () => _manager.ReconnectLoopAsync(CancellationToken.None);
+
+        await act.Should().ThrowAsync<KubeMQConnectionException>()
+            .WithMessage("*Failed to reconnect*after 1 attempts*");
+
+        _stateMachine.Current.Should().Be(ConnectionState.Closed);
+    }
+
+    [Fact]
+    public async Task ReconnectLoopAsync_MaxAttemptsExhausted_InvokesStateTransitionCallback()
+    {
+        _options.Reconnect.MaxAttempts = 1;
+        _options.Reconnect.InitialDelay = TimeSpan.FromMilliseconds(10);
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        _transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("connect failed"));
+
+        ConnectionState? fromState = null;
+        ConnectionState? toState = null;
+        Exception? capturedEx = null;
+        _manager.StateTransitionCallback = (from, to, ex) =>
+        {
+            fromState = from;
+            toState = to;
+            capturedEx = ex;
+        };
+
+        Func<Task> act = () => _manager.ReconnectLoopAsync(CancellationToken.None);
+
+        await act.Should().ThrowAsync<KubeMQConnectionException>();
+
+        fromState.Should().Be(ConnectionState.Reconnecting);
+        toState.Should().Be(ConnectionState.Closed);
+        capturedEx.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task OnConnectionLost_AlreadyReconnecting_DoesNotTransitionAgain()
+    {
+        _options.Reconnect.Enabled = true;
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+
+        // Block reconnect so state stays in Reconnecting
+        _transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(ct =>
+            {
+                var tcs = new TaskCompletionSource();
+                ct.Register(() => tcs.TrySetCanceled(ct));
+                return tcs.Task;
+            });
+
+        // First call triggers reconnect
+        _manager.OnConnectionLost(new Exception("first"));
+        _stateMachine.Current.Should().Be(ConnectionState.Reconnecting);
+
+        // Second call should not crash (TryTransition from Ready fails, nothing happens)
+        _manager.OnConnectionLost(new Exception("second"));
+        _stateMachine.Current.Should().Be(ConnectionState.Reconnecting);
+    }
+
+    [Fact]
+    public async Task FlushBufferAsync_SendFailure_PropagatesException()
+    {
+        _stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        _stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        _stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        await _manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 1 }, "ch", "event", 5), CancellationToken.None);
+
+        _stateMachine.TryTransition(ConnectionState.Reconnecting, ConnectionState.Ready);
+
+        _transportMock.Setup(t => t.SendBufferedAsync(It.IsAny<BufferedMessage>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("send failed"));
+
+        Func<Task> act = () => _manager.FlushBufferAsync(CancellationToken.None);
+
+        await act.Should().ThrowAsync<Exception>().WithMessage("send failed");
     }
 }

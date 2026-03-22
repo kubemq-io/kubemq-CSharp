@@ -46,3 +46,4 @@ End-to-end architecture walkthroughs.
 
 - [Event-Driven Processing Pipeline](scenarios/event-driven-pipeline.md)
 - [Implementing CQRS with KubeMQ](scenarios/microservice-cqrs.md)
+- [IoT Sensor Data Ingestion Pipeline](scenarios/iot-data-ingestion.md)

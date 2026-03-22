@@ -356,7 +356,229 @@ public class DownstreamStreamHandleTests
         readerAlive.Should().BeFalse();
     }
 
+    // ──────────────── DisposeAsync / CloseAsync / ReaderLoop catch-block coverage ────────────────
+
+    [Fact]
+    public async Task DisposeAsync_WriterTaskFaulted_SwallowsException()
+    {
+        // Writer throws IOException -> writerTask is faulted. DisposeAsync catches it (lines 74, 77).
+        var reader = new NeverEndingStreamReader();
+        var writer = new ThrowingClientStreamWriter(new IOException("pipe broken"));
+        var call = CreateCustomCall(writer, reader, () => reader.Cancel());
+        var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        // Trigger writer fault by sending a message
+        await handle.WriteAsync(MakeGetRequest());
+        await Task.Delay(200);
+
+        Func<Task> act = async () => await handle.DisposeAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task DisposeAsync_ReaderTaskFaulted_SwallowsException()
+    {
+        // Reader throws immediately -> readerTask is faulted. DisposeAsync catches it (lines 83, 86).
+        var call = MockDownstreamStream.CreateFaulted(
+            new RpcException(new Status(StatusCode.Unavailable, "broken")));
+        var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        await WaitUntilAsync(() => handle.IsStreamBroken, TimeSpan.FromSeconds(2));
+
+        Func<Task> act = async () => await handle.DisposeAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task SendCloseAsync_WriteChannelThrows_CatchesException()
+    {
+        // Test the SendCloseAsync catch block (lines 175, 178)
+        // by making the writer loop fail while SendCloseAsync is trying to complete
+        var writer = new ThrowingClientStreamWriter(new IOException("pipe broken"));
+        var reader = new NeverEndingStreamReader();
+        var call = CreateCustomCall(writer, reader, () => reader.Cancel());
+        await using var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        // SendCloseAsync should catch any exception in its try block
+        Func<Task> act = () => handle.SendCloseAsync("txn-catch");
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ReaderLoop_OperationCanceled_SwallowsException()
+    {
+        // Test lines 249, 252: OperationCanceledException in ReaderLoopAsync
+        var reader = new CancellableStreamReader();
+        var writer = new CapturingClientStreamWriter();
+        var call = CreateCustomCall(writer, reader);
+
+        var terminated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var handle = new DownstreamStreamHandle(
+            call, ClientId, NullLogger.Instance,
+            onTerminated: () => terminated.TrySetResult());
+
+        // DisposeAsync cancels _cts, reader MoveNext throws OperationCanceledException
+        await handle.DisposeAsync();
+
+        var winner = await Task.WhenAny(terminated.Task, Task.Delay(2000));
+        winner.Should().Be(terminated.Task, "reader should terminate after cancellation");
+    }
+
+    // ──────────────── Additional coverage tests ────────────────
+
+    [Fact]
+    public async Task ReaderLoop_SettlementError_OnErrorThrows_DoesNotCrashReader()
+    {
+        // Use two responses: first an error (whose onError throws), then a normal Get response
+        // to verify the reader loop survives the onError exception and keeps processing.
+        var errorResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
+        {
+            RequestTypeData = KubeMQ.Grpc.QueuesDownstreamRequestType.AckAll,
+            IsError = true,
+            Error = "settlement failed",
+        };
+        var getResponse = new KubeMQ.Grpc.QueuesDownstreamResponse
+        {
+            RequestTypeData = KubeMQ.Grpc.QueuesDownstreamRequestType.Get,
+        };
+        var (call, _) = MockDownstreamStream.Create(new[] { errorResponse, getResponse });
+
+        int errorCallCount = 0;
+
+        await using var handle = new DownstreamStreamHandle(
+            call, ClientId, NullLogger.Instance,
+            onError: (_, _) =>
+            {
+                Interlocked.Increment(ref errorCallCount);
+                throw new InvalidOperationException("onError blows up");
+            });
+
+        // First write triggers the error response (onError throws, but reader should survive)
+        await handle.WriteAsync(MakeGetRequest("trigger-error"));
+
+        // Second write triggers the normal Get response — proves the reader continued
+        var pollTask = handle.PollAsync(MakeGetRequest("trigger-get"));
+        var result = await pollTask.WaitAsync(TimeSpan.FromSeconds(2));
+
+        result.Should().NotBeNull("reader should have continued to deliver the second response");
+        errorCallCount.Should().Be(1, "onError should have been called for the settlement error");
+    }
+
+    [Fact]
+    public async Task ReaderLoop_OnTerminatedThrows_DoesNotPreventCleanup()
+    {
+        var writer = new CapturingClientStreamWriter();
+        var reader = new EmptyStreamReader();
+        var call = CreateCustomCall(writer, reader);
+
+        await using var handle = new DownstreamStreamHandle(
+            call, ClientId, NullLogger.Instance,
+            onTerminated: () => throw new InvalidOperationException("onTerminated blows up"));
+
+        // Allow time for reader to finish
+        await Task.Delay(300);
+
+        handle.IsStreamBroken.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ReaderLoop_StreamException_FailsPendingPollWithException()
+    {
+        var rpcEx = new RpcException(new Status(StatusCode.Unavailable, "stream broken"));
+        var call = MockDownstreamStream.CreateFaulted(rpcEx);
+
+        await using var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        // Wait for stream to break
+        await WaitUntilAsync(() => handle.IsStreamBroken, TimeSpan.FromSeconds(2));
+
+        handle.IsStreamBroken.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SendCloseAsync_AfterDispose_DoesNotThrow()
+    {
+        var (call, _) = MockDownstreamStream.Create(Array.Empty<KubeMQ.Grpc.QueuesDownstreamResponse>());
+        var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        await handle.DisposeAsync();
+
+        Func<Task> act = () => handle.SendCloseAsync("txn-123");
+
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task SendCloseAsync_EmptyTransactionId_OnlyCompletes()
+    {
+        var reader = new NeverEndingStreamReader();
+        var writer = new CapturingClientStreamWriter();
+        var call = CreateCustomCall(writer, reader, () => reader.Cancel());
+        await using var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        await handle.SendCloseAsync("");
+
+        writer.Requests.Should().BeEmpty("no close request when transactionId is empty");
+        writer.IsCompleted.Should().BeTrue("CompleteAsync should still be called");
+    }
+
+    [Fact]
+    public async Task PollAsync_ReaderStreamException_FailsPendingPoll()
+    {
+        // Create a reader that will throw after one MoveNext
+        var faultingReader = new FaultingStreamReader(
+            new RpcException(new Status(StatusCode.Internal, "read fault")));
+        var writer = new CapturingClientStreamWriter();
+        var call = CreateCustomCall(writer, faultingReader);
+
+        await using var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        // The reader will immediately fault, which should fail any pending poll
+        await WaitUntilAsync(() => handle.IsStreamBroken, TimeSpan.FromSeconds(2));
+
+        handle.IsStreamBroken.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task CompletePendingPoll_NonMatchingRequestId_DoesNotComplete()
+    {
+        // Create a reader that returns a response with a different request ID
+        var response = new KubeMQ.Grpc.QueuesDownstreamResponse
+        {
+            RequestTypeData = KubeMQ.Grpc.QueuesDownstreamRequestType.Get,
+            RefRequestId = "different-id",
+        };
+        var reader = new NeverEndingStreamReader();
+        var writer = new CapturingClientStreamWriter();
+        var call = CreateCustomCall(writer, reader, () => reader.Cancel());
+        await using var handle = new DownstreamStreamHandle(call, ClientId, NullLogger.Instance);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+        var pollTask = handle.PollAsync(MakeGetRequest("my-request-id"), cts.Token);
+
+        Func<Task> act = () => pollTask;
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
     // ──────────────────────────── Helpers ───────────────────────────────
+
+    /// <summary>
+    /// Response reader that immediately throws the provided exception.
+    /// </summary>
+    private sealed class FaultingStreamReader
+        : IAsyncStreamReader<KubeMQ.Grpc.QueuesDownstreamResponse>
+    {
+        private readonly Exception _exception;
+
+        public FaultingStreamReader(Exception exception) =>
+            _exception = exception;
+
+        public KubeMQ.Grpc.QueuesDownstreamResponse Current => default!;
+
+        public Task<bool> MoveNext(CancellationToken cancellationToken) =>
+            Task.FromException<bool>(_exception);
+    }
+
 
     private static async Task WaitUntilAsync(Func<bool> condition, TimeSpan timeout)
     {
@@ -461,5 +683,21 @@ public class DownstreamStreamHandleTests
             Task.FromException(_exception);
 
         public Task CompleteAsync() => Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Response reader that throws OperationCanceledException when the cancellation token fires.
+    /// This covers the OperationCanceledException catch block in ReaderLoopAsync.
+    /// </summary>
+    private sealed class CancellableStreamReader
+        : IAsyncStreamReader<KubeMQ.Grpc.QueuesDownstreamResponse>
+    {
+        public KubeMQ.Grpc.QueuesDownstreamResponse Current => default!;
+
+        public async Task<bool> MoveNext(CancellationToken cancellationToken)
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+            return false;
+        }
     }
 }

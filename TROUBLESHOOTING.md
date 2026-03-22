@@ -272,19 +272,19 @@ or the server name doesn't match the certificate.
        new EventsSubscription { Channel = "my-channel" });
 
    // Then publish (from another client/process)
-   await publisher.PublishEventAsync(new EventMessage
+   await publisher.SendEventAsync(new EventMessage
    {
        Channel = "my-channel",
        Body = Encoding.UTF8.GetBytes("hello")
    });
    ```
-4. For Events Store, use `FromFirst` to replay all existing events:
+4. For Events Store, use `StartFromFirst` to replay all existing events:
    ```csharp
-   await foreach (var msg in client.SubscribeToEventStoreAsync(
+   await foreach (var msg in client.SubscribeToEventsStoreAsync(
        new EventStoreSubscription
        {
            Channel = "my-channel",
-           StartPosition = EventStoreStartPosition.FromFirst
+           StartPosition = EventStoreStartPosition.StartFromFirst
        }))
    {
        Console.WriteLine(Encoding.UTF8.GetString(msg.Body.Span));
@@ -292,44 +292,6 @@ or the server name doesn't match the certificate.
    ```
 
 ---
-
-## Problem: Queue message not acknowledged
-
-**Error message:**
-```
-Message redelivered after visibility timeout expired
-```
-
-**Cause:** The message was received but not acknowledged within the visibility timeout.
-The server redelivers the message to another consumer.
-
-**Solution:**
-1. Acknowledge the message after processing:
-   ```csharp
-   var response = await client.PollQueueAsync(new QueuePollRequest
-   {
-       Channel = "tasks",
-       VisibilitySeconds = 30
-   });
-
-   foreach (var msg in response.Messages)
-   {
-       await ProcessAsync(msg);
-       await msg.AckAsync();  // Must ack within 30 seconds
-   }
-   ```
-2. If processing takes longer, extend the visibility:
-   ```csharp
-   await msg.ExtendVisibilityAsync(additionalSeconds: 30);
-   ```
-3. Increase the initial visibility timeout:
-   ```csharp
-   var response = await client.PollQueueAsync(new QueuePollRequest
-   {
-       Channel = "tasks",
-       VisibilitySeconds = 120  // 2 minutes
-   });
-   ```
 
 ---
 

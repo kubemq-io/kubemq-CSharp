@@ -16,6 +16,20 @@ namespace KubeMQ.Sdk.Queues;
 /// identity, not byte content. See <see cref="Events.EventMessage"/> remarks for details.</para>
 /// </remarks>
 /// <threadsafety static="true" instance="true"/>
+/// <example>
+/// <code>
+/// var message = new QueueMessage
+/// {
+///     Channel = "tasks.pending",
+///     Body = Encoding.UTF8.GetBytes("{\"task\":\"process-order\"}"),
+///     DelaySeconds = 30,
+///     ExpirationSeconds = 3600,
+///     MaxReceiveCount = 3,
+///     MaxReceiveQueue = "tasks.dlq",
+/// };
+/// var result = await client.SendQueueMessageAsync(message);
+/// </code>
+/// </example>
 public record QueueMessage
 {
     /// <summary>Gets the target queue channel name.</summary>

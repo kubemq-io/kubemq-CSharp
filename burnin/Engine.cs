@@ -63,9 +63,8 @@ public sealed class Engine : IDisposable, IClientRecreator
     private Dictionary<string, ResolvedPatternThreshold> _perPatternThresholds = new();
     private Dictionary<string, List<string>> _channelNames = new();
     private Dictionary<string, PatternState> _patternStates = new();
-    private KubeMQClient? _clientPubSub;   // events + events_store
-    private KubeMQClient? _clientQueues;   // queue_stream + queue_simple
-    private KubeMQClient? _clientRpc;      // commands + queries
+    // Per-pattern clients: each pattern gets its own KubeMQClient instance
+    private readonly Dictionary<string, KubeMQClient> _patternClients = new();
 
     // v2: PatternGroups replace flat worker list
     private readonly Dictionary<string, PatternGroup> _patternGroups = new();
@@ -450,21 +449,20 @@ public sealed class Engine : IDisposable, IClientRecreator
                 Metrics.SetActiveConnections(p, 0);
             }
         }
-        try { _clientPubSub?.Dispose(); } catch { }
-        try { _clientQueues?.Dispose(); } catch { }
-        try { _clientRpc?.Dispose(); } catch { }
+        foreach (var (_, client) in _patternClients)
+        {
+            try { client.Dispose(); } catch { }
+        }
     }
 
     public async Task RecreateClientAsync()
     {
-        _clientPubSub = CreateClient();
-        await _clientPubSub.ConnectAsync(CancellationToken.None);
-
-        _clientQueues = CreateClient();
-        await _clientQueues.ConnectAsync(CancellationToken.None);
-
-        _clientRpc = CreateClient();
-        await _clientRpc.ConnectAsync(CancellationToken.None);
+        foreach (string p in _enabledPatterns)
+        {
+            var client = CreateClient();
+            await client.ConnectAsync(CancellationToken.None);
+            _patternClients[p] = client;
+        }
 
         foreach (string p in AllPatterns.Names)
         {
@@ -485,18 +483,16 @@ public sealed class Engine : IDisposable, IClientRecreator
 
         try
         {
-            // Step 1: Create per-pattern-family clients
-            _clientPubSub = CreateClient();
-            await _clientPubSub.ConnectAsync(startCt);
+            // Step 1: Create per-pattern clients
+            foreach (string p in _enabledPatterns)
+            {
+                var client = CreateClient();
+                await client.ConnectAsync(startCt);
+                _patternClients[p] = client;
+            }
 
-            _clientQueues = CreateClient();
-            await _clientQueues.ConnectAsync(startCt);
-
-            _clientRpc = CreateClient();
-            await _clientRpc.ConnectAsync(startCt);
-
-            Console.WriteLine($"clients created (pubsub/queues/rpc), pinging broker at {_runCfg.Broker.Address}");
-            var pingResult = await _clientPubSub.PingAsync(startCt);
+            Console.WriteLine($"clients created ({string.Join("/", _enabledPatterns)}), pinging broker at {_runCfg.Broker.Address}");
+            var pingResult = await _patternClients.Values.First().PingAsync(startCt);
             Console.WriteLine($"broker ping ok: {pingResult.Host} v{pingResult.Version}");
 
             // Step 2: Skip stale channel cleanup (channels auto-create on subscribe/send)
@@ -722,12 +718,11 @@ public sealed class Engine : IDisposable, IClientRecreator
         foreach (var (_, pg) in _patternGroups)
             pg.Dispose();
         _patternGroups.Clear();
-        try { _clientPubSub?.Dispose(); } catch { }
-        try { _clientQueues?.Dispose(); } catch { }
-        try { _clientRpc?.Dispose(); } catch { }
-        _clientPubSub = null;
-        _clientQueues = null;
-        _clientRpc = null;
+        foreach (var (_, client) in _patternClients)
+        {
+            try { client.Dispose(); } catch { }
+        }
+        _patternClients.Clear();
     }
 
     // --- Private: Client Creation ---
@@ -737,13 +732,9 @@ public sealed class Engine : IDisposable, IClientRecreator
     /// </summary>
     private KubeMQClient GetClientForPattern(string pattern)
     {
-        return pattern switch
-        {
-            "events" or "events_store" => _clientPubSub!,
-            "queue_stream" or "queue_simple" => _clientQueues!,
-            "commands" or "queries" => _clientRpc!,
-            _ => throw new ArgumentException($"Unknown pattern: {pattern}"),
-        };
+        if (_patternClients.TryGetValue(pattern, out var client))
+            return client;
+        throw new ArgumentException($"No client for pattern: {pattern}");
     }
 
     private KubeMQClient CreateClient()
@@ -797,8 +788,8 @@ public sealed class Engine : IDisposable, IClientRecreator
 
     private async Task CleanStaleChannelsAsync(CancellationToken ct)
     {
-        // Use the pubsub client for channel cleanup (any connected client works)
-        var cleanupClient = _clientPubSub;
+        // Use any connected client for channel cleanup
+        var cleanupClient = _patternClients.Values.FirstOrDefault();
         if (cleanupClient == null) return;
         Console.WriteLine($"cleaning stale channels with prefix '{ChannelPrefix}'");
         int count = 0;
@@ -863,7 +854,7 @@ public sealed class Engine : IDisposable, IClientRecreator
     /// </summary>
     private async Task RunWarmupAsync(CancellationToken ct)
     {
-        if (_clientPubSub == null || _runCfg == null) return;
+        if (_patternClients.Count == 0 || _runCfg == null) return;
         Console.WriteLine("running warmup verification on all channels");
 
         int maxParallel = _runCfg.Warmup.MaxParallelChannels;
@@ -962,7 +953,7 @@ public sealed class Engine : IDisposable, IClientRecreator
         {
             try
             {
-                await foreach (var evt in _clientPubSub!.SubscribeToEventsAsync(subscription, warmupCts.Token))
+                await foreach (var evt in GetClientForPattern("events").SubscribeToEventsAsync(subscription, warmupCts.Token))
                     if (evt.Tags?.GetValueOrDefault("warmup") == "true")
                         Interlocked.Increment(ref count);
             }
@@ -970,7 +961,7 @@ public sealed class Engine : IDisposable, IClientRecreator
         });
 
         await Task.Delay(500, ct);
-        var stream = await _clientPubSub!.CreateEventStreamAsync(null, ct);
+        var stream = await GetClientForPattern("events").CreateEventStreamAsync(null, ct);
         for (int i = 0; i < WarmupCount; i++)
         {
             try
@@ -1004,7 +995,7 @@ public sealed class Engine : IDisposable, IClientRecreator
         {
             try
             {
-                await foreach (var evt in _clientPubSub!.SubscribeToEventsStoreAsync(subscription, warmupCts.Token))
+                await foreach (var evt in GetClientForPattern("events_store").SubscribeToEventsStoreAsync(subscription, warmupCts.Token))
                     if (evt.Tags?.GetValueOrDefault("warmup") == "true")
                         Interlocked.Increment(ref count);
             }
@@ -1012,7 +1003,7 @@ public sealed class Engine : IDisposable, IClientRecreator
         });
 
         await Task.Delay(500, ct);
-        var stream = await _clientPubSub!.CreateEventStoreStreamAsync(ct);
+        var stream = await GetClientForPattern("events_store").CreateEventStoreStreamAsync(ct);
         for (int i = 0; i < WarmupCount; i++)
         {
             try
@@ -1042,7 +1033,7 @@ public sealed class Engine : IDisposable, IClientRecreator
         {
             try
             {
-                await _clientQueues!.SendQueueMessageAsync(new QueueMessage
+                await GetClientForPattern(pattern).SendQueueMessageAsync(new QueueMessage
                 {
                     Channel = ch,
                     Body = Encoding.UTF8.GetBytes($"warmup-{i}"),
@@ -1072,11 +1063,11 @@ public sealed class Engine : IDisposable, IClientRecreator
             {
                 try
                 {
-                    await foreach (var cmd in _clientRpc!.SubscribeToCommandsAsync(subscription, warmupCts.Token))
+                    await foreach (var cmd in GetClientForPattern(pattern).SubscribeToCommandsAsync(subscription, warmupCts.Token))
                     {
                         try
                         {
-                            await _clientRpc!.SendCommandResponseAsync(new CommandResponse
+                            await GetClientForPattern(pattern).SendCommandResponseAsync(new CommandResponse
                             { RequestId = cmd.RequestId, ReplyChannel = cmd.ReplyChannel, Executed = true }, warmupCts.Token);
                             Interlocked.Increment(ref responded);
                         }
@@ -1093,11 +1084,11 @@ public sealed class Engine : IDisposable, IClientRecreator
             {
                 try
                 {
-                    await foreach (var q in _clientRpc!.SubscribeToQueriesAsync(subscription, warmupCts.Token))
+                    await foreach (var q in GetClientForPattern(pattern).SubscribeToQueriesAsync(subscription, warmupCts.Token))
                     {
                         try
                         {
-                            await _clientRpc!.SendQueryResponseAsync(new QueryResponse
+                            await GetClientForPattern(pattern).SendQueryResponseAsync(new QueryResponse
                             { RequestId = q.RequestId, ReplyChannel = q.ReplyChannel, Body = q.Body, Executed = true }, warmupCts.Token);
                             Interlocked.Increment(ref responded);
                         }
@@ -1115,14 +1106,14 @@ public sealed class Engine : IDisposable, IClientRecreator
             try
             {
                 if (pattern == "commands")
-                    await _clientRpc!.SendCommandAsync(new CommandMessage
+                    await GetClientForPattern(pattern).SendCommandAsync(new CommandMessage
                     {
                         Channel = ch, Body = Encoding.UTF8.GetBytes($"warmup-{i}"),
                         TimeoutInSeconds = timeoutSec,
                         Tags = new Dictionary<string, string> { ["warmup"] = "true", ["content_hash"] = "00000000" },
                     }, ct);
                 else
-                    await _clientRpc!.SendQueryAsync(new QueryMessage
+                    await GetClientForPattern(pattern).SendQueryAsync(new QueryMessage
                     {
                         Channel = ch, Body = Encoding.UTF8.GetBytes($"warmup-{i}"),
                         TimeoutInSeconds = timeoutSec,
@@ -1695,9 +1686,11 @@ public sealed class Engine : IDisposable, IClientRecreator
     public void Dispose()
     {
         foreach (var (_, pg) in _patternGroups) pg.Dispose();
-        _clientPubSub?.Dispose();
-        _clientQueues?.Dispose();
-        _clientRpc?.Dispose();
+        foreach (var (_, client) in _patternClients)
+        {
+            try { client.Dispose(); } catch { }
+        }
+        _patternClients.Clear();
         _runCts?.Dispose();
         GC.SuppressFinalize(this);
     }

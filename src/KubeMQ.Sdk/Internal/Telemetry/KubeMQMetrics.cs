@@ -70,6 +70,7 @@ internal static class KubeMQMetrics
         ILogger? logger = null)
     {
         _cardinalityThreshold = threshold;
+        _knownChannels.Clear();
         _allowlist = channelAllowlist is not null
             ? ImmutableHashSet.CreateRange(StringComparer.Ordinal, channelAllowlist)
             : null;

@@ -20,6 +20,17 @@ namespace KubeMQ.Sdk.Events;
 /// <c>body.Span.SequenceEqual(other.Body.Span)</c>.</para>
 /// </remarks>
 /// <threadsafety static="true" instance="true"/>
+/// <example>
+/// <code>
+/// var message = new EventMessage
+/// {
+///     Channel = "orders.created",
+///     Body = Encoding.UTF8.GetBytes("{\"orderId\":123}"),
+///     Tags = new Dictionary&lt;string, string&gt; { ["source"] = "web" },
+/// };
+/// await client.SendEventAsync(message);
+/// </code>
+/// </example>
 public record EventMessage
 {
     /// <summary>Gets the optional event ID. Auto-generated UUID if not provided.</summary>

@@ -97,4 +97,68 @@ public class QueuePollRequestTests
         request.WaitTimeoutSeconds.Should().Be(60);
         request.AutoAck.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData(1025)]
+    [InlineData(2048)]
+    [InlineData(10000)]
+    public void Validate_WithMaxMessagesGreaterThan1024_Throws(int maxMessages)
+    {
+        var request = new QueuePollRequest
+        {
+            Channel = "ch",
+            MaxMessages = maxMessages,
+        };
+
+        var act = () => request.Validate();
+
+        act.Should().Throw<KubeMQConfigurationException>()
+            .WithMessage("*1024*");
+    }
+
+    [Theory]
+    [InlineData(3601)]
+    [InlineData(7200)]
+    [InlineData(100000)]
+    public void Validate_WithWaitTimeoutGreaterThan3600_Throws(int waitTimeout)
+    {
+        var request = new QueuePollRequest
+        {
+            Channel = "ch",
+            WaitTimeoutSeconds = waitTimeout,
+        };
+
+        var act = () => request.Validate();
+
+        act.Should().Throw<KubeMQConfigurationException>()
+            .WithMessage("*3600*");
+    }
+
+    [Fact]
+    public void Validate_WithMaxMessages1024_DoesNotThrow()
+    {
+        var request = new QueuePollRequest
+        {
+            Channel = "ch",
+            MaxMessages = 1024,
+        };
+
+        var act = () => request.Validate();
+
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Validate_WithWaitTimeout3600_DoesNotThrow()
+    {
+        var request = new QueuePollRequest
+        {
+            Channel = "ch",
+            WaitTimeoutSeconds = 3600,
+        };
+
+        var act = () => request.Validate();
+
+        act.Should().NotThrow();
+    }
 }

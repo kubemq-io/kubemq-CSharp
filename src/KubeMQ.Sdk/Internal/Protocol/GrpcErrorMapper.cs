@@ -30,7 +30,7 @@ internal static class GrpcErrorMapper
     {
         var (errorCode, category, isRetryable, suggestion) = ClassifyStatus(rpcEx.StatusCode, callerToken);
 
-        string message = FormatMessage(operation, channel, rpcEx.Status.Detail, suggestion, serverAddress);
+        string message = FormatMessage(operation, channel, rpcEx.Status.Detail, suggestion);
 
         if (category == ErrorCategory.Cancellation)
         {
@@ -155,13 +155,12 @@ internal static class GrpcErrorMapper
     }
 
     private static string FormatMessage(
-        string operation, string? channel, string? detail, string suggestion, string? serverAddress)
+        string operation, string? channel, string? detail, string suggestion)
     {
         var channelPart = channel is not null ? $" on channel \"{channel}\"" : string.Empty;
         var detailPart = !string.IsNullOrEmpty(detail) ? $": {detail}" : string.Empty;
-        var serverPart = serverAddress is not null ? $" (server: {serverAddress})" : string.Empty;
 
-        return $"{operation} failed{channelPart}{detailPart}{serverPart}. Suggestion: {suggestion}";
+        return $"{operation} failed{channelPart}{detailPart}. Suggestion: {suggestion}";
     }
 
     /// <summary>

@@ -180,6 +180,13 @@ internal static partial class Log
     internal static partial void InsecureConnection(ILogger logger, string address);
 
     [LoggerMessage(
+        EventId = 312,
+        Level = LogLevel.Warning,
+        Message = "InsecureSkipVerify overrides CA certificate validation for {Address}. " +
+                  "Custom CA trust will be ignored.")]
+    internal static partial void InsecureOverridesCa(ILogger logger, string address);
+
+    [LoggerMessage(
         EventId = 320,
         Level = LogLevel.Debug,
         Message = "Reloading TLS credentials from configured source for {Address}")]

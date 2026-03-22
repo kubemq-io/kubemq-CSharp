@@ -18,30 +18,36 @@ internal static class MessageValidator
     /// Validates an <see cref="EventMessage"/> before publish.
     /// </summary>
     /// <param name="message">The event message to validate.</param>
-    internal static void ValidateEventMessage(EventMessage message)
+    /// <param name="maxBodySize">Maximum body size in bytes. 0 disables the check.</param>
+    internal static void ValidateEventMessage(EventMessage message, int maxBodySize = 0)
     {
         ArgumentNullException.ThrowIfNull(message);
         ValidateChannelFormat(message.Channel);
+        ValidateBodySize(message.Body, maxBodySize);
     }
 
     /// <summary>
     /// Validates an <see cref="EventStoreMessage"/> before publish.
     /// </summary>
     /// <param name="message">The event store message to validate.</param>
-    internal static void ValidateEventStoreMessage(EventStoreMessage message)
+    /// <param name="maxBodySize">Maximum body size in bytes. 0 disables the check.</param>
+    internal static void ValidateEventStoreMessage(EventStoreMessage message, int maxBodySize = 0)
     {
         ArgumentNullException.ThrowIfNull(message);
         ValidateChannelFormat(message.Channel);
+        ValidateBodySize(message.Body, maxBodySize);
     }
 
     /// <summary>
     /// Validates a <see cref="QueueMessage"/> before send.
     /// </summary>
     /// <param name="message">The queue message to validate.</param>
-    internal static void ValidateQueueMessage(QueueMessage message)
+    /// <param name="maxBodySize">Maximum body size in bytes. 0 disables the check.</param>
+    internal static void ValidateQueueMessage(QueueMessage message, int maxBodySize = 0)
     {
         ArgumentNullException.ThrowIfNull(message);
         ValidateChannelFormat(message.Channel);
+        ValidateBodySize(message.Body, maxBodySize);
 
         if (message.DelaySeconds is < 0)
         {
@@ -63,10 +69,12 @@ internal static class MessageValidator
     /// Validates a <see cref="CommandMessage"/> before send.
     /// </summary>
     /// <param name="message">The command message to validate.</param>
-    internal static void ValidateCommandMessage(CommandMessage message)
+    /// <param name="maxBodySize">Maximum body size in bytes. 0 disables the check.</param>
+    internal static void ValidateCommandMessage(CommandMessage message, int maxBodySize = 0)
     {
         ArgumentNullException.ThrowIfNull(message);
         ValidateChannelFormat(message.Channel);
+        ValidateBodySize(message.Body, maxBodySize);
 
         if (message.TimeoutInSeconds is <= 0)
         {
@@ -79,10 +87,12 @@ internal static class MessageValidator
     /// Validates a <see cref="QueryMessage"/> before send.
     /// </summary>
     /// <param name="message">The query message to validate.</param>
-    internal static void ValidateQueryMessage(QueryMessage message)
+    /// <param name="maxBodySize">Maximum body size in bytes. 0 disables the check.</param>
+    internal static void ValidateQueryMessage(QueryMessage message, int maxBodySize = 0)
     {
         ArgumentNullException.ThrowIfNull(message);
         ValidateChannelFormat(message.Channel);
+        ValidateBodySize(message.Body, maxBodySize);
 
         if (message.TimeoutInSeconds is <= 0)
         {
@@ -100,6 +110,22 @@ internal static class MessageValidator
         {
             throw new KubeMQConfigurationException(
                 "CacheTtlSeconds must be greater than 0 when CacheKey is set.");
+        }
+    }
+
+    /// <summary>
+    /// Validates that a message body does not exceed the configured maximum size.
+    /// </summary>
+    /// <param name="body">The message body.</param>
+    /// <param name="maxSize">Maximum size in bytes. 0 disables the check.</param>
+    internal static void ValidateBodySize(ReadOnlyMemory<byte> body, int maxSize)
+    {
+        if (maxSize > 0 && body.Length > maxSize)
+        {
+            throw new KubeMQConfigurationException(
+                $"Message body size ({body.Length:N0} bytes) exceeds configured maximum " +
+                $"({maxSize:N0} bytes). Increase KubeMQClientOptions.MaxMessageBodySize " +
+                "if larger messages are needed.");
         }
     }
 
