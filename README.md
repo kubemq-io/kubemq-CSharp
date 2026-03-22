@@ -362,6 +362,12 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting. The SDK supports TLS
 - [TROUBLESHOOTING.md](https://github.com/kubemq-io/kubemq-CSharp/blob/main/TROUBLESHOOTING.md) — Common issues and solutions
 - [Examples](https://github.com/kubemq-io/kubemq-CSharp/tree/main/examples) — Runnable code examples for all patterns
 
+## Community & Support
+
+- [GitHub Issues](https://github.com/kubemq-io/kubemq-CSharp/issues) — Bug reports and feature requests
+- [GitHub Discussions](https://github.com/kubemq-io/kubemq-CSharp/discussions) — Questions, ideas, and community help
+- [KubeMQ Slack](https://kubemq.io/slack) — Real-time chat with the KubeMQ team and community
+
 ## Contributing
 
 See [CONTRIBUTING.md](https://github.com/kubemq-io/kubemq-CSharp/blob/main/CONTRIBUTING.md)

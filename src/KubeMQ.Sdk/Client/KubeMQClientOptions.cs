@@ -45,8 +45,16 @@ public class KubeMQClientOptions
     /// Matches the Go SDK default for large-message parity.</summary>
     public int MaxReceiveSize { get; set; } = 100 * 1024 * 1024;
 
-    /// <summary>Gets or sets the number of underlying gRPC channels to pool. Default: 2.</summary>
-    public int GrpcChannelCount { get; set; } = 2;
+    /// <summary>
+    /// Gets or sets the maximum message body size in bytes validated at the SDK level.
+    /// Messages exceeding this limit are rejected before reaching gRPC.
+    /// Default: 4,194,304 (4 MB). Set to 0 to disable SDK-level validation
+    /// (gRPC MaxSendSize still applies).
+    /// </summary>
+    public int MaxMessageBodySize { get; set; } = 4 * 1024 * 1024;
+
+    /// <summary>Gets or sets the number of underlying gRPC channels to pool. Default: 5.</summary>
+    public int GrpcChannelCount { get; set; } = 5;
 
     /// <summary>
     /// Gets or sets a value indicating whether operations block until the connection is ready.
@@ -125,6 +133,12 @@ public class KubeMQClientOptions
         {
             throw new KubeMQConfigurationException(
                 $"MaxReceiveSize must be positive, got {MaxReceiveSize}.");
+        }
+
+        if (MaxMessageBodySize < 0)
+        {
+            throw new KubeMQConfigurationException(
+                $"MaxMessageBodySize must be non-negative (0 disables), got {MaxMessageBodySize}.");
         }
 
         if (GrpcChannelCount < 1 || GrpcChannelCount > 16)

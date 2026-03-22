@@ -439,7 +439,8 @@ public class GrpcErrorMapperTests
         mapped.Message.Should().Contain(Operation);
         mapped.Message.Should().Contain(Channel);
         mapped.Message.Should().Contain("queue missing");
-        mapped.Message.Should().Contain(ServerAddr);
+        mapped.Message.Should().NotContain(ServerAddr, "server address should not leak into exception message");
+        mapped.ServerAddress.Should().Be(ServerAddr, "server address should be available via property for debugging");
         mapped.Message.Should().Contain("Suggestion:");
     }
 

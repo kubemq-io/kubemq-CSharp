@@ -292,7 +292,7 @@ public class KubeMQClient : IKubeMQClient
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        MessageValidator.ValidateEventMessage(message);
+        MessageValidator.ValidateEventMessage(message, _options?.MaxMessageBodySize ?? 0);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 
@@ -330,7 +330,7 @@ public class KubeMQClient : IKubeMQClient
             if (!grpcResult.Sent)
             {
                 throw new KubeMQOperationException(
-                    $"Event send failed: {grpcResult.Error ?? "server returned Sent=false"}");
+                    $"Event send failed: {(string.IsNullOrEmpty(grpcResult.Error) ? "server returned Sent=false" : grpcResult.Error)}");
             }
         }
         catch (Exception ex)
@@ -426,7 +426,7 @@ public class KubeMQClient : IKubeMQClient
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        MessageValidator.ValidateEventStoreMessage(message);
+        MessageValidator.ValidateEventStoreMessage(message, _options?.MaxMessageBodySize ?? 0);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 
@@ -518,7 +518,7 @@ public class KubeMQClient : IKubeMQClient
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        MessageValidator.ValidateQueueMessage(message);
+        MessageValidator.ValidateQueueMessage(message, _options?.MaxMessageBodySize ?? 0);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 
@@ -632,7 +632,7 @@ public class KubeMQClient : IKubeMQClient
 
         foreach (var msg in messageList)
         {
-            MessageValidator.ValidateQueueMessage(msg);
+            MessageValidator.ValidateQueueMessage(msg, _options?.MaxMessageBodySize ?? 0);
             var grpcMsg = new KubeMQ.Grpc.QueueMessage
             {
                 MessageID = Guid.NewGuid().ToString("N"),
@@ -961,7 +961,7 @@ public class KubeMQClient : IKubeMQClient
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        MessageValidator.ValidateCommandMessage(message);
+        MessageValidator.ValidateCommandMessage(message, _options?.MaxMessageBodySize ?? 0);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 
@@ -1080,7 +1080,7 @@ public class KubeMQClient : IKubeMQClient
         CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        MessageValidator.ValidateQueryMessage(message);
+        MessageValidator.ValidateQueryMessage(message, _options?.MaxMessageBodySize ?? 0);
 
         await WaitForReadyIfNeededAsync(cancellationToken).ConfigureAwait(false);
 

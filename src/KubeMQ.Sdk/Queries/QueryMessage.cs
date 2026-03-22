@@ -16,6 +16,20 @@ namespace KubeMQ.Sdk.Queries;
 /// identity, not byte content. See <see cref="Events.EventMessage"/> remarks for details.</para>
 /// </remarks>
 /// <threadsafety static="true" instance="true"/>
+/// <example>
+/// <code>
+/// var query = new QueryMessage
+/// {
+///     Channel = "inventory.check",
+///     Body = Encoding.UTF8.GetBytes("{\"sku\":\"WIDGET-42\"}"),
+///     TimeoutInSeconds = 5,
+///     CacheKey = "inventory-WIDGET-42",
+///     CacheTtlSeconds = 60,
+/// };
+/// var response = await client.SendQueryAsync(query);
+/// Console.WriteLine($"In stock: {Encoding.UTF8.GetString(response.Body.Span)}");
+/// </code>
+/// </example>
 public record QueryMessage
 {
     /// <summary>Gets the target channel name.</summary>
