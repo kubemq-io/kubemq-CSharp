@@ -120,4 +120,32 @@ public class QueueMessageReceivedTests
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*already been settled*");
     }
+
+    [Fact]
+    public void Properties_ReturnConstructorValues()
+    {
+        var ts = new DateTimeOffset(2025, 6, 15, 12, 0, 0, TimeSpan.Zero);
+        var msg = new QueueMessageReceived(
+            channel: "ch",
+            messageId: "id-1",
+            body: new byte[] { 1 },
+            tags: new Dictionary<string, string> { ["k"] = "v" },
+            clientId: "c1",
+            metadata: "meta",
+            receiveCount: 3,
+            timestamp: ts,
+            ackFunc: null,
+            nackFunc: null,
+            requeueFunc: null)
+        {
+            Sequence = 99,
+            MD5OfBody = "abc123",
+        };
+
+        msg.Timestamp.Should().Be(ts);
+        msg.ReceiveCount.Should().Be(3);
+        msg.Metadata.Should().Be("meta");
+        msg.Sequence.Should().Be(99);
+        msg.MD5OfBody.Should().Be("abc123");
+    }
 }

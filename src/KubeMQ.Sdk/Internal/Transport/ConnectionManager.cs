@@ -21,6 +21,7 @@ internal sealed class ConnectionManager : IAsyncDisposable
     private readonly CancellationTokenSource _shutdownCts = new();
     private readonly object _readyLock = new();
     private Task? _reconnectTask;
+    private Task? _healthCheckTask;
     private volatile TaskCompletionSource _readyTcs = new(
         TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -61,6 +62,17 @@ internal sealed class ConnectionManager : IAsyncDisposable
     {
         await _shutdownCts.CancelAsync().ConfigureAwait(false);
 
+        if (_healthCheckTask != null)
+        {
+            try
+            {
+                await _healthCheckTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
         if (_reconnectTask != null)
         {
             try
@@ -83,6 +95,21 @@ internal sealed class ConnectionManager : IAsyncDisposable
 
         _shutdownCts.Dispose();
         _buffer.Dispose();
+    }
+
+    /// <summary>
+    /// Starts the background health-check task that periodically pings the broker.
+    /// Should be called after a successful connection is established.
+    /// </summary>
+    internal void StartHealthCheck()
+    {
+        if (_healthCheckTask != null)
+        {
+            return; // already running
+        }
+
+        _healthCheckTask = Task.Run(
+            () => HealthCheckLoopAsync(_shutdownCts.Token));
     }
 
     /// <summary>
@@ -276,10 +303,57 @@ internal sealed class ConnectionManager : IAsyncDisposable
         }
     }
 
+    private async Task HealthCheckLoopAsync(CancellationToken ct)
+    {
+        var pingInterval = TimeSpan.FromSeconds(10);
+
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(pingInterval, ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            // Only ping when we think we're connected
+            if (_stateMachine.Current != ConnectionState.Ready)
+            {
+                continue;
+            }
+
+            try
+            {
+                using var pingCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                pingCts.CancelAfter(TimeSpan.FromSeconds(5));
+                await _transport.PingAsync(pingCts.Token).ConfigureAwait(false);
+                Log.KeepalivePing(_logger, _options.Address);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (Exception ex)
+            {
+                Log.ConnectionLost(_logger, _options.Address);
+                OnConnectionLost(ex);
+            }
+        }
+    }
+
     private async Task WaitForReadyCoreAsync(CancellationToken ct)
     {
+        // CS-4: Use ReconnectTimeout (default 60s) instead of DefaultTimeout (5s)
+        // when waiting for the connection to become ready. Broker restarts can take
+        // 10-30+ seconds, and the old 5s timeout would kill reconnection prematurely.
+        var timeout = _stateMachine.Current == ConnectionState.Reconnecting
+            ? _options.ReconnectTimeout
+            : _options.DefaultTimeout;
+
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        cts.CancelAfter(_options.DefaultTimeout);
+        cts.CancelAfter(timeout);
 
         try
         {
@@ -288,7 +362,7 @@ internal sealed class ConnectionManager : IAsyncDisposable
         catch (OperationCanceledException)
         {
             throw new KubeMQTimeoutException(
-                $"Timed out waiting for connection ({_options.DefaultTimeout})");
+                $"Timed out waiting for connection ({timeout})");
         }
     }
 }

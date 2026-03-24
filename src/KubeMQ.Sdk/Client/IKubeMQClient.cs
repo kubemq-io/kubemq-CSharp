@@ -267,6 +267,20 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
     /// <exception cref="KubeMQAuthenticationException">Authentication credentials are invalid or expired.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+    /// <example>
+    /// <code>
+    /// var subscription = new EventStoreSubscription
+    /// {
+    ///     Channel = "events-store.orders",
+    ///     StartPosition = StartPosition.FromFirst,
+    /// };
+    /// await foreach (var ev in client.SubscribeToEventsStoreAsync(subscription, cancellationToken))
+    /// {
+    ///     Console.WriteLine($"[Seq {ev.Sequence}] {ev.Channel}: "
+    ///         + System.Text.Encoding.UTF8.GetString(ev.Body.Span));
+    /// }
+    /// </code>
+    /// </example>
     IAsyncEnumerable<EventStoreReceived> SubscribeToEventsStoreAsync(
         EventStoreSubscription subscription,
         CancellationToken cancellationToken = default);
@@ -485,6 +499,23 @@ public interface IKubeMQClient : IDisposable, IAsyncDisposable
     /// </remarks>
     /// <exception cref="KubeMQConnectionException">The client is not connected or the server is unreachable.</exception>
     /// <exception cref="ObjectDisposedException">The client has been disposed.</exception>
+    /// <example>
+    /// <code>
+    /// await using var receiver = await client.CreateQueueDownstreamReceiverAsync();
+    /// var batch = await receiver.PollAsync(new QueuePollRequest
+    /// {
+    ///     Channel = "queues.orders",
+    ///     MaxMessages = 10,
+    ///     WaitTimeoutSeconds = 5,
+    ///     AutoAck = false,
+    /// });
+    /// foreach (var msg in batch.Messages)
+    /// {
+    ///     Console.WriteLine($"Processing: {msg.MessageId}");
+    ///     await msg.AckAsync();
+    /// }
+    /// </code>
+    /// </example>
     Task<QueueDownstreamReceiver> CreateQueueDownstreamReceiverAsync(
         CancellationToken cancellationToken = default);
 

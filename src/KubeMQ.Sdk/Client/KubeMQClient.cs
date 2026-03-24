@@ -227,6 +227,9 @@ public class KubeMQClient : IKubeMQClient
             RaiseStateChanged(ConnectionState.Connecting, ConnectionState.Ready);
             _connectionManager?.NotifyReady();
 
+            // CS-5: Start background health-check after successful connection
+            _connectionManager?.StartHealthCheck();
+
             Log.Connected(_logger, _options!.Address);
 
             _ = Task.Run(
@@ -1938,16 +1941,32 @@ public class KubeMQClient : IKubeMQClient
         Action<T>? onItem = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        // CS-3: Real resubscription delegate that restarts the stream via streamFactory.
+        // The ResubscribeFunc is called by StreamManager.ResubscribeAllAsync after reconnection.
+        // It doesn't need to do anything here because WithReconnect's outer while-loop
+        // already re-calls streamFactory on each iteration. The reconnection infrastructure
+        // (CS-1) triggers the state machine, and WaitForReadyIfNeededAsync unblocks when
+        // the connection is re-established, allowing the loop to naturally restart the stream.
         var record = new SubscriptionRecord(
             grpcSub.Channel,
             pattern,
             grpcSub,
-            (_, ct) => Task.CompletedTask);
+            async (parameters, ct) =>
+            {
+                // The actual resubscription happens in the outer while-loop below.
+                // This delegate is a signal that the subscription should be restarted.
+                // We just need to ensure the connection is ready.
+                if (_connectionManager != null)
+                {
+                    await _connectionManager.WaitForReadyAsync(ct).ConfigureAwait(false);
+                }
+            });
 
         _streamManager?.TrackSubscription(subscriptionId, record);
 
         try
         {
+            int attempt = 0;
             while (!cancellationToken.IsCancellationRequested)
             {
                 IAsyncEnumerable<T>? stream = null;
@@ -1967,6 +1986,7 @@ public class KubeMQClient : IKubeMQClient
                 }
 
                 bool disconnected = false;
+                Exception? lastException = null;
                 var enumerator = stream.GetAsyncEnumerator(cancellationToken);
                 await using var enumeratorDisposal = enumerator.ConfigureAwait(false);
                 while (true)
@@ -1980,14 +2000,16 @@ public class KubeMQClient : IKubeMQClient
                         }
 
                         current = enumerator.Current;
+                        attempt = 0; // reset backoff on successful read
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
                         yield break;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         disconnected = true;
+                        lastException = ex;
                         break;
                     }
 
@@ -1999,6 +2021,26 @@ public class KubeMQClient : IKubeMQClient
                 {
                     yield break;
                 }
+
+                // CS-1: Notify ConnectionManager that the connection was lost.
+                // This triggers the reconnection state machine (Reconnecting state)
+                // and starts ReconnectLoopAsync in the background.
+                _connectionManager?.OnConnectionLost(lastException);
+
+                // CS-2: Exponential backoff before retrying after disconnection.
+                // Prevents CPU-burning spin loops when the broker is down.
+                var delay = TimeSpan.FromMilliseconds(
+                    Math.Min(1000 * (1 << Math.Min(attempt, 5)), 30000));
+                try
+                {
+                    await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    yield break;
+                }
+
+                attempt++;
 
                 try
                 {
