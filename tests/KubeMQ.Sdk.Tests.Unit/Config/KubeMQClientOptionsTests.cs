@@ -187,7 +187,7 @@ public class KubeMQClientOptionsTests
         options.ConnectionTimeout.Should().Be(TimeSpan.FromSeconds(10));
         options.MaxSendSize.Should().Be(100 * 1024 * 1024);
         options.MaxReceiveSize.Should().Be(100 * 1024 * 1024);
-        options.GrpcChannelCount.Should().Be(2);
+        options.GrpcChannelCount.Should().Be(5);
         options.WaitForReady.Should().BeTrue();
         options.AuthToken.Should().BeNull();
         options.ClientId.Should().BeNull();
@@ -255,5 +255,33 @@ public class KubeMQClientOptionsTests
 
         optionsWithId.ToString().Should().Contain("my-client");
         optionsNoId.ToString().Should().Contain("<auto>");
+    }
+
+    [Fact]
+    public void Validate_ReconnectTimeoutZero_Throws()
+    {
+        var options = new KubeMQClientOptions
+        {
+            ReconnectTimeout = TimeSpan.Zero,
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<KubeMQConfigurationException>()
+            .WithMessage("*ReconnectTimeout*positive*");
+    }
+
+    [Fact]
+    public void Validate_MaxMessageBodySizeNegative_Throws()
+    {
+        var options = new KubeMQClientOptions
+        {
+            MaxMessageBodySize = -1,
+        };
+
+        var act = () => options.Validate();
+
+        act.Should().Throw<KubeMQConfigurationException>()
+            .WithMessage("*MaxMessageBodySize*non-negative*");
     }
 }

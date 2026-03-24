@@ -35,6 +35,14 @@ public class KubeMQClientOptions
     /// <summary>Gets or sets the default timeout for SDK-level operations. Default: 5 s.</summary>
     public TimeSpan DefaultTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Gets or sets the timeout for waiting for the connection to become ready during
+    /// reconnection. This is separate from <see cref="DefaultTimeout"/> because broker
+    /// restarts can take 10–30+ seconds, and the default 5s timeout would kill reconnection
+    /// attempts prematurely. Default: 60 s.
+    /// </summary>
+    public TimeSpan ReconnectTimeout { get; set; } = TimeSpan.FromSeconds(60);
+
     /// <summary>Gets or sets the timeout for the initial connection attempt. Default: 10 s.</summary>
     public TimeSpan ConnectionTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
@@ -115,6 +123,12 @@ public class KubeMQClientOptions
         {
             throw new KubeMQConfigurationException(
                 $"DefaultTimeout must be positive, got {DefaultTimeout}.");
+        }
+
+        if (ReconnectTimeout <= TimeSpan.Zero)
+        {
+            throw new KubeMQConfigurationException(
+                $"ReconnectTimeout must be positive, got {ReconnectTimeout}.");
         }
 
         if (ConnectionTimeout <= TimeSpan.Zero)

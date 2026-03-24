@@ -413,4 +413,21 @@ public class TelemetryTests : IDisposable
         activity.Should().NotBeNull();
         activity!.Links.Should().BeEmpty();
     }
+
+    [Fact]
+    public void ShouldIncludeChannel_CardinalityWithLogger_LogsWarning()
+    {
+        // Cover the Log.CardinalityThresholdExceeded path (line 101)
+        // by configuring with a logger and exceeding the threshold.
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+        string prefix = $"cardlog-{Guid.NewGuid():N}-";
+        KubeMQMetrics.ConfigureCardinality(threshold: 2, logger: logger);
+
+        KubeMQMetrics.ShouldIncludeChannel($"{prefix}0").Should().BeTrue();
+        KubeMQMetrics.ShouldIncludeChannel($"{prefix}1").Should().BeTrue();
+        KubeMQMetrics.ShouldIncludeChannel($"{prefix}overflow").Should().BeFalse();
+
+        // Reset to safe defaults
+        KubeMQMetrics.ConfigureCardinality(threshold: 100_000);
+    }
 }

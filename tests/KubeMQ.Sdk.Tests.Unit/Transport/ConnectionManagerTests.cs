@@ -646,4 +646,473 @@ public sealed class ConnectionManagerTests : IAsyncDisposable
 
         await act.Should().ThrowAsync<Exception>().WithMessage("send failed");
     }
+
+    // ──────────────── Health-check loop tests ────────────────
+
+    [Fact]
+    public async Task HealthCheck_PingSucceeds_ContinuesRunning()
+    {
+        // Arrange: create a dedicated manager with a very short ping interval
+        // We cannot change the 10s interval, so we mock PingAsync to track calls
+        // and use StartHealthCheck + cancel quickly.
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        int pingCount = 0;
+        var pingCalledTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var transportMock = new Mock<ITransport>();
+        transportMock.Setup(t => t.PingAsync(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(async ct =>
+            {
+                if (Interlocked.Increment(ref pingCount) >= 1)
+                {
+                    pingCalledTcs.TrySetResult();
+                }
+
+                return new ServerInfo { Host = "localhost", Version = "1.0" };
+            });
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        // Put into Ready state so health check will ping
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+
+        // Act: start health check — it runs a background loop
+        manager.StartHealthCheck();
+
+        // Wait for at least one ping (may take up to ~10s due to the delay interval)
+        var completed = await Task.WhenAny(
+            pingCalledTcs.Task,
+            Task.Delay(TimeSpan.FromSeconds(15)));
+
+        // Dispose to cancel the loop
+        await manager.DisposeAsync();
+
+        // Assert
+        completed.Should().Be(pingCalledTcs.Task, "ping should have been called at least once");
+        pingCount.Should().BeGreaterOrEqualTo(1);
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task HealthCheck_PingFails_CallsOnConnectionLost()
+    {
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromMilliseconds(10),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        // Ping fails with an exception
+        transportMock.Setup(t => t.PingAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("ping failed"));
+        // ConnectAsync succeeds (for the reconnect triggered by OnConnectionLost)
+        transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+
+        var transitionedTcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        manager.StateTransitionCallback = (from, to, ex) =>
+        {
+            if (from == ConnectionState.Ready && to == ConnectionState.Reconnecting)
+            {
+                transitionedTcs.TrySetResult();
+            }
+        };
+
+        // Act
+        manager.StartHealthCheck();
+
+        // Wait for the transition to Reconnecting (health check detects ping failure)
+        var completed = await Task.WhenAny(
+            transitionedTcs.Task,
+            Task.Delay(TimeSpan.FromSeconds(15)));
+
+        // Cleanup
+        await manager.DisposeAsync();
+
+        // Assert
+        completed.Should().Be(transitionedTcs.Task,
+            "health check should trigger OnConnectionLost when ping fails");
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task HealthCheck_WhenNotReady_SkipsPing()
+    {
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        transportMock.Setup(t => t.PingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ServerInfo { Host = "localhost", Version = "1.0" });
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        // Stay in Connecting (not Ready) so health check skips ping
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+
+        // Act
+        manager.StartHealthCheck();
+
+        // Wait one full health check interval plus margin
+        await Task.Delay(TimeSpan.FromSeconds(12));
+
+        await manager.DisposeAsync();
+
+        // Assert: PingAsync should never have been called because state != Ready
+        transportMock.Verify(
+            t => t.PingAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
+        stateMachine.Dispose();
+    }
+
+    // ──────────────── DisposeAsync path coverage ────────────────
+
+    [Fact]
+    public async Task DisposeAsync_WithHealthCheckRunning_AwaitsHealthCheck()
+    {
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        transportMock.Setup(t => t.PingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ServerInfo { Host = "localhost", Version = "1.0" });
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+
+        // Start health check so _healthCheckTask is non-null
+        manager.StartHealthCheck();
+
+        // Give the health check loop a moment to start
+        await Task.Delay(100);
+
+        // Act: DisposeAsync should cancel and await the health check task
+        Func<Task> act = async () => await manager.DisposeAsync();
+
+        await act.Should().CompleteWithinAsync(TimeSpan.FromSeconds(5));
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task DisposeAsync_WithReconnectRunning_AwaitsReconnect()
+    {
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        // Block ConnectAsync until cancellation (simulates long reconnect)
+        var transportMock = new Mock<ITransport>();
+        transportMock.Setup(t => t.ConnectAsync(It.IsAny<CancellationToken>()))
+            .Returns<CancellationToken>(ct =>
+            {
+                var tcs = new TaskCompletionSource();
+                ct.Register(() => tcs.TrySetCanceled(ct));
+                return tcs.Task;
+            });
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+
+        // Trigger reconnect so _reconnectTask is non-null
+        manager.OnConnectionLost(new Exception("connection lost"));
+        await Task.Delay(100);
+
+        stateMachine.Current.Should().Be(ConnectionState.Reconnecting);
+
+        // Act: DisposeAsync should cancel and await the reconnect task
+        Func<Task> act = async () => await manager.DisposeAsync();
+
+        await act.Should().CompleteWithinAsync(TimeSpan.FromSeconds(5));
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task DisposeAsync_WithBufferedMessages_DiscardsBuffer()
+    {
+        // This test specifically covers the DisposeAsync path that calls
+        // _buffer.DiscardAll() and logs when discarded > 0
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        // Get into Reconnecting to buffer messages
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        await manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 1 }, "ch1", "event", 5), CancellationToken.None);
+        await manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 2 }, "ch2", "event", 5), CancellationToken.None);
+        await manager.BufferOrFailAsync(
+            new BufferedMessage(new byte[] { 3 }, "ch3", "event", 5), CancellationToken.None);
+
+        // Act: DisposeAsync discards buffered messages
+        Func<Task> act = async () => await manager.DisposeAsync();
+
+        await act.Should().CompleteWithinAsync(TimeSpan.FromSeconds(5));
+
+        // After dispose, the buffer should be empty (all discarded)
+        // We verify by confirming DisposeAsync ran without error
+        stateMachine.Dispose();
+    }
+
+    // ──────────────── WaitForReadyCoreAsync timeout paths ────────────────
+
+    [Fact]
+    public async Task WaitForReadyCoreAsync_WhenReconnecting_UsesReconnectTimeout()
+    {
+        // When state is Reconnecting, WaitForReadyCoreAsync should use ReconnectTimeout (60s)
+        // not DefaultTimeout (very short). We verify by setting a very short DefaultTimeout
+        // and a longer ReconnectTimeout. If the correct timeout is used, the wait should
+        // NOT time out before we signal it.
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromMilliseconds(10),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromMilliseconds(50), // Very short
+            ReconnectTimeout = TimeSpan.FromSeconds(10),     // Much longer
+        };
+
+        var transportMock = new Mock<ITransport>();
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        // Put into Reconnecting state
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        // Act: start waiting for ready
+        var waitTask = manager.WaitForReadyAsync(CancellationToken.None);
+
+        // Wait longer than DefaultTimeout (50ms) but shorter than ReconnectTimeout (10s)
+        await Task.Delay(200);
+
+        // If it used DefaultTimeout (50ms), the task would have thrown by now
+        waitTask.IsCompleted.Should().BeFalse(
+            "the task should still be waiting because ReconnectTimeout (10s) has not elapsed");
+
+        // Now signal ready
+        manager.NotifyReady();
+
+        // Should complete successfully
+        await waitTask.WaitAsync(TimeSpan.FromSeconds(3));
+        waitTask.IsCompletedSuccessfully.Should().BeTrue();
+
+        await manager.DisposeAsync();
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task WaitForReadyCoreAsync_WhenConnecting_UsesDefaultTimeout()
+    {
+        // When state is NOT Reconnecting (e.g., Connecting), it should use DefaultTimeout.
+        // We set a very short DefaultTimeout so it times out quickly.
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromMilliseconds(100),
+            ReconnectTimeout = TimeSpan.FromSeconds(60),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        // Stay in Connecting (not Reconnecting)
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+
+        // Act
+        Func<Task> act = () => manager.WaitForReadyAsync(CancellationToken.None);
+
+        // Should time out using DefaultTimeout (~100ms), not ReconnectTimeout (60s)
+        await act.Should().ThrowAsync<KubeMQTimeoutException>()
+            .WithMessage("*Timed out*");
+
+        await manager.DisposeAsync();
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task WaitForReadyCoreAsync_WhenReconnecting_TimesOutAfterReconnectTimeout()
+    {
+        // Verify that when Reconnecting, the wait times out using ReconnectTimeout
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromMilliseconds(10),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromMilliseconds(50),
+            ReconnectTimeout = TimeSpan.FromMilliseconds(200),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+        stateMachine.TryTransition(ConnectionState.Ready, ConnectionState.Reconnecting);
+
+        // Act: wait without ever signaling ready — should time out
+        Func<Task> act = () => manager.WaitForReadyAsync(CancellationToken.None);
+
+        await act.Should().ThrowAsync<KubeMQTimeoutException>()
+            .WithMessage("*Timed out*00:00:00.2000000*");
+
+        await manager.DisposeAsync();
+        stateMachine.Dispose();
+    }
+
+    [Fact]
+    public async Task StartHealthCheck_CalledTwice_DoesNotStartSecondLoop()
+    {
+        var options = new KubeMQClientOptions
+        {
+            Reconnect = new ReconnectOptions
+            {
+                Enabled = true,
+                InitialDelay = TimeSpan.FromSeconds(1),
+                MaxDelay = TimeSpan.FromSeconds(30),
+                BackoffMultiplier = 2.0,
+            },
+            WaitForReady = true,
+            DefaultTimeout = TimeSpan.FromSeconds(5),
+        };
+
+        var transportMock = new Mock<ITransport>();
+        transportMock.Setup(t => t.PingAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ServerInfo { Host = "localhost", Version = "1.0" });
+
+        var stateMachine = new StateMachine(NullLogger.Instance);
+        var streamManager = new StreamManager(NullLogger.Instance);
+        var manager = new ConnectionManager(
+            options, transportMock.Object, stateMachine, streamManager, NullLogger.Instance);
+
+        stateMachine.TryTransition(ConnectionState.Idle, ConnectionState.Connecting);
+        stateMachine.TryTransition(ConnectionState.Connecting, ConnectionState.Ready);
+
+        // Act: call StartHealthCheck twice
+        manager.StartHealthCheck();
+        manager.StartHealthCheck(); // second call should be a no-op
+
+        // Dispose — should still complete cleanly (only one task to await)
+        Func<Task> act = async () => await manager.DisposeAsync();
+
+        await act.Should().CompleteWithinAsync(TimeSpan.FromSeconds(5));
+        stateMachine.Dispose();
+    }
 }

@@ -33,8 +33,10 @@
     <!-- README embedded in NuGet package -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
-    <!-- Release notes link to CHANGELOG -->
-    <PackageReleaseNotes>See https://github.com/kubemq-io/kubemq-CSharp/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <!-- Release notes and additional links -->
+    <PackageReleaseNotes>Changelog: https://github.com/kubemq-io/kubemq-CSharp/blob/main/CHANGELOG.md
+Documentation: https://kubemq-io.github.io/kubemq-CSharp/
+Issues: https://github.com/kubemq-io/kubemq-CSharp/issues</PackageReleaseNotes>
 
     <!-- Build configuration -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>

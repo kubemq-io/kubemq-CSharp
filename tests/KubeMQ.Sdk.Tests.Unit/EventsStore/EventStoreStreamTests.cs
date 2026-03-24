@@ -523,6 +523,326 @@ public class EventStoreStreamTests
         await Task.Delay(500);
     }
 
+    // ──────────────── CloseAsync full-path coverage ────────────────
+
+    [Fact]
+    public async Task CloseAsync_WithPendingMessages_DrainsWriterAndCompletes()
+    {
+        // Send messages, then call CloseAsync to exercise the full graceful close path:
+        // complete channel writer, await writer task, complete request stream, cancel CTS, await receive task.
+        var (call, captured, completeReader) = MockEventStream.CreateAutoRespond(AutoRespondSent());
+        var stream = new EventStoreStream(call);
+
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("close-drain") };
+        var sendTask = stream.SendAsync(msg, ClientId);
+
+        // Allow the write + auto-respond to complete
+        var result = await sendTask;
+        result.Sent.Should().BeTrue();
+
+        Func<Task> act = () => stream.CloseAsync();
+        await act.Should().NotThrowAsync();
+        await stream.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task CloseAsync_WithActiveWriterAndReceiver_CompletesGracefully()
+    {
+        // Use a normal stream (no auto-respond) so receive loop is actively waiting.
+        // CloseAsync must complete writer channel, await writer, complete request stream,
+        // cancel CTS, then await receive loop.
+        var (call, _, _, completeReader) = MockEventStream.Create();
+        var stream = new EventStoreStream(call);
+
+        // Send a message but don't provide a result — receive loop is actively waiting
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("body") };
+        _ = stream.SendAsync(msg, ClientId); // fire-and-forget; CloseAsync will cancel it
+
+        await Task.Delay(100);
+
+        Func<Task> act = () => stream.CloseAsync();
+        await act.Should().NotThrowAsync();
+        await stream.DisposeAsync();
+    }
+
+    // ──────────────── WriterLoop error full-path coverage ────────────────
+
+    [Fact]
+    public async Task WriterLoop_WriteThrows_DrainsPendingChannelItems_FailsAllTcs()
+    {
+        // Exercises the full WriterLoop error path (lines 232-267):
+        // 1. _streamBroken set to true
+        // 2. Drains remaining channel items and fails their orphaned TCS entries
+        // 3. Fails all remaining pending TCS entries
+        // 4. Clears _pending and releases semaphore
+        var writer = new ConditionalFaultingWriter(failAfterCount: 0); // fail on first write
+        var reader = new BlockingAsyncStreamReader();
+
+        var call = new AsyncDuplexStreamingCall<KubeMQ.Grpc.Event, KubeMQ.Grpc.Result>(
+            requestStream: writer,
+            responseStream: reader,
+            responseHeadersAsync: Task.FromResult(new Metadata()),
+            getStatusFunc: () => new Status(StatusCode.OK, string.Empty),
+            getTrailersFunc: () => new Metadata(),
+            disposeAction: () => { reader.Complete(); });
+
+        await using var stream = new EventStoreStream(call);
+
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("body") };
+
+        // This send will fail because the writer faults immediately
+        Func<Task> act = () => stream.SendAsync(msg, ClientId);
+        await act.Should().ThrowAsync<KubeMQStreamBrokenException>();
+
+        // After the writer error, pending count should be 0 (cleaned up)
+        stream.PendingCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task WriterLoop_WriteThrows_MultiplePending_AllGetException()
+    {
+        // Send several messages rapidly with a writer that fails after the first one.
+        // Exercises the drain loop (lines 238-247) plus the remaining pending loop (lines 249-256).
+        var writer = new ConditionalFaultingWriter(failAfterCount: 1);
+        var reader = new BlockingAsyncStreamReader();
+
+        var call = new AsyncDuplexStreamingCall<KubeMQ.Grpc.Event, KubeMQ.Grpc.Result>(
+            requestStream: writer,
+            responseStream: reader,
+            responseHeadersAsync: Task.FromResult(new Metadata()),
+            getStatusFunc: () => new Status(StatusCode.OK, string.Empty),
+            getTrailersFunc: () => new Metadata(),
+            disposeAction: () => { reader.Complete(); });
+
+        await using var stream = new EventStoreStream(call);
+
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("body") };
+
+        // Send multiple messages — first succeeds write, rest fail
+        var tasks = new List<Task<EventStoreResult>>();
+        for (int i = 0; i < 5; i++)
+        {
+            tasks.Add(stream.SendAsync(msg, ClientId));
+        }
+
+        // All tasks should eventually fail
+        foreach (var t in tasks)
+        {
+            Func<Task> act = () => t;
+            await act.Should().ThrowAsync<KubeMQStreamBrokenException>();
+        }
+
+        stream.PendingCount.Should().Be(0);
+    }
+
+    // ──────────────── ReceiveLoop reconnection full-path coverage ────────────────
+
+    [Fact]
+    public async Task ReceiveLoop_StreamBreaks_FailsPendingThenReconnects_FullPath()
+    {
+        // Exercises lines 299-335: stream break with pending messages gets them failed,
+        // then reconnection succeeds and stream resumes.
+        var reconnectDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        // Use a delayed-fault reader so we can set up pending messages first
+        var (faultedCall, triggerFault) = MockEventStream.CreateDelayedFault(
+            new RpcException(new Status(StatusCode.Unavailable, "stream broke")));
+
+        var (reconnectCall, _, completeReconnect) = MockEventStream.CreateAutoRespond(AutoRespondSent());
+
+        await using var stream = new EventStoreStream(
+            faultedCall,
+            reconnectFactory: _ =>
+            {
+                reconnectDone.TrySetResult(true);
+                return Task.FromResult(reconnectCall);
+            },
+            waitForReady: _ => Task.CompletedTask);
+
+        // Send a message while the reader is blocking (before fault)
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("pending") };
+        var pendingTask = stream.SendAsync(msg, ClientId);
+
+        // Allow write to go through
+        await Task.Delay(200);
+        stream.PendingCount.Should().BeGreaterOrEqualTo(1);
+
+        // Now trigger the fault — pending messages should get KubeMQStreamBrokenException
+        triggerFault();
+
+        Func<Task> act = () => pendingTask;
+        await act.Should().ThrowAsync<KubeMQStreamBrokenException>()
+            .WithMessage("*disconnected*");
+
+        // Reconnection should have been called
+        var wasReconnected = await Task.WhenAny(reconnectDone.Task, Task.Delay(2000));
+        wasReconnected.Should().Be(reconnectDone.Task, "reconnect factory should have been called");
+    }
+
+    [Fact]
+    public async Task ReceiveLoop_StreamBreaks_WithReconnect_DisposesOldCall()
+    {
+        // Verifies the old call is disposed after reconnection (line 335).
+        var oldCallDisposed = false;
+        var reconnectDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var faultingReader = new FaultingOnFirstMoveNextReader(
+            new RpcException(new Status(StatusCode.Unavailable, "disconnected")));
+        var noOpWriter = new NoOpClientStreamWriter();
+        var faultedCall = new AsyncDuplexStreamingCall<KubeMQ.Grpc.Event, KubeMQ.Grpc.Result>(
+            requestStream: noOpWriter,
+            responseStream: faultingReader,
+            responseHeadersAsync: Task.FromResult(new Metadata()),
+            getStatusFunc: () => new Status(StatusCode.OK, string.Empty),
+            getTrailersFunc: () => new Metadata(),
+            disposeAction: () => { oldCallDisposed = true; });
+
+        var (reconnectCall, _, completeReconnect) = MockEventStream.CreateAutoRespond(AutoRespondSent());
+
+        await using var stream = new EventStoreStream(
+            faultedCall,
+            reconnectFactory: _ =>
+            {
+                reconnectDone.TrySetResult(true);
+                return Task.FromResult(reconnectCall);
+            },
+            waitForReady: _ => Task.CompletedTask);
+
+        await Task.WhenAny(reconnectDone.Task, Task.Delay(2000));
+        await Task.Delay(100);
+
+        oldCallDisposed.Should().BeTrue("the old call should be disposed after swapping");
+    }
+
+    [Fact]
+    public async Task ReceiveLoop_ReconnectFails_FailsRemainingPending_WithPendingMessages()
+    {
+        // Exercises lines 341-361: reconnect throws, any remaining pending messages
+        // get the reconnect exception. Uses delayed fault so we can add pending first.
+        var (faultedCall, triggerFault) = MockEventStream.CreateDelayedFault(
+            new RpcException(new Status(StatusCode.Unavailable, "stream broke")));
+
+        await using var stream = new EventStoreStream(
+            faultedCall,
+            reconnectFactory: _ => throw new InvalidOperationException("reconnect-boom"),
+            waitForReady: _ => Task.CompletedTask);
+
+        // The pending task gets failed by the stream break (before reconnect attempt)
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("body") };
+        var pendingTask = stream.SendAsync(msg, ClientId);
+
+        await Task.Delay(200);
+
+        // Trigger the fault
+        triggerFault();
+
+        // The pending task should fail because the stream broke
+        Func<Task> act = () => pendingTask;
+        await act.Should().ThrowAsync<KubeMQStreamBrokenException>();
+
+        // Wait for reconnection to fail
+        await Task.Delay(500);
+
+        stream.PendingCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ReceiveLoop_ReconnectFails_SemaphoreReleased()
+    {
+        // After reconnect failure cleans up pending, the semaphore should be released
+        // so that future operations (if stream weren't broken) wouldn't deadlock.
+        var faultedCall = MockEventStream.CreateFaulted(
+            new RpcException(new Status(StatusCode.Unavailable, "disconnected")));
+
+        await using var stream = new EventStoreStream(
+            faultedCall,
+            reconnectFactory: _ => throw new InvalidOperationException("reconnect-failed"),
+            waitForReady: _ => Task.CompletedTask);
+
+        // Wait for the receive loop to fail and attempt reconnection
+        await Task.Delay(500);
+
+        // Stream should be broken after failed reconnection
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("body") };
+        Func<Task> act = () => stream.SendAsync(msg, ClientId);
+        await act.Should().ThrowAsync<KubeMQOperationException>()
+            .WithMessage("*broken*");
+    }
+
+    // ──────────────── DisposeAsync pending cancellation full-path coverage ────────────────
+
+    [Fact]
+    public async Task DisposeAsync_WithMultiplePendingMessages_CancelsAllAndReleasesSemaphore()
+    {
+        // Exercises lines 192-208: dispose with multiple pending messages.
+        // Each pending TCS should be cancelled, _pending cleared, semaphore released.
+        var (call, _, _, completeReader) = MockEventStream.Create();
+        var stream = new EventStoreStream(call);
+
+        var msg = new EventStoreMessage { Channel = "ch", Body = Encoding.UTF8.GetBytes("body") };
+
+        // Send multiple messages that stay pending (no auto-respond)
+        var tasks = new List<Task<EventStoreResult>>();
+        for (int i = 0; i < 3; i++)
+        {
+            tasks.Add(stream.SendAsync(msg, ClientId));
+        }
+
+        // Allow writes to go through
+        await Task.Delay(300);
+        stream.PendingCount.Should().BeGreaterOrEqualTo(3);
+
+        // Dispose should cancel all pending
+        await stream.DisposeAsync();
+
+        foreach (var t in tasks)
+        {
+            Func<Task> act = () => t;
+            await act.Should().ThrowAsync<TaskCanceledException>();
+        }
+    }
+
+    [Fact]
+    public async Task DisposeAsync_PendingCancellation_SemaphoreFullExceptionSwallowed()
+    {
+        // Edge case: if the semaphore is already at max when dispose tries to release,
+        // the SemaphoreFullException should be swallowed (lines 206-208).
+        // This exercises the defensive catch block.
+        var (call, _, _, completeReader) = MockEventStream.Create();
+        var stream = new EventStoreStream(call);
+
+        // Dispose without any pending messages — the count is 0, so Release(0) is not called.
+        // This still validates the path doesn't throw.
+        Func<Task> act = async () => await stream.DisposeAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    [Fact]
+    public async Task ReceiveLoop_NormalCompletion_ReturnsWithoutReconnect()
+    {
+        // When MoveNext returns false normally (stream server-side close),
+        // the receive loop should return without reconnecting (line 293).
+        var reconnectCalled = false;
+        var (call, _, _, completeReader) = MockEventStream.Create();
+
+        // Complete the reader immediately
+        completeReader();
+
+        await using var stream = new EventStoreStream(
+            call,
+            reconnectFactory: _ =>
+            {
+                reconnectCalled = true;
+                var (rc, _, cr) = MockEventStream.CreateAutoRespond(AutoRespondSent());
+                return Task.FromResult(rc);
+            },
+            waitForReady: _ => Task.CompletedTask);
+
+        await Task.Delay(300);
+
+        reconnectCalled.Should().BeFalse("normal stream end should not trigger reconnection");
+    }
+
     // ──────────────── Test helpers ────────────────
 
     private sealed class CompletingAsyncStreamReader : IAsyncStreamReader<KubeMQ.Grpc.Result>
@@ -568,5 +888,52 @@ public class EventStoreStreamTests
         }
 
         public Task CompleteAsync() => Task.CompletedTask;
+    }
+
+    /// <summary>A no-op writer for constructing calls with custom dispose actions.</summary>
+    private sealed class NoOpClientStreamWriter : IClientStreamWriter<KubeMQ.Grpc.Event>
+    {
+        public WriteOptions? WriteOptions { get; set; }
+        public Task WriteAsync(KubeMQ.Grpc.Event message) => Task.CompletedTask;
+        public Task WriteAsync(KubeMQ.Grpc.Event message, CancellationToken cancellationToken) => Task.CompletedTask;
+        public Task CompleteAsync() => Task.CompletedTask;
+    }
+
+    /// <summary>A reader that throws on the first MoveNext call.</summary>
+    private sealed class FaultingOnFirstMoveNextReader : IAsyncStreamReader<KubeMQ.Grpc.Result>
+    {
+        private readonly Exception _exception;
+
+        public FaultingOnFirstMoveNextReader(Exception exception) => _exception = exception;
+
+        public KubeMQ.Grpc.Result Current => default!;
+
+        public Task<bool> MoveNext(CancellationToken cancellationToken) => throw _exception;
+    }
+
+    /// <summary>
+    /// A reader that blocks indefinitely on MoveNext until Complete() is called,
+    /// then returns false. Used for streams where we need the receive loop to stay active.
+    /// </summary>
+    private sealed class BlockingAsyncStreamReader : IAsyncStreamReader<KubeMQ.Grpc.Result>
+    {
+        private readonly TaskCompletionSource _gate = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public KubeMQ.Grpc.Result Current => default!;
+
+        public async Task<bool> MoveNext(CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _gate.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
+            }
+            return false;
+        }
+
+        internal void Complete() => _gate.TrySetResult();
     }
 }

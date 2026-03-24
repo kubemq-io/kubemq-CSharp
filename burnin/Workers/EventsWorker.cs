@@ -55,37 +55,55 @@ public sealed class EventsWorker : BaseWorker
             var task = Task.Run(async () =>
             {
                 string cid = consumerId; // capture for closure
-                try
+                int retryAttempt = 0;
+                // CS-7: Outer retry loop so the consumer restarts after exceptions
+                while (!ConsumerCts.IsCancellationRequested)
                 {
-                    await foreach (var evt in client.SubscribeToEventsAsync(subscription, ConsumerCts.Token))
+                    try
                     {
-                        if (ConsumerCts.IsCancellationRequested) break;
+                        await foreach (var evt in client.SubscribeToEventsAsync(subscription, ConsumerCts.Token))
+                        {
+                            if (ConsumerCts.IsCancellationRequested) break;
+                            retryAttempt = 0; // reset on successful receive
 
-                        var tags = evt.Tags;
-                        if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
-                            && warmupVal == "true")
-                        {
-                            continue; // Go#18: skip warmup messages
-                        }
+                            var tags = evt.Tags;
+                            if (tags != null && tags.TryGetValue("warmup", out string? warmupVal)
+                                && warmupVal == "true")
+                            {
+                                continue; // Go#18: skip warmup messages
+                            }
 
-                        try
-                        {
-                            var decoded = Payload.Decode(evt.Body);
-                            string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
-                            RecordReceive(cid, evt.Body, crcTag, decoded.ProducerId, decoded.Sequence);
-                        }
-                        catch
-                        {
-                            RecordError("decode_failure");
+                            try
+                            {
+                                var decoded = Payload.Decode(evt.Body);
+                                string crcTag = tags?.GetValueOrDefault("content_hash") ?? "";
+                                RecordReceive(cid, evt.Body, crcTag, decoded.ProducerId, decoded.Sequence);
+                            }
+                            catch
+                            {
+                                RecordError("decode_failure");
+                            }
                         }
                     }
-                }
-                catch (OperationCanceledException) { /* normal shutdown */ }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"events subscription error (ch{ChannelIndex:D4}): {ex.Message}");
-                    RecordError("subscription_error");
-                    IncReconnection();
+                    catch (OperationCanceledException) { break; /* normal shutdown */ }
+                    catch (Exception ex)
+                    {
+                        Console.Error.WriteLine($"events subscription error (ch{ChannelIndex:D4}): {ex.Message}");
+                        RecordError("subscription_error");
+                        IncReconnection();
+                    }
+
+                    // Exponential backoff before retry: 1s, 2s, 4s, 8s, 16s, 30s max
+                    if (!ConsumerCts.IsCancellationRequested)
+                    {
+                        var delay = Math.Min(1000 * (1 << Math.Min(retryAttempt, 5)), 30000);
+                        retryAttempt++;
+                        try
+                        {
+                            await Task.Delay(delay, ConsumerCts.Token).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException) { break; }
+                    }
                 }
             });
 
