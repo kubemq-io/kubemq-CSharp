@@ -549,15 +549,16 @@ public sealed class TlsConfiguratorTests : IDisposable
     public void ConfigureTls_WithCaPem_CallbackWithChainAndCert_InvokesChainBuild()
     {
         // Same test but using CaCertificatePem instead of CaFile
+        var now = DateTimeOffset.UtcNow;
         using var caRsa = RSA.Create(2048);
         var caReq = new CertificateRequest("CN=TestPemCA2", caRsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         caReq.CertificateExtensions.Add(new X509BasicConstraintsExtension(true, false, 0, true));
-        using var caCert = caReq.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(1));
+        using var caCert = caReq.CreateSelfSigned(now, now.AddYears(1));
 
         // Create a server cert signed by the CA
         using var serverRsa = RSA.Create(2048);
         var serverReq = new CertificateRequest("CN=Server", serverRsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        using var serverCert = serverReq.Create(caCert, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(1), new byte[] { 1, 2, 3, 4 });
+        using var serverCert = serverReq.Create(caCert, now, now.AddYears(1), new byte[] { 1, 2, 3, 4 });
 
         var tls = new TlsOptions
         {

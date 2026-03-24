@@ -100,5 +100,17 @@ internal sealed class TelemetryInterceptor : Interceptor
             Log.GrpcCallFailed(_logger, methodName, elapsed * 1000, errorType);
             throw;
         }
+        catch (OperationCanceledException)
+        {
+            double elapsed = sw.GetElapsedTime().TotalSeconds;
+            const string errorType = "Cancelled";
+            KubeMQMetrics.RecordOperationDuration(
+                elapsed,
+                methodName,
+                string.Empty,
+                errorType: errorType);
+            Log.GrpcCallFailed(_logger, methodName, elapsed * 1000, errorType);
+            throw;
+        }
     }
 }

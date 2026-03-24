@@ -128,4 +128,170 @@ public class ChannelManagementTests : IntegrationTestBase
             // Channel management may not be supported by all server versions
         }
     }
+
+    // ---------------------------------------------------------------
+    // Typed channel management helpers
+    // ---------------------------------------------------------------
+
+    [Fact]
+    public async Task CreateEventsChannelAsync_TypedHelper_Works()
+    {
+        await using var client = CreateClient();
+        await client.ConnectAsync();
+
+        var channel = UniqueChannel("typed-evt");
+
+        try
+        {
+            await client.CreateEventsChannelAsync(channel);
+            await Task.Delay(500);
+
+            var channels = await client.ListEventsChannelsAsync();
+            channels.Should().NotBeNull();
+            channels.Should().Contain(c => c.Name == channel);
+
+            // Cleanup
+            await client.DeleteEventsChannelAsync(channel);
+        }
+        catch (KubeMQException)
+        {
+            // Channel management may not be supported by all server versions
+        }
+    }
+
+    [Fact]
+    public async Task CreateEventsStoreChannelAsync_TypedHelper_Works()
+    {
+        await using var client = CreateClient();
+        await client.ConnectAsync();
+
+        var channel = UniqueChannel("typed-es");
+
+        try
+        {
+            await client.CreateEventsStoreChannelAsync(channel);
+            await Task.Delay(500);
+
+            var channels = await client.ListEventsStoreChannelsAsync();
+            channels.Should().NotBeNull();
+            channels.Should().Contain(c => c.Name == channel);
+
+            // Cleanup
+            await client.DeleteEventsStoreChannelAsync(channel);
+        }
+        catch (KubeMQException)
+        {
+            // Channel management may not be supported by all server versions
+        }
+    }
+
+    [Fact]
+    public async Task CreateCommandsChannelAsync_TypedHelper_Works()
+    {
+        await using var client = CreateClient();
+        await client.ConnectAsync();
+
+        var channel = UniqueChannel("typed-cmd");
+
+        try
+        {
+            await client.CreateCommandsChannelAsync(channel);
+            await Task.Delay(500);
+
+            var channels = await client.ListCommandsChannelsAsync();
+            channels.Should().NotBeNull();
+            channels.Should().Contain(c => c.Name == channel);
+
+            // Cleanup
+            await client.DeleteCommandsChannelAsync(channel);
+        }
+        catch (KubeMQException)
+        {
+            // Channel management may not be supported by all server versions
+        }
+    }
+
+    [Fact]
+    public async Task CreateQueriesChannelAsync_TypedHelper_Works()
+    {
+        await using var client = CreateClient();
+        await client.ConnectAsync();
+
+        var channel = UniqueChannel("typed-qry");
+
+        try
+        {
+            await client.CreateQueriesChannelAsync(channel);
+            await Task.Delay(500);
+
+            var channels = await client.ListQueriesChannelsAsync();
+            channels.Should().NotBeNull();
+            channels.Should().Contain(c => c.Name == channel);
+
+            // Cleanup
+            await client.DeleteQueriesChannelAsync(channel);
+        }
+        catch (KubeMQException)
+        {
+            // Channel management may not be supported by all server versions
+        }
+    }
+
+    [Fact]
+    public async Task CreateQueuesChannelAsync_TypedHelper_Works()
+    {
+        await using var client = CreateClient();
+        await client.ConnectAsync();
+
+        var channel = UniqueChannel("typed-q");
+
+        try
+        {
+            await client.CreateQueuesChannelAsync(channel);
+            await Task.Delay(500);
+
+            var channels = await client.ListQueuesChannelsAsync();
+            channels.Should().NotBeNull();
+            channels.Should().Contain(c => c.Name == channel);
+
+            // Cleanup
+            await client.DeleteQueuesChannelAsync(channel);
+        }
+        catch (KubeMQException)
+        {
+            // Channel management may not be supported by all server versions
+        }
+    }
+
+    [Fact]
+    public async Task ListChannelsAsync_WithSearchPattern_FiltersResults()
+    {
+        await using var client = CreateClient();
+        await client.ConnectAsync();
+
+        var prefix = $"pat-{Guid.NewGuid():N}";
+        var channel1 = $"{prefix}-alpha";
+        var channel2 = $"{prefix}-beta";
+
+        try
+        {
+            await client.CreateEventsChannelAsync(channel1);
+            await client.CreateEventsChannelAsync(channel2);
+            await Task.Delay(500);
+
+            // Search with a pattern that matches our prefix
+            var channels = await client.ListEventsChannelsAsync(searchPattern: prefix);
+            channels.Should().NotBeNull();
+            channels.Should().Contain(c => c.Name == channel1);
+            channels.Should().Contain(c => c.Name == channel2);
+
+            // Cleanup
+            await client.DeleteEventsChannelAsync(channel1);
+            await client.DeleteEventsChannelAsync(channel2);
+        }
+        catch (KubeMQException)
+        {
+            // Channel management may not be supported by all server versions
+        }
+    }
 }

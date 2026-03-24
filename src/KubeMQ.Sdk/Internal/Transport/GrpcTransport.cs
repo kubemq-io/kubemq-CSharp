@@ -117,10 +117,17 @@ internal sealed class GrpcTransport : ITransport, IDisposable
                 await _authInterceptor.GetTokenAsync(connectCts.Token).ConfigureAwait(false);
             }
 
-            // Ping only the first channel to verify connectivity
-            await clients[0].PingAsync(
-                new KubeMQ.Grpc.Empty(),
-                cancellationToken: connectCts.Token).ConfigureAwait(false);
+            // CS-6: Ping ALL channels to verify connectivity, not just clients[0].
+            // With GrpcChannelCount > 1, channels 1..N-1 could fail silently.
+            var pingTasks = new Task[count];
+            for (int i = 0; i < count; i++)
+            {
+                pingTasks[i] = clients[i].PingAsync(
+                    new KubeMQ.Grpc.Empty(),
+                    cancellationToken: connectCts.Token).ResponseAsync;
+            }
+
+            await Task.WhenAll(pingTasks).ConfigureAwait(false);
 
             // Atomic swap
             _grpcChannels = channels;

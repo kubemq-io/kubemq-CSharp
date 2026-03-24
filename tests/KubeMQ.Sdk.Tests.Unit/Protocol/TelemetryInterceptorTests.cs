@@ -345,13 +345,27 @@ public sealed class TelemetryInterceptorTests : IDisposable
         {
             if (instrument.Name.Contains("duration"))
             {
-                recordedValue = measurement;
+                // Filter by operation name to avoid pollution from parallel tests
+                // sharing the static KubeMQ.Sdk meter.
+                bool isOurOperation = false;
+                string? errorTag = null;
                 foreach (var tag in tags)
                 {
+                    if (tag.Key == "messaging.operation.name" &&
+                        tag.Value?.ToString() == "TestMethod")
+                    {
+                        isOurOperation = true;
+                    }
                     if (tag.Key == "error.type")
                     {
-                        recordedErrorType = tag.Value?.ToString();
+                        errorTag = tag.Value?.ToString();
                     }
+                }
+
+                if (isOurOperation)
+                {
+                    recordedValue = measurement;
+                    recordedErrorType = errorTag;
                 }
             }
         });
