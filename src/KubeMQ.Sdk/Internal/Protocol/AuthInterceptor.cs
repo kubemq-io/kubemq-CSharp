@@ -15,6 +15,14 @@ namespace KubeMQ.Sdk.Internal.Protocol;
 /// gRPC client interceptor that injects authentication metadata on all four
 /// call types (unary, server streaming, client streaming, duplex).
 /// </summary>
+/// <remarks>
+/// <para><b>Unary calls</b> use a fully async token-fetch path when the cache is cold,
+/// avoiding the sync-over-async deadlock risk in single-threaded synchronization contexts.</para>
+/// <para><b>Streaming calls</b> use the cached token synchronously (never block). The cache
+/// is always warm after <c>ConnectAsync</c> pre-warms it. If the token expires during a
+/// long-lived stream, the server rejects the call and the SDK reconnects, which re-warms
+/// the cache via the async <see cref="GetTokenAsync"/> path.</para>
+/// </remarks>
 internal sealed class AuthInterceptor : Interceptor, IDisposable
 {
     private readonly ICredentialProvider? _credentialProvider;
@@ -59,14 +67,53 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncUnaryCallContinuation<TRequest, TResponse> continuation)
     {
-        var newContext = AddAuthMetadata(context);
-        var call = continuation(request, newContext);
+        // Fast path: static token — purely synchronous, no deadlock risk.
+        if (_cachedStaticHeaders is not null)
+        {
+            var staticCtx = InjectHeaders(context, _cachedStaticHeaders);
+            var call = continuation(request, staticCtx);
+            return new AsyncUnaryCall<TResponse>(
+                HandleAuthErrorAsync(call.ResponseAsync),
+                call.ResponseHeadersAsync,
+                call.GetStatus,
+                call.GetTrailers,
+                call.Dispose);
+        }
+
+        // Fast path: cached dynamic token still valid — synchronous read of volatile field.
+        var cached = _cachedToken;
+        if (cached is not null && !IsTokenExpiringSoon())
+        {
+            var cachedCtx = InjectToken(context, cached);
+            var call = continuation(request, cachedCtx);
+            return new AsyncUnaryCall<TResponse>(
+                HandleAuthErrorAsync(call.ResponseAsync),
+                call.ResponseHeadersAsync,
+                call.GetStatus,
+                call.GetTrailers,
+                call.Dispose);
+        }
+
+        // No credential provider — pass through without auth.
+        if (_credentialProvider is null)
+        {
+            var call = continuation(request, context);
+            return new AsyncUnaryCall<TResponse>(
+                HandleAuthErrorAsync(call.ResponseAsync),
+                call.ResponseHeadersAsync,
+                call.GetStatus,
+                call.GetTrailers,
+                call.Dispose);
+        }
+
+        // Cold path: token expired or not yet cached. Fetch asynchronously to avoid
+        // sync-over-async deadlock in single-threaded synchronization contexts.
         return new AsyncUnaryCall<TResponse>(
-            HandleAuthErrorAsync(call.ResponseAsync),
-            call.ResponseHeadersAsync,
-            call.GetStatus,
-            call.GetTrailers,
-            call.Dispose);
+            FetchTokenAndCallUnaryAsync(request, context, continuation),
+            Task.FromResult(new Metadata()),
+            () => Status.DefaultSuccess,
+            () => new Metadata(),
+            () => { });
     }
 
     /// <inheritdoc />
@@ -75,7 +122,7 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncServerStreamingCallContinuation<TRequest, TResponse> continuation)
     {
-        var newContext = AddAuthMetadata(context);
+        var newContext = AddCachedAuthMetadata(context);
         return continuation(request, newContext);
     }
 
@@ -84,7 +131,7 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncClientStreamingCallContinuation<TRequest, TResponse> continuation)
     {
-        var newContext = AddAuthMetadata(context);
+        var newContext = AddCachedAuthMetadata(context);
         return continuation(newContext);
     }
 
@@ -93,13 +140,13 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         ClientInterceptorContext<TRequest, TResponse> context,
         AsyncDuplexStreamingCallContinuation<TRequest, TResponse> continuation)
     {
-        var newContext = AddAuthMetadata(context);
+        var newContext = AddCachedAuthMetadata(context);
         return continuation(newContext);
     }
 
     /// <summary>
     /// Async path for obtaining a token — used during ConnectAsync (which IS async)
-    /// to pre-warm the cache, avoiding sync-over-async on the first call.
+    /// to pre-warm the cache, avoiding the cold path on the first call.
     /// </summary>
     internal async Task<string?> GetTokenAsync(CancellationToken cancellationToken)
     {
@@ -157,72 +204,46 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
         }
     }
 
-    private ClientInterceptorContext<TRequest, TResponse> AddAuthMetadata<TRequest, TResponse>(
-        ClientInterceptorContext<TRequest, TResponse> context)
+    private static ClientInterceptorContext<TRequest, TResponse> InjectToken<TRequest, TResponse>(
+        ClientInterceptorContext<TRequest, TResponse> context,
+        string token)
         where TRequest : class
         where TResponse : class
     {
-        if (_cachedStaticHeaders is not null)
-        {
-            var opts = context.Options.WithHeaders(_cachedStaticHeaders);
-            return new ClientInterceptorContext<TRequest, TResponse>(
-                context.Method, context.Host, opts);
-        }
-
-        var token = GetCachedTokenSync();
-        if (token is null)
-        {
-            return context;
-        }
-
         var headers = context.Options.Headers ?? new Metadata();
         headers.Add("authorization", token);
-
         var newOptions = context.Options.WithHeaders(headers);
         return new ClientInterceptorContext<TRequest, TResponse>(
             context.Method, context.Host, newOptions);
     }
 
-    /// <remarks>
-    /// <b>Known limitation — sync-over-async.</b>
-    /// Uses .GetAwaiter().GetResult() because gRPC C# interceptor methods are synchronous.
-    /// The SDK pre-warms the token cache during ConnectAsync() (which IS async),
-    /// so this sync path is only hit on cache miss or token expiry.
-    /// </remarks>
-    private string? GetCachedTokenSync()
+    private static ClientInterceptorContext<TRequest, TResponse> InjectHeaders<TRequest, TResponse>(
+        ClientInterceptorContext<TRequest, TResponse> context,
+        Metadata headers)
+        where TRequest : class
+        where TResponse : class
     {
-        if (_staticToken is not null)
-        {
-            return _staticToken;
-        }
+        var opts = context.Options.WithHeaders(headers);
+        return new ClientInterceptorContext<TRequest, TResponse>(
+            context.Method, context.Host, opts);
+    }
 
-        if (_credentialProvider is null)
-        {
-            return null;
-        }
-
-        if (_cachedToken is not null && !IsTokenExpiringSoon())
-        {
-            return _cachedToken;
-        }
-
-        _tokenLock.Wait();
+    /// <summary>
+    /// Fetches a token asynchronously and then invokes the unary continuation with auth headers.
+    /// This avoids the sync-over-async deadlock that <c>GetAwaiter().GetResult()</c> caused
+    /// in single-threaded synchronization contexts.
+    /// </summary>
+    private async Task<TResponse> FetchTokenAndCallUnaryAsync<TRequest, TResponse>(
+        TRequest request,
+        ClientInterceptorContext<TRequest, TResponse> context,
+        AsyncUnaryCallContinuation<TRequest, TResponse> continuation)
+        where TRequest : class
+        where TResponse : class
+    {
+        string? token;
         try
         {
-            if (_cachedToken is not null && !IsTokenExpiringSoon())
-            {
-                return _cachedToken;
-            }
-
-            var result = _credentialProvider
-                .GetTokenAsync(CancellationToken.None)
-                .ConfigureAwait(false)
-                .GetAwaiter()
-                .GetResult();
-
-            _cachedToken = result.Token;
-            _cachedExpiresAt = result.ExpiresAt;
-            return _cachedToken;
+            token = await GetTokenAsync(CancellationToken.None).ConfigureAwait(false);
         }
         catch (KubeMQAuthenticationException)
         {
@@ -242,10 +263,34 @@ internal sealed class AuthInterceptor : Interceptor, IDisposable
             throw new KubeMQAuthenticationException(
                 "Credential provider failed to supply token", ex);
         }
-        finally
+
+        var authContext = token is not null ? InjectToken(context, token) : context;
+        var call = continuation(request, authContext);
+        return await HandleAuthErrorAsync(call.ResponseAsync).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Adds the cached or static token to the context without blocking.
+    /// Used by streaming call types where the cache is always warm after ConnectAsync.
+    /// </summary>
+    private ClientInterceptorContext<TRequest, TResponse> AddCachedAuthMetadata<TRequest, TResponse>(
+        ClientInterceptorContext<TRequest, TResponse> context)
+        where TRequest : class
+        where TResponse : class
+    {
+        if (_cachedStaticHeaders is not null)
         {
-            _tokenLock.Release();
+            return InjectHeaders(context, _cachedStaticHeaders);
         }
+
+        // Read the volatile cached token — never blocks.
+        var token = _cachedToken;
+        if (token is null)
+        {
+            return context;
+        }
+
+        return InjectToken(context, token);
     }
 
     private bool IsTokenExpiringSoon()
