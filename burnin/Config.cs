@@ -327,6 +327,13 @@ public static class Config
             }
         }
 
+        // Environment variable override for broker address
+        string? envAddr = Environment.GetEnvironmentVariable("KUBEMQ_BROKER_ADDRESS");
+        if (!string.IsNullOrEmpty(envAddr))
+        {
+            cfg.Broker.Address = envAddr;
+        }
+
         // Auto-generate run_id if empty.
         if (string.IsNullOrEmpty(cfg.RunId))
         {
