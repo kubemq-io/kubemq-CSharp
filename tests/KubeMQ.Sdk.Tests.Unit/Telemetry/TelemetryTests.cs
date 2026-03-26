@@ -419,12 +419,17 @@ public class TelemetryTests : IDisposable
     {
         // Cover the Log.CardinalityThresholdExceeded path (line 101)
         // by configuring with a logger and exceeding the threshold.
+        // Use a high threshold to avoid interference with other cardinality tests
+        // that share the static KubeMQMetrics state.
         var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
         string prefix = $"cardlog-{Guid.NewGuid():N}-";
-        KubeMQMetrics.ConfigureCardinality(threshold: 2, logger: logger);
+        KubeMQMetrics.ConfigureCardinality(threshold: 5000, logger: logger);
 
-        KubeMQMetrics.ShouldIncludeChannel($"{prefix}0").Should().BeTrue();
-        KubeMQMetrics.ShouldIncludeChannel($"{prefix}1").Should().BeTrue();
+        for (int i = 0; i < 5000; i++)
+        {
+            KubeMQMetrics.ShouldIncludeChannel($"{prefix}{i}");
+        }
+
         KubeMQMetrics.ShouldIncludeChannel($"{prefix}overflow").Should().BeFalse();
 
         // Reset to safe defaults

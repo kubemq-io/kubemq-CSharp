@@ -552,7 +552,7 @@ public sealed class AuthInterceptorTests : IDisposable
     }
 
     [Fact]
-    public void GetCachedTokenSync_ProviderThrowsHttpRequestException_WrapsAsConnectionException()
+    public async Task AsyncUnaryCall_ColdPath_ProviderThrowsHttpRequestException_WrapsAsConnectionException()
     {
         var mock = new Mock<ICredentialProvider>();
         mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -560,7 +560,6 @@ public sealed class AuthInterceptorTests : IDisposable
 
         _interceptor = new AuthInterceptor(mock.Object, null, null);
 
-        // Trigger GetCachedTokenSync via AsyncUnaryCall (AddAuthMetadata calls it)
         var method = new Method<byte[], byte[]>(
             MethodType.Unary,
             "TestService",
@@ -579,14 +578,15 @@ public sealed class AuthInterceptorTests : IDisposable
                 () => new Metadata(),
                 () => { });
 
-        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        Func<Task> act = async () => await call.ResponseAsync;
 
-        act.Should().Throw<KubeMQConnectionException>()
+        await act.Should().ThrowAsync<KubeMQConnectionException>()
             .WithMessage("*infrastructure failure*");
     }
 
     [Fact]
-    public void GetCachedTokenSync_ProviderThrowsGenericException_WrapsAsAuthException()
+    public async Task AsyncUnaryCall_ColdPath_ProviderThrowsGenericException_WrapsAsAuthException()
     {
         var mock = new Mock<ICredentialProvider>();
         mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -612,9 +612,10 @@ public sealed class AuthInterceptorTests : IDisposable
                 () => new Metadata(),
                 () => { });
 
-        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        Func<Task> act = async () => await call.ResponseAsync;
 
-        act.Should().Throw<KubeMQAuthenticationException>()
+        await act.Should().ThrowAsync<KubeMQAuthenticationException>()
             .WithMessage("*Credential provider failed*");
     }
 
@@ -748,7 +749,7 @@ public sealed class AuthInterceptorTests : IDisposable
     }
 
     [Fact]
-    public void GetCachedTokenSync_ProviderThrowsTimeoutException_WrapsAsConnectionException()
+    public async Task AsyncUnaryCall_ColdPath_ProviderThrowsTimeoutException_WrapsAsConnectionException()
     {
         var mock = new Mock<ICredentialProvider>();
         mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -774,14 +775,15 @@ public sealed class AuthInterceptorTests : IDisposable
                 () => new Metadata(),
                 () => { });
 
-        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        Func<Task> act = async () => await call.ResponseAsync;
 
-        act.Should().Throw<KubeMQConnectionException>()
+        await act.Should().ThrowAsync<KubeMQConnectionException>()
             .WithMessage("*infrastructure failure*");
     }
 
     [Fact]
-    public void GetCachedTokenSync_ProviderThrowsIOException_WrapsAsConnectionException()
+    public async Task AsyncUnaryCall_ColdPath_ProviderThrowsIOException_WrapsAsConnectionException()
     {
         var mock = new Mock<ICredentialProvider>();
         mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -807,9 +809,10 @@ public sealed class AuthInterceptorTests : IDisposable
                 () => new Metadata(),
                 () => { });
 
-        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        Func<Task> act = async () => await call.ResponseAsync;
 
-        act.Should().Throw<KubeMQConnectionException>()
+        await act.Should().ThrowAsync<KubeMQConnectionException>()
             .WithMessage("*infrastructure failure*");
     }
 
@@ -885,7 +888,7 @@ public sealed class AuthInterceptorTests : IDisposable
     }
 
     [Fact]
-    public void GetCachedTokenSync_KubeMQAuthException_Rethrows()
+    public async Task AsyncUnaryCall_ColdPath_KubeMQAuthException_Rethrows()
     {
         var mock = new Mock<ICredentialProvider>();
         mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -911,14 +914,15 @@ public sealed class AuthInterceptorTests : IDisposable
                 () => new Metadata(),
                 () => { });
 
-        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        Func<Task> act = async () => await call.ResponseAsync;
 
-        act.Should().Throw<KubeMQAuthenticationException>()
+        await act.Should().ThrowAsync<KubeMQAuthenticationException>()
             .WithMessage("auth failed");
     }
 
     [Fact]
-    public void GetCachedTokenSync_KubeMQConnectionException_Rethrows()
+    public async Task AsyncUnaryCall_ColdPath_KubeMQConnectionException_Rethrows()
     {
         var mock = new Mock<ICredentialProvider>();
         mock.Setup(p => p.GetTokenAsync(It.IsAny<CancellationToken>()))
@@ -944,9 +948,10 @@ public sealed class AuthInterceptorTests : IDisposable
                 () => new Metadata(),
                 () => { });
 
-        Action act = () => _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        var call = _interceptor.AsyncUnaryCall(Array.Empty<byte>(), context, continuation);
+        Func<Task> act = async () => await call.ResponseAsync;
 
-        act.Should().Throw<KubeMQConnectionException>()
+        await act.Should().ThrowAsync<KubeMQConnectionException>()
             .WithMessage("conn failed");
     }
 
