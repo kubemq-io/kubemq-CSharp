@@ -8,6 +8,9 @@ namespace KubeMQ.Burnin;
 
 public sealed class RunStartRequest
 {
+    [JsonPropertyName("broker")]
+    public ApiBrokerOverride? Broker { get; set; }
+
     [JsonPropertyName("mode")]
     public string? Mode { get; set; }
 
@@ -53,6 +56,12 @@ public sealed class RunStartRequest
 
     [JsonPropertyName("rates")]
     public object? Rates { get; set; }
+}
+
+public sealed class ApiBrokerOverride
+{
+    [JsonPropertyName("address")]
+    public string? Address { get; set; }
 }
 
 /// <summary>
@@ -427,7 +436,7 @@ public static partial class ApiConfigTranslator
         // Copy startup-only settings
         cfg.Broker = new BrokerConfig
         {
-            Address = startup.Broker.Address,
+            Address = !string.IsNullOrEmpty(req?.Broker?.Address) ? req.Broker.Address : startup.Broker.Address,
             ClientIdPrefix = startup.Broker.ClientIdPrefix,
         };
         cfg.Recovery = new RecoveryConfig

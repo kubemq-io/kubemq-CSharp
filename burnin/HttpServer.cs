@@ -37,7 +37,10 @@ public sealed class BurninHttpServer : IAsyncDisposable
     public BurninHttpServer(int port, Engine engine, string corsOrigins = "*")
     {
         var builder = WebApplication.CreateBuilder();
-        builder.WebHost.ConfigureKestrel(opts => opts.ListenAnyIP(port));
+        builder.WebHost.ConfigureKestrel(opts =>
+        {
+            opts.Listen(System.Net.IPAddress.Any, port);
+        });
         builder.Logging.SetMinimumLevel(LogLevel.Warning);
 
         _app = builder.Build();
