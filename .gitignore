@@ -263,3 +263,6 @@ __pycache__/
 /Examples/EventSender/Properties/launchSettings.json
 /Examples/CommandQueryResponder/Properties/launchSettings.json
 /Examples/CommandQueryInitiator/Properties/launchSettings.json
+
+# Local secrets
+.nuget-key
