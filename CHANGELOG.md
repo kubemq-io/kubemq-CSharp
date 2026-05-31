@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-05-31
+
+### Improvements
+- Bump Google.Protobuf 3.34.0 → 3.35.0 (routine currency update on the pinned floor)
+- Remove obsolete queue examples and unused SDK components
+
 ## [3.0.0] - 2026-03-16
 
 ### Added
