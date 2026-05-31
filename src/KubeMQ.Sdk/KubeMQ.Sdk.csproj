@@ -9,7 +9,7 @@
     <AssemblyName>KubeMQ.Sdk</AssemblyName>
 
     <!-- Version management (REQ-PKG-2): single Version drives all version attributes -->
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
 
     <!-- Package identity -->
     <PackageId>KubeMQ.SDK.CSharp</PackageId>
