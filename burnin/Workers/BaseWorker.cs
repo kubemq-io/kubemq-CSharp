@@ -384,6 +384,17 @@ public abstract class BaseWorker : IDisposable
 
     public virtual void Dispose()
     {
+        // Cancel BEFORE disposing so any still-running consumer/producer loops
+        // observe cancellation and break instead of looping against a disposed
+        // client. Critical on the startup-failure path (e.g. warmup failure),
+        // where consumers were already started in Step 6 but StopConsumers() may
+        // not have been called before the per-pattern client is disposed.
+        // Cancel() on an already-cancelled CTS (normal shutdown already called
+        // StopProducers/StopConsumers) is a no-op, so normal shutdown is unaffected.
+        if (!ProducerCts.IsCancellationRequested)
+            ProducerCts.Cancel();
+        if (!ConsumerCts.IsCancellationRequested)
+            ConsumerCts.Cancel();
         ProducerCts.Dispose();
         ConsumerCts.Dispose();
         Limiter.Dispose();

@@ -155,6 +155,9 @@ public sealed class QueueStreamWorker : BaseWorker
                 }
             }
             catch (OperationCanceledException) { break; }
+            // Terminal: the per-pattern client/receiver was disposed (e.g. startup
+            // teardown). Retrying would loop forever against a dead client, so stop.
+            catch (ObjectDisposedException) { break; }
             catch (Exception ex)
             {
                 if (ct.IsCancellationRequested) break;

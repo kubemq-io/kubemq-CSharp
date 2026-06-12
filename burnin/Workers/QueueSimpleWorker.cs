@@ -130,6 +130,12 @@ public sealed class QueueSimpleWorker : BaseWorker
             {
                 break;
             }
+            // Terminal: the per-pattern client/receiver was disposed (e.g. startup
+            // teardown). Retrying would loop forever against a dead client, so stop.
+            catch (ObjectDisposedException)
+            {
+                break;
+            }
             catch (KubeMQOperationException)
             {
                 // Stream broken — will recreate receiver on next outer loop iteration
