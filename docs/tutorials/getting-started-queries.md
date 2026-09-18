@@ -223,7 +223,7 @@ Common issues and how to handle them:
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Connection refused` | KubeMQ server not running | Start the server: `docker run -p 50000:50000 kubemq/kubemq` |
+| `Connection refused` | KubeMQ server not running | Start the server: `docker run -p 50000:50000 europe-docker.pkg.dev/kubemq/images/kubemq-next:latest` |
 | `KubeMQTimeoutException` | No handler listening or handler too slow | Start the handler first; increase `TimeoutInSeconds` |
 | `NullReferenceException` on `ReplyChannel` | Handler received malformed request | Validate `query.ReplyChannel` before building `QueryResponse` |
 | `RpcException` | Network interruption | Catch and reconnect with `ConnectAsync()` |

@@ -193,7 +193,7 @@ Common issues and how to handle them:
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Connection refused` | KubeMQ server not running | Start the server: `docker run -p 50000:50000 kubemq/kubemq` |
+| `Connection refused` | KubeMQ server not running | Start the server: `docker run -p 50000:50000 europe-docker.pkg.dev/kubemq/images/kubemq-next:latest` |
 | `Subscriber missed events` | Subscriber connected after publisher sent | Always subscribe before publishing |
 | `RpcException` | Network interruption | Catch and reconnect with `ConnectAsync()` |
 

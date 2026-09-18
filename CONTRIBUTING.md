@@ -28,7 +28,7 @@ dotnet test tests/KubeMQ.Sdk.Tests.Unit/KubeMQ.Sdk.Tests.Unit.csproj
 ### Integration tests (requires KubeMQ server):
 
 ```bash
-docker run -d -p 50000:50000 kubemq/kubemq-community:latest
+docker run -d -p 50000:50000 europe-docker.pkg.dev/kubemq/images/kubemq-next:latest
 dotnet test tests/KubeMQ.Sdk.Tests.Integration/KubeMQ.Sdk.Tests.Integration.csproj
 ```
 
