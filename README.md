@@ -72,7 +72,7 @@ Or via PackageReference:
 - [.NET 8.0](https://dotnet.microsoft.com/download/dotnet/8.0) (LTS)
 - KubeMQ server (≥3.0) running on `localhost:50000`
   ```bash
-  docker run -d -p 50000:50000 kubemq/kubemq-community:latest
+  docker run -d -p 50000:50000 europe-docker.pkg.dev/kubemq/images/kubemq-next:latest
   ```
 - Install the SDK: `dotnet add package KubeMQ.SDK.CSharp`
 
@@ -293,7 +293,7 @@ var client = new KubeMQClient(new KubeMQClientOptions
 Verify the KubeMQ server is running and accessible:
 
 ```bash
-docker run -d --name kubemq -p 50000:50000 kubemq/kubemq-community:latest
+docker run -d --name kubemq -p 50000:50000 europe-docker.pkg.dev/kubemq/images/kubemq-next:latest
 ```
 
 ### Authentication failed

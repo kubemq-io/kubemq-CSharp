@@ -7,7 +7,7 @@ Self-contained, runnable examples for all KubeMQ messaging patterns.
 - .NET 8.0 or later
 - KubeMQ server running on `localhost:50000`:
   ```bash
-  docker run -d -p 50000:50000 kubemq/kubemq-community:latest
+  docker run -d -p 50000:50000 europe-docker.pkg.dev/kubemq/images/kubemq-next:latest
   ```
 
 ## Running an Example
